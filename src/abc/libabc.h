@@ -30,13 +30,13 @@ extern "C" {
  * environment, user variables, allows custom logging
  */
 struct abc_ctx;
+typedef void abc_log_fn_t(struct abc_ctx *ctx,
+			  int priority, const char *file, int line, const char *fn,
+			  const char *format, va_list args);
 struct abc_ctx *abc_ref(struct abc_ctx *ctx);
 struct abc_ctx *abc_unref(struct abc_ctx *ctx);
 int abc_new(struct abc_ctx **ctx);
-void abc_set_log_fn(struct abc_ctx *ctx,
-                  void (*log_fn)(struct abc_ctx *ctx,
-                                 int priority, const char *file, int line, const char *fn,
-                                 const char *format, va_list args));
+void abc_set_log_fn(struct abc_ctx *ctx, abc_log_fn_t *log_fn);
 int abc_get_log_priority(struct abc_ctx *ctx);
 void abc_set_log_priority(struct abc_ctx *ctx, int priority);
 void *abc_get_userdata(struct abc_ctx *ctx);

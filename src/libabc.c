@@ -41,9 +41,7 @@
  */
 struct abc_ctx {
         int refcount;
-        void (*log_fn)(struct abc_ctx *ctx,
-                       int priority, const char *file, int line, const char *fn,
-                       const char *format, va_list args);
+        abc_log_fn_t *log_fn;
         void *userdata;
         int log_priority;
 };
@@ -194,11 +192,7 @@ ABC_EXPORT struct abc_ctx *abc_unref(struct abc_ctx *ctx)
  * into the user's logging functionality.
  *
  **/
-ABC_EXPORT void abc_set_log_fn(struct abc_ctx *ctx,
-                              void (*log_fn)(struct abc_ctx *ctx,
-                                             int priority, const char *file,
-                                             int line, const char *fn,
-                                             const char *format, va_list args))
+ABC_EXPORT void abc_set_log_fn(struct abc_ctx *ctx, abc_log_fn_t *log_fn)
 {
         ctx->log_fn = log_fn;
         info(ctx, "custom logging function %p registered\n", log_fn);
