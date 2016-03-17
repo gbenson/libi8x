@@ -131,7 +131,7 @@ ABC_EXPORT int abc_new(struct abc_ctx **ctx)
         struct abc_ctx *c;
 
         c = calloc(1, sizeof(struct abc_ctx));
-        if (!c)
+        if (c == NULL)
                 return -ENOMEM;
 
         c->refcount = 1;
@@ -237,7 +237,7 @@ struct abc_thing {
 
 ABC_EXPORT struct abc_thing *abc_thing_ref(struct abc_thing *thing)
 {
-        if (!thing)
+        if (thing == NULL)
                 return NULL;
         thing->refcount++;
         return thing;
@@ -266,7 +266,7 @@ ABC_EXPORT int abc_thing_new_from_string(struct abc_ctx *ctx, const char *string
         struct abc_thing *t;
 
         t = calloc(1, sizeof(struct abc_thing));
-        if (!t)
+        if (t == NULL)
                 return -ENOMEM;
 
         t->refcount = 1;
