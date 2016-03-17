@@ -70,6 +70,33 @@ AC_CHECK_FUNCS([ \
 	secure_getenv\
 ])
 
+dnl Check for libelf, lifted and extended from glib.  Note that only
+dnl the tlsdump example requires this, the main library does not use
+dnl libelf and will build just fine without.
+AC_ARG_ENABLE(libelf,
+              AS_HELP_STRING([--disable-libelf], [build without libelf support]))
+AS_IF([ test "x$enable_libelf" != "xno"],[
+PKG_CHECK_MODULES([LIBELF], [libelf >= 0.8.12], [have_libelf=yes], [have_libelf=maybe])
+AS_IF([ test $have_libelf = maybe ], [
+  AC_CHECK_LIB([elf], [elf_begin], [:], [have_libelf=no])
+  AC_CHECK_LIB([elf], [elf_kind], [:], [have_libelf=no])
+  AC_CHECK_LIB([elf], [elf_nextscn], [:], [have_libelf=no])
+  AC_CHECK_LIB([elf], [gelf_getshdr], [:], [have_libelf=no])
+  AC_CHECK_LIB([elf], [elf_getdata], [:], [have_libelf=no])
+  AC_CHECK_LIB([elf], [gelf_getnote], [:], [have_libelf=no])
+  AC_CHECK_LIB([elf], [elf_end], [:], [have_libelf=no])
+
+  AC_CHECK_HEADER([libelf.h], [:], [have_libelf=no])
+  AC_CHECK_HEADER([gelf.h], [:], [have_libelf=no])
+
+  if test $have_libelf != no; then
+    LIBELF_LIBS=-lelf
+    have_libelf=yes
+  fi
+])
+])
+AM_CONDITIONAL([HAVE_LIBELF], [test x$have_libelf = xyes])
+
 my_CFLAGS="\
 -Wall \
 -Wchar-subscripts \

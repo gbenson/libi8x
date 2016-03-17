@@ -1,3 +1,22 @@
+# Copyright (C) 2016 Red Hat, Inc.
+# This file is part of the Infinity Note Execution Library.
+#
+# The Infinity Note Execution Library is free software; you can
+# redistribute it and/or modify it under the terms of the GNU Lesser
+# General Public License as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option)
+# any later version.
+#
+# The Infinity Note Execution Library is distributed in the hope
+# that it will be useful, but WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with the Infinity Note Execution Library; if not,
+# see <http://www.gnu.org/licenses/>.
+
 EXTRA_DIST =
 CLEANFILES =
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
@@ -58,3 +77,14 @@ TESTS = src/test-libi8x
 check_PROGRAMS = src/test-libi8x
 src_test_libi8x_SOURCES = src/test-libi8x.c
 src_test_libi8x_LDADD = src/libi8x.la
+
+if HAVE_LIBELF
+tlsdump = examples/tlsdump
+examples_tlsdump_SOURCES = examples/tlsdump.c
+examples_tlsdump_CFLAGS = $(LIBELF_CFLAGS)
+examples_tlsdump_LDADD = src/libi8x.la $(LIBELF_LIBS)
+else
+tlsdump =
+endif
+
+noinst_PROGRAMS = $(tlsdump)
