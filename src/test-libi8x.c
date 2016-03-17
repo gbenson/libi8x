@@ -28,22 +28,23 @@
 
 #include <i8x/libi8x.h>
 
-int main(int argc, char *argv[])
+int
+main (int argc, char *argv[])
 {
-        struct i8x_ctx *ctx;
-        struct i8x_thing *thing = NULL;
-        int err;
+  struct i8x_ctx *ctx;
+  struct i8x_thing *thing = NULL;
+  int err;
 
-        err = i8x_new(&ctx);
-        if (err < 0)
-                exit(EXIT_FAILURE);
+  err = i8x_new (&ctx);
+  if (err < 0)
+    exit (EXIT_FAILURE);
 
-        printf("version %s\n", VERSION);
+  printf ("version %s\n", VERSION);
 
-        err = i8x_thing_new_from_string(ctx, "foo", &thing);
-        if (err >= 0)
-                i8x_thing_unref(thing);
+  err = i8x_thing_new_from_string (ctx, "foo", &thing);
+  if (err >= 0)
+    i8x_thing_unref (thing);
 
-        i8x_unref(ctx);
-        return EXIT_SUCCESS;
+  i8x_unref (ctx);
+  return EXIT_SUCCESS;
 }

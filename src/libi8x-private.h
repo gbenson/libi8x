@@ -29,27 +29,27 @@
 extern "C" {
 #endif
 
-static inline void __attribute__((always_inline, format(printf, 2, 3)))
-i8x_log_null(struct i8x_ctx *ctx, const char *format, ...) {}
+static inline void __attribute__ ((always_inline, format (printf, 2, 3)))
+i8x_log_null (struct i8x_ctx *ctx, const char *format, ...) {}
 
 #define i8x_log_cond(ctx, prio, arg...) \
   do { \
-    if (i8x_get_log_priority(ctx) >= prio) \
-      i8x_log(ctx, prio, __FILE__, __LINE__, __FUNCTION__, ## arg); \
+    if (i8x_get_log_priority (ctx) >= prio) \
+      i8x_log (ctx, prio, __FILE__, __LINE__, __FUNCTION__, ## arg); \
   } while (0)
 
 #ifdef ENABLE_LOGGING
 #  ifdef ENABLE_DEBUG
-#    define dbg(ctx, arg...) i8x_log_cond(ctx, LOG_DEBUG, ## arg)
+#    define dbg(ctx, arg...) i8x_log_cond (ctx, LOG_DEBUG, ## arg)
 #  else
-#    define dbg(ctx, arg...) i8x_log_null(ctx, ## arg)
+#    define dbg(ctx, arg...) i8x_log_null (ctx, ## arg)
 #  endif
-#  define info(ctx, arg...) i8x_log_cond(ctx, LOG_INFO, ## arg)
-#  define err(ctx, arg...) i8x_log_cond(ctx, LOG_ERR, ## arg)
+#  define info(ctx, arg...) i8x_log_cond (ctx, LOG_INFO, ## arg)
+#  define err(ctx, arg...) i8x_log_cond (ctx, LOG_ERR, ## arg)
 #else
-#  define dbg(ctx, arg...) i8x_log_null(ctx, ## arg)
-#  define info(ctx, arg...) i8x_log_null(ctx, ## arg)
-#  define err(ctx, arg...) i8x_log_null(ctx, ## arg)
+#  define dbg(ctx, arg...) i8x_log_null (ctx, ## arg)
+#  define info(ctx, arg...) i8x_log_null (ctx, ## arg)
+#  define err(ctx, arg...) i8x_log_null (ctx, ## arg)
 #endif
 
 #ifndef HAVE_SECURE_GETENV
@@ -60,15 +60,15 @@ i8x_log_null(struct i8x_ctx *ctx, const char *format, ...) {}
 #  endif
 #endif
 
-#define I8X_EXPORT __attribute__ ((visibility("default")))
+#define I8X_EXPORT __attribute__ ((visibility ("default")))
 
-void i8x_log(struct i8x_ctx *ctx,
-           int priority, const char *file, int line, const char *fn,
-           const char *format, ...)
-           __attribute__((format(printf, 6, 7)));
+void i8x_log (struct i8x_ctx *ctx,
+	      int priority, const char *file, int line, const char *fn,
+	      const char *format, ...)
+  __attribute__ ((format (printf, 6, 7)));
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif
+#endif /* _LIBI8X_PRIVATE_H_ */

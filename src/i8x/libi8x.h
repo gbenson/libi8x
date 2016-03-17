@@ -33,17 +33,19 @@ extern "C" {
  * environment, user variables, allows custom logging
  */
 struct i8x_ctx;
-typedef void i8x_log_fn_t(struct i8x_ctx *ctx,
-			  int priority, const char *file, int line, const char *fn,
-			  const char *format, va_list args);
-struct i8x_ctx *i8x_ref(struct i8x_ctx *ctx);
-struct i8x_ctx *i8x_unref(struct i8x_ctx *ctx);
-int i8x_new(struct i8x_ctx **ctx);
-void i8x_set_log_fn(struct i8x_ctx *ctx, i8x_log_fn_t *log_fn);
-int i8x_get_log_priority(struct i8x_ctx *ctx);
-void i8x_set_log_priority(struct i8x_ctx *ctx, int priority);
-void *i8x_get_userdata(struct i8x_ctx *ctx);
-void i8x_set_userdata(struct i8x_ctx *ctx, void *userdata);
+typedef void i8x_log_fn_t (struct i8x_ctx *ctx,
+			   int priority,
+			   const char *file, int line,
+			   const char *fn,
+			   const char *format, va_list args);
+struct i8x_ctx *i8x_ref (struct i8x_ctx *ctx);
+struct i8x_ctx *i8x_unref (struct i8x_ctx *ctx);
+int i8x_new (struct i8x_ctx **ctx);
+void i8x_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn);
+int i8x_get_log_priority (struct i8x_ctx *ctx);
+void i8x_set_log_priority (struct i8x_ctx *ctx, int priority);
+void *i8x_get_userdata (struct i8x_ctx *ctx);
+void i8x_set_userdata (struct i8x_ctx *ctx, void *userdata);
 
 /*
  * i8x_list
@@ -51,13 +53,13 @@ void i8x_set_userdata(struct i8x_ctx *ctx, void *userdata);
  * access to i8x generated lists
  */
 struct i8x_list_entry;
-struct i8x_list_entry *i8x_list_entry_get_next(struct i8x_list_entry *list_entry);
-const char *i8x_list_entry_get_name(struct i8x_list_entry *list_entry);
-const char *i8x_list_entry_get_value(struct i8x_list_entry *list_entry);
-#define i8x_list_entry_foreach(list_entry, first_entry) \
+struct i8x_list_entry *i8x_list_entry_get_next (struct i8x_list_entry *list_entry);
+const char *i8x_list_entry_get_name (struct i8x_list_entry *list_entry);
+const char *i8x_list_entry_get_value (struct i8x_list_entry *list_entry);
+#define i8x_list_entry_foreach (list_entry, first_entry) \
         for (list_entry = first_entry; \
              list_entry != NULL; \
-             list_entry = i8x_list_entry_get_next(list_entry))
+             list_entry = i8x_list_entry_get_next (list_entry))
 
 /*
  * i8x_thing
@@ -65,14 +67,15 @@ const char *i8x_list_entry_get_value(struct i8x_list_entry *list_entry);
  * access to things of i8x
  */
 struct i8x_thing;
-struct i8x_thing *i8x_thing_ref(struct i8x_thing *thing);
-struct i8x_thing *i8x_thing_unref(struct i8x_thing *thing);
-struct i8x_ctx *i8x_thing_get_ctx(struct i8x_thing *thing);
-int i8x_thing_new_from_string(struct i8x_ctx *ctx, const char *string, struct i8x_thing **thing);
-struct i8x_list_entry *i8x_thing_get_some_list_entry(struct i8x_thing *thing);
+struct i8x_thing *i8x_thing_ref (struct i8x_thing *thing);
+struct i8x_thing *i8x_thing_unref (struct i8x_thing *thing);
+struct i8x_ctx *i8x_thing_get_ctx (struct i8x_thing *thing);
+int i8x_thing_new_from_string (struct i8x_ctx *ctx, const char *string,
+			       struct i8x_thing **thing);
+struct i8x_list_entry *i8x_thing_get_some_list_entry (struct i8x_thing *thing);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif
+#endif /* _LIBI8X_H_ */
