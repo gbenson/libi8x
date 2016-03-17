@@ -1,10 +1,10 @@
 AC_PREREQ(2.60)
-AC_INIT([abc],
+AC_INIT([i8x],
         [4],
-        [abc-devel@example.com],
-        [abc],
-        [http://www.example.com/abc/])
-AC_CONFIG_SRCDIR([src/libabc.c])
+        [i8x-devel@example.com],
+        [i8x],
+        [http://www.example.com/i8x/])
+AC_CONFIG_SRCDIR([src/libi8x.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([
 	check-news

@@ -1,5 +1,5 @@
 /*
-  abc - something with abc
+  i8x - something with i8x
 
   Copyright (C) 2011 Someone <someone@example.com>
 
@@ -23,30 +23,30 @@
 #include <string.h>
 #include <ctype.h>
 
-#include <abc/libabc.h>
-#include "libabc-private.h"
+#include <i8x/libi8x.h>
+#include "libi8x-private.h"
 
 /**
- * SECTION:libabc
- * @short_description: libabc context
+ * SECTION:libi8x
+ * @short_description: libi8x context
  *
  * The context contains the default values for the library user,
  * and is passed to all library operations.
  */
 
 /**
- * abc_ctx:
+ * i8x_ctx:
  *
  * Opaque object representing the library context.
  */
-struct abc_ctx {
+struct i8x_ctx {
         int refcount;
-        abc_log_fn_t *log_fn;
+        i8x_log_fn_t *log_fn;
         void *userdata;
         int log_priority;
 };
 
-void abc_log(struct abc_ctx *ctx,
+void i8x_log(struct i8x_ctx *ctx,
            int priority, const char *file, int line, const char *fn,
            const char *format, ...)
 {
@@ -57,24 +57,24 @@ void abc_log(struct abc_ctx *ctx,
         va_end(args);
 }
 
-static void log_stderr(struct abc_ctx *ctx,
+static void log_stderr(struct i8x_ctx *ctx,
                        int priority, const char *file, int line, const char *fn,
                        const char *format, va_list args)
 {
-        fprintf(stderr, "libabc: %s: ", fn);
+        fprintf(stderr, "libi8x: %s: ", fn);
         vfprintf(stderr, format, args);
 }
 
 /**
- * abc_get_userdata:
- * @ctx: abc library context
+ * i8x_get_userdata:
+ * @ctx: i8x library context
  *
  * Retrieve stored data pointer from library context. This might be useful
  * to access from callbacks like a custom logging function.
  *
  * Returns: stored userdata
  **/
-ABC_EXPORT void *abc_get_userdata(struct abc_ctx *ctx)
+I8X_EXPORT void *i8x_get_userdata(struct i8x_ctx *ctx)
 {
         if (ctx == NULL)
                 return NULL;
@@ -82,13 +82,13 @@ ABC_EXPORT void *abc_get_userdata(struct abc_ctx *ctx)
 }
 
 /**
- * abc_set_userdata:
- * @ctx: abc library context
+ * i8x_set_userdata:
+ * @ctx: i8x library context
  * @userdata: data pointer
  *
  * Store custom @userdata in the library context.
  **/
-ABC_EXPORT void abc_set_userdata(struct abc_ctx *ctx, void *userdata)
+I8X_EXPORT void i8x_set_userdata(struct i8x_ctx *ctx, void *userdata)
 {
         if (ctx == NULL)
                 return;
@@ -113,22 +113,22 @@ static int log_priority(const char *priority)
 }
 
 /**
- * abc_new:
+ * i8x_new:
  *
- * Create abc library context. This reads the abc configuration
+ * Create i8x library context. This reads the i8x configuration
  * and fills in the default values.
  *
  * The initial refcount is 1, and needs to be decremented to
- * release the resources of the abc library context.
+ * release the resources of the i8x library context.
  *
- * Returns: a new abc library context
+ * Returns: a new i8x library context
  **/
-ABC_EXPORT int abc_new(struct abc_ctx **ctx)
+I8X_EXPORT int i8x_new(struct i8x_ctx **ctx)
 {
         const char *env;
-        struct abc_ctx *c;
+        struct i8x_ctx *c;
 
-        c = calloc(1, sizeof(struct abc_ctx));
+        c = calloc(1, sizeof(struct i8x_ctx));
         if (c == NULL)
                 return -ENOMEM;
 
@@ -137,9 +137,9 @@ ABC_EXPORT int abc_new(struct abc_ctx **ctx)
         c->log_priority = LOG_ERR;
 
         /* environment overwrites config */
-        env = secure_getenv("ABC_LOG");
+        env = secure_getenv("I8X_LOG");
         if (env != NULL)
-                abc_set_log_priority(c, log_priority(env));
+                i8x_set_log_priority(c, log_priority(env));
 
         info(c, "ctx %p created\n", c);
         dbg(c, "log_priority=%d\n", c->log_priority);
@@ -148,14 +148,14 @@ ABC_EXPORT int abc_new(struct abc_ctx **ctx)
 }
 
 /**
- * abc_ref:
- * @ctx: abc library context
+ * i8x_ref:
+ * @ctx: i8x library context
  *
- * Take a reference of the abc library context.
+ * Take a reference of the i8x library context.
  *
- * Returns: the passed abc library context
+ * Returns: the passed i8x library context
  **/
-ABC_EXPORT struct abc_ctx *abc_ref(struct abc_ctx *ctx)
+I8X_EXPORT struct i8x_ctx *i8x_ref(struct i8x_ctx *ctx)
 {
         if (ctx == NULL)
                 return NULL;
@@ -164,13 +164,13 @@ ABC_EXPORT struct abc_ctx *abc_ref(struct abc_ctx *ctx)
 }
 
 /**
- * abc_unref:
- * @ctx: abc library context
+ * i8x_unref:
+ * @ctx: i8x library context
  *
- * Drop a reference of the abc library context.
+ * Drop a reference of the i8x library context.
  *
  **/
-ABC_EXPORT struct abc_ctx *abc_unref(struct abc_ctx *ctx)
+I8X_EXPORT struct i8x_ctx *i8x_unref(struct i8x_ctx *ctx)
 {
         if (ctx == NULL)
                 return NULL;
@@ -183,8 +183,8 @@ ABC_EXPORT struct abc_ctx *abc_unref(struct abc_ctx *ctx)
 }
 
 /**
- * abc_set_log_fn:
- * @ctx: abc library context
+ * i8x_set_log_fn:
+ * @ctx: i8x library context
  * @log_fn: function to be called for logging messages
  *
  * The built-in logging writes to stderr. It can be
@@ -192,44 +192,44 @@ ABC_EXPORT struct abc_ctx *abc_unref(struct abc_ctx *ctx)
  * into the user's logging functionality.
  *
  **/
-ABC_EXPORT void abc_set_log_fn(struct abc_ctx *ctx, abc_log_fn_t *log_fn)
+I8X_EXPORT void i8x_set_log_fn(struct i8x_ctx *ctx, i8x_log_fn_t *log_fn)
 {
         ctx->log_fn = log_fn;
         info(ctx, "custom logging function %p registered\n", log_fn);
 }
 
 /**
- * abc_get_log_priority:
- * @ctx: abc library context
+ * i8x_get_log_priority:
+ * @ctx: i8x library context
  *
  * Returns: the current logging priority
  **/
-ABC_EXPORT int abc_get_log_priority(struct abc_ctx *ctx)
+I8X_EXPORT int i8x_get_log_priority(struct i8x_ctx *ctx)
 {
         return ctx->log_priority;
 }
 
 /**
- * abc_set_log_priority:
- * @ctx: abc library context
+ * i8x_set_log_priority:
+ * @ctx: i8x library context
  * @priority: the new logging priority
  *
  * Set the current logging priority. The value controls which messages
  * are logged.
  **/
-ABC_EXPORT void abc_set_log_priority(struct abc_ctx *ctx, int priority)
+I8X_EXPORT void i8x_set_log_priority(struct i8x_ctx *ctx, int priority)
 {
         ctx->log_priority = priority;
 }
 
-struct abc_list_entry;
+struct i8x_list_entry;
 
-struct abc_thing {
-        struct abc_ctx *ctx;
+struct i8x_thing {
+        struct i8x_ctx *ctx;
         int refcount;
 };
 
-ABC_EXPORT struct abc_thing *abc_thing_ref(struct abc_thing *thing)
+I8X_EXPORT struct i8x_thing *i8x_thing_ref(struct i8x_thing *thing)
 {
         if (thing == NULL)
                 return NULL;
@@ -237,7 +237,7 @@ ABC_EXPORT struct abc_thing *abc_thing_ref(struct abc_thing *thing)
         return thing;
 }
 
-ABC_EXPORT struct abc_thing *abc_thing_unref(struct abc_thing *thing)
+I8X_EXPORT struct i8x_thing *i8x_thing_unref(struct i8x_thing *thing)
 {
         if (thing == NULL)
                 return NULL;
@@ -245,31 +245,31 @@ ABC_EXPORT struct abc_thing *abc_thing_unref(struct abc_thing *thing)
         if (thing->refcount > 0)
                 return NULL;
         dbg(thing->ctx, "context %p released\n", thing);
-        abc_unref(thing->ctx);
+        i8x_unref(thing->ctx);
         free(thing);
         return NULL;
 }
 
-ABC_EXPORT struct abc_ctx *abc_thing_get_ctx(struct abc_thing *thing)
+I8X_EXPORT struct i8x_ctx *i8x_thing_get_ctx(struct i8x_thing *thing)
 {
         return thing->ctx;
 }
 
-ABC_EXPORT int abc_thing_new_from_string(struct abc_ctx *ctx, const char *string, struct abc_thing **thing)
+I8X_EXPORT int i8x_thing_new_from_string(struct i8x_ctx *ctx, const char *string, struct i8x_thing **thing)
 {
-        struct abc_thing *t;
+        struct i8x_thing *t;
 
-        t = calloc(1, sizeof(struct abc_thing));
+        t = calloc(1, sizeof(struct i8x_thing));
         if (t == NULL)
                 return -ENOMEM;
 
         t->refcount = 1;
-        t->ctx = abc_ref(ctx);
+        t->ctx = i8x_ref(ctx);
         *thing = t;
         return 0;
 }
 
-ABC_EXPORT struct abc_list_entry *abc_thing_get_some_list_entry(struct abc_thing *thing)
+I8X_EXPORT struct i8x_list_entry *i8x_thing_get_some_list_entry(struct i8x_thing *thing)
 {
         return NULL;
 }

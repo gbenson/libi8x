@@ -29,31 +29,31 @@ SED_PROCESS = \
 %.pc: %.pc.in Makefile
 	$(SED_PROCESS)
 
-LIBABC_CURRENT=2
-LIBABC_REVISION=0
-LIBABC_AGE=2
+LIBI8X_CURRENT=2
+LIBI8X_REVISION=0
+LIBI8X_AGE=2
 
-pkginclude_HEADERS = src/abc/libabc.h
-lib_LTLIBRARIES = src/libabc.la
+pkginclude_HEADERS = src/i8x/libi8x.h
+lib_LTLIBRARIES = src/libi8x.la
 
-src_libabc_la_SOURCES =\
-	src/libabc-private.h \
-	src/libabc.c
+src_libi8x_la_SOURCES =\
+	src/libi8x-private.h \
+	src/libi8x.c
 
-EXTRA_DIST += src/libabc.sym
+EXTRA_DIST += src/libi8x.sym
 
-src_libabc_la_LDFLAGS = $(AM_LDFLAGS) \
-	-version-info $(LIBABC_CURRENT):$(LIBABC_REVISION):$(LIBABC_AGE) \
-	-Wl,--version-script=$(top_srcdir)/src/libabc.sym
-src_libabc_la_DEPENDENCIES = ${top_srcdir}/src/libabc.sym
+src_libi8x_la_LDFLAGS = $(AM_LDFLAGS) \
+	-version-info $(LIBI8X_CURRENT):$(LIBI8X_REVISION):$(LIBI8X_AGE) \
+	-Wl,--version-script=$(top_srcdir)/src/libi8x.sym
+src_libi8x_la_DEPENDENCIES = ${top_srcdir}/src/libi8x.sym
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = src/libabc.pc
-EXTRA_DIST += src/libabc.pc.in
-CLEANFILES += src/libabc.pc
+pkgconfig_DATA = src/libi8x.pc
+EXTRA_DIST += src/libi8x.pc.in
+CLEANFILES += src/libi8x.pc
 
-TESTS = src/test-libabc
+TESTS = src/test-libi8x
 
-check_PROGRAMS = src/test-libabc
-src_test_libabc_SOURCES = src/test-libabc.c
-src_test_libabc_LDADD = src/libabc.la
+check_PROGRAMS = src/test-libi8x
+src_test_libi8x_SOURCES = src/test-libi8x.c
+src_test_libi8x_LDADD = src/libi8x.la

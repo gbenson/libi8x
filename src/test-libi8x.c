@@ -1,5 +1,5 @@
 /*
-    libabc - something with abc
+    libi8x - something with i8x
 
     Copyright (C) 2011 Someone <someone@example.com>
 
@@ -23,24 +23,24 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include <abc/libabc.h>
+#include <i8x/libi8x.h>
 
 int main(int argc, char *argv[])
 {
-        struct abc_ctx *ctx;
-        struct abc_thing *thing = NULL;
+        struct i8x_ctx *ctx;
+        struct i8x_thing *thing = NULL;
         int err;
 
-        err = abc_new(&ctx);
+        err = i8x_new(&ctx);
         if (err < 0)
                 exit(EXIT_FAILURE);
 
         printf("version %s\n", VERSION);
 
-        err = abc_thing_new_from_string(ctx, "foo", &thing);
+        err = i8x_thing_new_from_string(ctx, "foo", &thing);
         if (err >= 0)
-                abc_thing_unref(thing);
+                i8x_thing_unref(thing);
 
-        abc_unref(ctx);
+        i8x_unref(ctx);
         return EXIT_SUCCESS;
 }
