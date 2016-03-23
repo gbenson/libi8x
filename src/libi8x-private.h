@@ -90,6 +90,10 @@ void i8x_log (struct i8x_ctx *ctx,
 	      const char *format, ...)
   __attribute__ ((format (printf, 6, 7)));
 
+/* Placeholder for NLS.  */
+
+#define _(string) string
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
