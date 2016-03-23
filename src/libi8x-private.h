@@ -29,6 +29,29 @@
 extern "C" {
 #endif
 
+/* Assertions.  */
+
+#define i8x_assert(expr) \
+  ((void) ((expr) ? 0 : \
+	   (i8x_assert_fail (__FILE__, __LINE__, __FUNCTION__, \
+			     #expr), 0)))
+
+#define i8x_assert_fail(file, line, function, assertion) \
+  i8x_internal_error (file, line, function, \
+		      _("Assertion '%s' failed."), assertion)
+
+#define i8x_not_implemented() \
+  do { \
+    i8x_internal_error (__FILE__, __LINE__, __FUNCTION__, \
+			_("Not implemented.")); \
+  } while (0)
+
+void i8x_internal_error (const char *file, int line,
+			 const char *function, const char *format, ...)
+  __attribute__ ((__noreturn__, format (printf, 4, 5)));
+
+/* Logging.  */
+
 static inline void __attribute__ ((always_inline, format (printf, 2, 3)))
 i8x_log_null (struct i8x_ctx *ctx, const char *format, ...) {}
 
