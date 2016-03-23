@@ -83,9 +83,6 @@ log_stderr (struct i8x_ctx *ctx,
 I8X_EXPORT void *
 i8x_get_userdata (struct i8x_ctx *ctx)
 {
-  if (ctx == NULL)
-    return NULL;
-
   return ctx->userdata;
 }
 
@@ -99,9 +96,6 @@ i8x_get_userdata (struct i8x_ctx *ctx)
 I8X_EXPORT void
 i8x_set_userdata (struct i8x_ctx *ctx, void *userdata)
 {
-  if (ctx == NULL)
-    return;
-
   ctx->userdata = userdata;
 }
 
