@@ -8,6 +8,7 @@ global:
         i8x_unref;
         i8x_set_log_priority;
         i8x_new;
+        i8x_strerror_r;
 local:
         *;
 };
@@ -18,4 +19,7 @@ global:
         i8x_note_unref;
         i8x_note_get_ctx;
         i8x_note_new_from_mem;
+	i8x_note_get_src_name;
+	i8x_note_get_src_offset;
+	i8x_note_get_encoded;
 } LIBI8X_1;

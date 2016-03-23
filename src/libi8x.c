@@ -22,7 +22,6 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <unistd.h>
-#include <errno.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -64,6 +63,8 @@ struct i8x_ctx
   i8x_log_fn_t *log_fn;
   void *userdata;
   int log_priority;
+  struct i8x_note *error_note;	/* Note that caused the last error.  */
+  const char *error_ptr;	/* Pointer into error_note.  */
 };
 
 void
@@ -145,7 +146,7 @@ log_priority (const char *priority)
  *
  * Returns: a new i8x library context
  **/
-I8X_EXPORT int
+I8X_EXPORT i8x_err_e
 i8x_new (struct i8x_ctx **ctx)
 {
   const char *env;
@@ -153,7 +154,7 @@ i8x_new (struct i8x_ctx **ctx)
 
   c = calloc (1, sizeof (struct i8x_ctx));
   if (c == NULL)
-    return -ENOMEM;
+    return i8x_out_of_memory (NULL);
 
   c->refcount = 1;
   c->log_fn = log_stderr;
@@ -168,7 +169,7 @@ i8x_new (struct i8x_ctx **ctx)
   dbg (c, "log_priority=%d\n", c->log_priority);
   *ctx = c;
 
-  return 0;
+  return I8X_OK;
 }
 
 /**
@@ -208,6 +209,8 @@ i8x_unref (struct i8x_ctx *ctx)
     return NULL;
 
   info (ctx, "context %p released\n", ctx);
+
+  i8x_note_unref (ctx->error_note);
   free (ctx);
 
   return NULL;
@@ -254,4 +257,99 @@ I8X_EXPORT void
 i8x_set_log_priority (struct i8x_ctx *ctx, int priority)
 {
   ctx->log_priority = priority;
+}
+
+i8x_err_e
+i8x_set_error (struct i8x_ctx *ctx, i8x_err_e code,
+	       struct i8x_note *cause_note, const char *cause_ptr)
+{
+  i8x_assert (code != I8X_OK);
+
+  if (ctx != NULL)
+    {
+      i8x_note_unref (ctx->error_note);
+      ctx->error_note = i8x_note_ref (cause_note);
+
+      ctx->error_ptr = cause_ptr;
+    }
+
+  return code;
+}
+
+static const char *
+error_message_for (i8x_err_e code)
+{
+  switch (code)
+    {
+    case I8X_OK:
+      return _("no error");
+
+    case I8X_OUT_OF_MEMORY:
+      return _("out of memory");
+
+    case I8X_NOTE_CORRUPT:
+      return _("corrupt note");
+
+    case I8X_NOTE_UNHANDLED:
+      return _("unhandled note");
+
+    case I8X_NOTE_INVALID:
+      return _("invalid note");
+
+    default:
+      return NULL;
+    }
+}
+
+static void __attribute__ ((format (printf, 3, 4)))
+i8x_strerror_printf (char **bufp, char *limit, const char *format, ...)
+{
+  char *buf = *bufp;
+  size_t bufsiz = limit - buf;
+  va_list args;
+
+  va_start (args, format);
+  vsnprintf (buf, bufsiz, format, args);
+  va_end (args);
+
+  buf[bufsiz - 1] = '\0';
+  *bufp = buf + strlen (buf);
+}
+
+I8X_EXPORT const char *
+i8x_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
+		char *buf, size_t bufsiz)
+{
+  char *ptr = buf;
+  char *limit = ptr + bufsiz;
+  const char *prefix = NULL;
+  ssize_t offset = -1;
+  const char *msg = error_message_for (code);
+
+  if (ctx != NULL && ctx->error_note != NULL)
+    {
+      prefix = i8x_note_get_src_name (ctx->error_note);
+      offset = i8x_note_get_src_offset (ctx->error_note);
+
+      if (offset >= 0 && ctx->error_ptr != NULL)
+	offset += ctx->error_ptr
+	          - i8x_note_get_encoded (ctx->error_note);
+    }
+
+  if (prefix == NULL)
+    prefix = PACKAGE;
+
+  i8x_strerror_printf (&ptr, limit, "%s", prefix);
+
+  if (offset >= 0)
+    i8x_strerror_printf (&ptr, limit, "[0x%lx]", offset);
+
+  i8x_strerror_printf (&ptr, limit, ": ");
+
+  if (msg == NULL)
+    i8x_strerror_printf (&ptr, limit, _("unhandled error %d"), code);
+  else
+    i8x_strerror_printf (&ptr, limit, "%s", msg);
+
+  return buf;
 }

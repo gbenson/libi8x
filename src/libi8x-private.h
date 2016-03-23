@@ -29,6 +29,15 @@
 extern "C" {
 #endif
 
+/* Errors.  */
+
+i8x_err_e i8x_set_error (struct i8x_ctx *ctx, i8x_err_e code,
+			 struct i8x_note *cause_note,
+			 const char *cause_ptr);
+
+#define i8x_out_of_memory(ctx) \
+  i8x_set_error (ctx, I8X_OUT_OF_MEMORY, NULL, NULL)
+
 /* Assertions.  */
 
 #define i8x_assert(expr) \

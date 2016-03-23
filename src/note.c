@@ -19,7 +19,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
 #include <i8x/libi8x.h>
 #include "libi8x-private.h"
@@ -84,7 +83,7 @@ i8x_note_new_from_mem (struct i8x_ctx *ctx, const char *buf,
   /* Allocate all the memory at once.  */
   n = malloc (sizeof (struct i8x_note) + bufsiz + srcnamesiz);
   if (n == NULL)
-    return i8x_set_error (ctx, I8X_OUT_OF_MEMORY, NULL, -1);
+    return i8x_out_of_memory (ctx);
   memset (n, 0, sizeof (struct i8x_note));
 
   n->ctx = i8x_ref (ctx);
@@ -104,4 +103,22 @@ i8x_note_new_from_mem (struct i8x_ctx *ctx, const char *buf,
   *note = n;
 
   return I8X_OK;
+}
+
+I8X_EXPORT const char *
+i8x_note_get_src_name (struct i8x_note *note)
+{
+  return note->srcname;
+}
+
+I8X_EXPORT ssize_t
+i8x_note_get_src_offset (struct i8x_note *note)
+{
+  return note->srcoffset;
+}
+
+I8X_EXPORT const char *
+i8x_note_get_encoded (struct i8x_note *note)
+{
+  return note->encoded;
 }

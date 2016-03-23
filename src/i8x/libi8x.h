@@ -26,6 +26,18 @@
 extern "C" {
 #endif
 
+/* error codes */
+
+typedef enum
+{
+  I8X_OK = 0,
+  I8X_OUT_OF_MEMORY = -1,
+  I8X_NOTE_CORRUPT = -2,
+  I8X_NOTE_UNHANDLED = -3,
+  I8X_NOTE_INVALID = -4,
+}
+i8x_err_e;
+
 /*
  * i8x_ctx
  *
@@ -40,12 +52,14 @@ typedef void i8x_log_fn_t (struct i8x_ctx *ctx,
 			   const char *format, va_list args);
 struct i8x_ctx *i8x_ref (struct i8x_ctx *ctx);
 struct i8x_ctx *i8x_unref (struct i8x_ctx *ctx);
-int i8x_new (struct i8x_ctx **ctx);
+i8x_err_e i8x_new (struct i8x_ctx **ctx);
 void i8x_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn);
 int i8x_get_log_priority (struct i8x_ctx *ctx);
 void i8x_set_log_priority (struct i8x_ctx *ctx, int priority);
 void *i8x_get_userdata (struct i8x_ctx *ctx);
 void i8x_set_userdata (struct i8x_ctx *ctx, void *userdata);
+const char *i8x_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
+			    char *buf, size_t bufsiz);
 
 /*
  * i8x_note
@@ -56,10 +70,13 @@ struct i8x_note;
 struct i8x_note *i8x_note_ref (struct i8x_note *note);
 struct i8x_note *i8x_note_unref (struct i8x_note *note);
 struct i8x_ctx *i8x_note_get_ctx (struct i8x_note *note);
-int i8x_note_new_from_mem (struct i8x_ctx *ctx,
-			   const char *buf, size_t bufsiz,
-			   const char *srcname, ssize_t srcoffset,
-			   struct i8x_note **note);
+i8x_err_e i8x_note_new_from_mem (struct i8x_ctx *ctx,
+				 const char *buf, size_t bufsiz,
+				 const char *srcname, ssize_t srcoffset,
+				 struct i8x_note **note);
+const char *i8x_note_get_src_name (struct i8x_note *note);
+ssize_t i8x_note_get_src_offset (struct i8x_note *note);
+const char *i8x_note_get_encoded (struct i8x_note *note);
 
 #ifdef __cplusplus
 } /* extern "C" */
