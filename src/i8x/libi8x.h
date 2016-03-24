@@ -62,6 +62,19 @@ const char *i8x_list_entry_get_value (struct i8x_list_entry *list_entry);
              list_entry = i8x_list_entry_get_next (list_entry))
 
 /*
+ * i8x_note
+ *
+ * access to notes of i8x
+ */
+struct i8x_note;
+struct i8x_note *i8x_note_ref (struct i8x_note *note);
+struct i8x_note *i8x_note_unref (struct i8x_note *note);
+struct i8x_ctx *i8x_note_get_ctx (struct i8x_note *note);
+int i8x_note_new_from_mem (struct i8x_ctx *ctx,
+			   const char *buf, size_t bufsiz,
+			   const char *srcname, ssize_t srcoffset,
+			   struct i8x_note **note);
+/*
  * i8x_thing
  *
  * access to things of i8x

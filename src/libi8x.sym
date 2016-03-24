@@ -14,6 +14,10 @@ local:
 
 LIBI8X_3 {
 global:
+        i8x_note_ref;
+        i8x_note_unref;
+        i8x_note_get_ctx;
+        i8x_note_new_from_mem;
         i8x_thing_ref;
         i8x_thing_unref;
         i8x_thing_get_ctx;
