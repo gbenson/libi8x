@@ -18,9 +18,4 @@ global:
         i8x_note_unref;
         i8x_note_get_ctx;
         i8x_note_new_from_mem;
-        i8x_thing_ref;
-        i8x_thing_unref;
-        i8x_thing_get_ctx;
-        i8x_thing_new_from_string;
-        i8x_thing_get_some_list_entry;
 } LIBI8X_1;

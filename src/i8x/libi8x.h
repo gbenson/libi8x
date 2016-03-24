@@ -74,18 +74,6 @@ int i8x_note_new_from_mem (struct i8x_ctx *ctx,
 			   const char *buf, size_t bufsiz,
 			   const char *srcname, ssize_t srcoffset,
 			   struct i8x_note **note);
-/*
- * i8x_thing
- *
- * access to things of i8x
- */
-struct i8x_thing;
-struct i8x_thing *i8x_thing_ref (struct i8x_thing *thing);
-struct i8x_thing *i8x_thing_unref (struct i8x_thing *thing);
-struct i8x_ctx *i8x_thing_get_ctx (struct i8x_thing *thing);
-int i8x_thing_new_from_string (struct i8x_ctx *ctx, const char *string,
-			       struct i8x_thing **thing);
-struct i8x_list_entry *i8x_thing_get_some_list_entry (struct i8x_thing *thing);
 
 #ifdef __cplusplus
 } /* extern "C" */
