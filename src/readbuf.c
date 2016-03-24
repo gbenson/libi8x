@@ -78,7 +78,7 @@ i8x_rb_error (i8x_err_e code, struct i8x_readbuf *rb)
 {
   struct i8x_note *note = i8x_rb_get_note (rb);
 
-  return i8x_note_error (code, note, rb->ptr);
+  return i8x_note_error (note, code, rb->ptr);
 }
 
 I8X_EXPORT size_t

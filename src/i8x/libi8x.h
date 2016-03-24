@@ -42,6 +42,7 @@ i8x_err_e;
 
 /* forward declarations */
 
+struct i8x_chunk;
 struct i8x_ctx;
 struct i8x_note;
 struct i8x_object;
@@ -106,6 +107,19 @@ void i8x_ob_set_userdata (struct i8x_object *ob,
 
 #define I8X_COMMON_OBJECT_FUNCTIONS(TYPE) \
   I8X_COMMON_OBJECT_FUNCTIONS_PREFIX (TYPE, TYPE)
+
+/*
+ * i8x_chunk
+ *
+ * access to chunks of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (chunk);
+
+struct i8x_note *i8x_chunk_get_note (struct i8x_chunk *chunk);
+uintmax_t i8x_chunk_get_type_id (struct i8x_chunk *chunk);
+uintmax_t i8x_chunk_get_version (struct i8x_chunk *chunk);
+size_t i8x_chunk_get_encoded_size (struct i8x_chunk *chunk);
+const char *i8x_chunk_get_encoded (struct i8x_chunk *chunk);
 
 /*
  * i8x_ctx

@@ -136,6 +136,17 @@ i8x_err_e i8x_ob_new (void *parent, const struct i8x_object_ops *ops,
 		      void *ob);
 struct i8x_object *i8x_ob_get_parent (struct i8x_object *ob);
 
+/* Chunks.  */
+
+i8x_err_e i8x_chunk_list_new_from_readbuf (struct i8x_readbuf *rb,
+					   struct i8x_chunk **chunk_list);
+struct i8x_chunk *i8x_chunk_get_next (struct i8x_chunk *chunk);
+
+#define i8x_chunk_list_foreach(chunk, first_chunk)  \
+  for (chunk = first_chunk;			    \
+       chunk != NULL;				    \
+       chunk = i8x_chunk_get_next (chunk))
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
