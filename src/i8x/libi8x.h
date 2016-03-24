@@ -38,13 +38,17 @@ typedef enum
 }
 i8x_err_e;
 
+/* forward declarations */
+
+struct i8x_ctx;
+struct i8x_note;
+
 /*
  * i8x_ctx
  *
  * library user context - reads the config and system
  * environment, user variables, allows custom logging
  */
-struct i8x_ctx;
 typedef void i8x_log_fn_t (struct i8x_ctx *ctx,
 			   int priority,
 			   const char *file, int line,
@@ -66,7 +70,6 @@ const char *i8x_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
  *
  * access to notes of i8x
  */
-struct i8x_note;
 struct i8x_note *i8x_note_ref (struct i8x_note *note);
 struct i8x_note *i8x_note_unref (struct i8x_note *note);
 struct i8x_ctx *i8x_note_get_ctx (struct i8x_note *note);
