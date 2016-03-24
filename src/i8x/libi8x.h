@@ -52,10 +52,15 @@ i8x_err_e;
 
 struct i8x_chunk;
 struct i8x_ctx;
+struct i8x_func;
 struct i8x_funcsig;
 struct i8x_note;
 struct i8x_object;
 struct i8x_readbuf;
+
+/* Native functions.  */
+
+typedef i8x_err_e i8x_impl_fn_t (struct i8x_func *func); // XXX...
 
 /*
  * i8x_object
@@ -150,6 +155,25 @@ int i8x_ctx_get_log_priority (struct i8x_ctx *ctx);
 void i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority);
 const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 				char *buf, size_t bufsiz);
+
+/*
+ * i8x_func
+ *
+ * access to funcs of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (func);
+
+i8x_err_e i8x_func_new_from_note (struct i8x_note *note,
+				  struct i8x_func **func);
+i8x_err_e i8x_func_new_native (struct i8x_ctx *ctx,
+			       struct i8x_funcsig *sig,
+			       i8x_impl_fn_t *impl_fn,
+			       struct i8x_func **func);
+struct i8x_funcsig *i8x_func_get_signature (struct i8x_func *func);
+struct i8x_note *i8x_func_get_note (struct i8x_func *func);
+
+#define i8x_func_get_fullname(func) \
+  i8x_fs_get_fullname (i8x_func_get_signature (func))
 
 /*
  * i8x_funcsig
