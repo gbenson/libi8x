@@ -22,6 +22,7 @@
 
 #include <stdbool.h>
 #include <syslog.h>
+#include <stdbool.h>
 
 #include <i8x/libi8x.h>
 
@@ -109,6 +110,32 @@ void i8x_ctx_log (struct i8x_ctx *ctx,
 /* Placeholder for NLS.  */
 
 #define _(string) string
+
+/* Object system.  */
+
+struct i8x_object_ops
+{
+  const char *name;
+  size_t size;
+  void (*unlink_fn) (struct i8x_object *ob);
+  void (*free_fn) (struct i8x_object *ob);
+};
+
+struct i8x_object
+{
+  const struct i8x_object_ops *ops;
+  struct i8x_object *parent;
+  int refcount[2];
+  bool is_moribund;
+  void *userdata;
+  i8x_userdata_cleanup_fn *userdata_cleanup;
+};
+
+#define I8X_OBJECT_FIELDS struct i8x_object _ob
+
+i8x_err_e i8x_ob_new (void *parent, const struct i8x_object_ops *ops,
+		      void *ob);
+struct i8x_object *i8x_ob_get_parent (struct i8x_object *ob);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -43,6 +43,67 @@ i8x_err_e;
 
 struct i8x_ctx;
 struct i8x_note;
+struct i8x_object;
+
+/*
+ * i8x_object
+ *
+ * XXX don't call these directly, use the inline functions provided by
+ * I8X_COMMON_OBJECT_FUNCTIONS et al.
+ */
+typedef void i8x_userdata_cleanup_fn (void *userdata);
+
+struct i8x_object *i8x_ob_ref (struct i8x_object *ob);
+struct i8x_object *i8x_ob_unref (struct i8x_object *ob);
+struct i8x_ctx *i8x_ob_get_ctx (struct i8x_object *ob);
+void *i8x_ob_get_userdata (struct i8x_object *ob);
+void i8x_ob_set_userdata (struct i8x_object *ob,
+			  void *userdata,
+			  i8x_userdata_cleanup_fn *userdata_cleanup);
+
+#define I8X_NOPARENT_OBJECT_FUNCTIONS(TYPE, PREFIX)			\
+  static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
+  i8x_ ## PREFIX ## _ref (struct i8x_ ## TYPE *x)			\
+  {									\
+    return (struct i8x_ ## TYPE *)					\
+      i8x_ob_ref ((struct i8x_object *) x);				\
+  }									\
+									\
+  static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
+  i8x_ ## PREFIX ## _unref (struct i8x_ ## TYPE *x)			\
+  {									\
+    return (struct i8x_ ## TYPE *)					\
+      i8x_ob_unref ((struct i8x_object *) x);				\
+  }									\
+									\
+  static inline void * __attribute__ ((always_inline))			\
+  i8x_ ## PREFIX ## _get_userdata (struct i8x_ ## TYPE *x)		\
+  {									\
+    return i8x_ob_get_userdata ((struct i8x_object *) x);		\
+  }									\
+									\
+  static inline void __attribute__ ((always_inline))			\
+  i8x_ ## PREFIX ## _set_userdata (struct i8x_ ## TYPE *x,		\
+				   void *userdata,			\
+				   i8x_userdata_cleanup_fn *cleanup)	\
+  {									\
+    i8x_ob_set_userdata ((struct i8x_object *) x, userdata, cleanup);	\
+  }
+
+#define I8X_COMMON_OBJECT_FUNCTIONS_PREFIX(TYPE, PREFIX)		\
+  I8X_NOPARENT_OBJECT_FUNCTIONS (TYPE, PREFIX)				\
+									\
+  static inline struct i8x_ctx * __attribute__ ((always_inline))	\
+  i8x_ ## PREFIX ## _get_ctx (struct i8x_ ## TYPE *x)			\
+  {									\
+    return i8x_ob_get_ctx ((struct i8x_object *) x);			\
+  }
+
+#define I8X_CONTEXT_OBJECT_FUNCTIONS(TYPE) \
+  I8X_NOPARENT_OBJECT_FUNCTIONS (TYPE, TYPE)
+
+#define I8X_COMMON_OBJECT_FUNCTIONS(TYPE) \
+  I8X_COMMON_OBJECT_FUNCTIONS_PREFIX (TYPE, TYPE)
 
 /*
  * i8x_ctx

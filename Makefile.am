@@ -58,6 +58,7 @@ lib_LTLIBRARIES = src/libi8x.la
 src_libi8x_la_SOURCES =\
 	src/libi8x-private.h \
 	src/context.c \
+	src/object.c \
 	src/note.c \
 	src/util.c
 
