@@ -31,12 +31,33 @@ struct i8x_note
 
   size_t encoded_size;	/* Size of encoded data, in bytes.  */
   char *encoded;	/* Encoded data.  */
+
+  struct i8x_chunk *first_chunk;  /* Linked list of chunks.  */
 };
+
+static i8x_err_e
+i8x_note_locate_chunks (struct i8x_note *note)
+{
+  struct i8x_readbuf *rb;
+  i8x_err_e err;
+
+  err = i8x_rb_new_from_note (note, &rb);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_chunk_list_new_from_readbuf (rb, &note->first_chunk);
+
+  i8x_rb_unref (rb);
+
+  return err;
+}
 
 static i8x_err_e
 i8x_note_init (struct i8x_note *note, const char *buf, size_t bufsiz,
 	       const char *srcname, ssize_t srcoffset)
 {
+  i8x_err_e err;
+
   if (srcname != NULL)
     {
       note->srcname = strdup (srcname);
@@ -54,7 +75,19 @@ i8x_note_init (struct i8x_note *note, const char *buf, size_t bufsiz,
 
   memcpy (note->encoded, buf, bufsiz);
 
-  return I8X_OK;
+  err = i8x_note_locate_chunks (note);
+  if (err != I8X_OK)
+    return err;
+
+  return err;
+}
+
+static void
+i8x_note_unlink (struct i8x_object *ob)
+{
+  struct i8x_note *note = (struct i8x_note *) ob;
+
+  i8x_chunk_unref (note->first_chunk);
 }
 
 static void
@@ -73,7 +106,7 @@ const struct i8x_object_ops i8x_note_ops =
   {
     "note",			/* Object name.  */
     sizeof (struct i8x_note),	/* Object size.  */
-    NULL,			/* Unlink function.  */
+    i8x_note_unlink,		/* Unlink function.  */
     i8x_note_free,		/* Free function.  */
   };
 
@@ -124,4 +157,87 @@ I8X_EXPORT const char *
 i8x_note_get_encoded (struct i8x_note *note)
 {
   return note->encoded;
+}
+
+static struct i8x_chunk *
+i8x_note_get_chunk (struct i8x_note *note,
+		    struct i8x_chunk *first_chunk, uintmax_t type_id)
+{
+  struct i8x_chunk *chunk;
+
+  i8x_chunk_list_foreach (chunk, first_chunk)
+    {
+      if (i8x_chunk_get_type_id (chunk) == type_id)
+	return chunk;
+    }
+
+  return NULL;
+}
+
+I8X_EXPORT i8x_err_e
+i8x_note_get_first_chunk (struct i8x_note *note, uintmax_t type_id,
+			  i8x_err_e notfound_err,
+			  struct i8x_chunk **chunk)
+{
+  struct i8x_chunk *c;
+
+  c = i8x_note_get_chunk (note, note->first_chunk, type_id);
+
+  if (c == NULL && notfound_err != I8X_OK)
+    return i8x_note_error (note, notfound_err, NULL);
+
+  *chunk = c;
+
+  return I8X_OK;
+}
+
+I8X_EXPORT i8x_err_e
+i8x_note_get_next_chunk (struct i8x_note *note, struct i8x_chunk *ref,
+			 i8x_err_e notfound_err,
+			 struct i8x_chunk **chunk)
+{
+  struct i8x_chunk *c;
+
+  i8x_assert (i8x_chunk_get_note (ref) == note);
+
+  c = i8x_note_get_chunk (note,
+			  i8x_chunk_get_next (ref),
+			  i8x_chunk_get_type_id (ref));
+
+  if (c == NULL && notfound_err != I8X_OK)
+    return i8x_note_error (note, notfound_err,
+			   i8x_chunk_get_encoded (ref));
+
+  *chunk = c;
+
+  return I8X_OK;
+}
+
+I8X_EXPORT i8x_err_e
+i8x_note_get_unique_chunk (struct i8x_note *note, uintmax_t type_id,
+			   i8x_err_e notfound_err,
+			   i8x_err_e notunique_err,
+			   struct i8x_chunk **chunk)
+{
+  struct i8x_chunk *c;
+  i8x_err_e err;
+
+  err = i8x_note_get_first_chunk (note, type_id, notfound_err, &c);
+  if (err != I8X_OK)
+    return err;
+
+  if (c != NULL)
+    {
+      struct i8x_chunk *d;
+
+      err = i8x_note_get_next_chunk (note, c, I8X_OK, &d);
+
+      if (d != NULL)
+	return i8x_note_error (note, notunique_err,
+			       i8x_chunk_get_encoded (d));
+    }
+
+  *chunk = c;
+
+  return I8X_OK;
 }

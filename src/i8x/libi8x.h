@@ -157,6 +157,19 @@ const char *i8x_note_get_src_name (struct i8x_note *note);
 ssize_t i8x_note_get_src_offset (struct i8x_note *note);
 size_t i8x_note_get_encoded_size (struct i8x_note *note);
 const char *i8x_note_get_encoded (struct i8x_note *note);
+i8x_err_e i8x_note_get_first_chunk (struct i8x_note *note,
+				    uintmax_t type_id,
+				    i8x_err_e notfound_err,
+				    struct i8x_chunk **chunk);
+i8x_err_e i8x_note_get_next_chunk (struct i8x_note *note,
+				   struct i8x_chunk *ref,
+				   i8x_err_e notfound_err,
+				   struct i8x_chunk **chunk);
+i8x_err_e i8x_note_get_unique_chunk (struct i8x_note *note,
+				     uintmax_t type_id,
+				     i8x_err_e notfound_err,
+				     i8x_err_e notunique_err,
+				     struct i8x_chunk **chunk);
 
 /*
  * i8x_readbuf
