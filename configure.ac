@@ -23,7 +23,7 @@ AC_INIT([libi8x],
         [infinity@sourceware.org],
         [libi8x],
         [https://sourceware.org/gdb/wiki/Infinity])
-AC_CONFIG_SRCDIR([src/libi8x.c])
+AC_CONFIG_SRCDIR([src/libi8x-private.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([
 	check-news

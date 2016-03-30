@@ -17,7 +17,6 @@
    License along with the Infinity Note Execution Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <stdlib.h>
 #include <string.h>
 
 #include <i8x/libi8x.h>

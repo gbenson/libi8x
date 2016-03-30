@@ -17,32 +17,12 @@
    License along with the Infinity Note Execution Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <string.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <i8x/libi8x.h>
 #include "libi8x-private.h"
-
-void
-i8x_internal_error (const char *file, int line,
-		    const char *function, const char *format, ...)
-{
-  va_list args;
-
-  fprintf (stderr, "libi8x: %s:%d: %s: internal error:",
-	   file, line, function);
-
-  va_start (args, format);
-  vfprintf (stderr, format, args);
-  va_end (args);
-
-  abort ();
-}
 
 /**
  * SECTION:libi8x

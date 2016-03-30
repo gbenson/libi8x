@@ -21,6 +21,7 @@
 #define _LIBI8X_H_
 
 #include <stdarg.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
