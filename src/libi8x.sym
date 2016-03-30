@@ -9,6 +9,7 @@ global:
         i8x_note_new_from_mem;
         i8x_note_get_src_name;
         i8x_note_get_src_offset;
+        i8x_note_get_encoded_size;
         i8x_note_get_encoded;
 
         i8x_ob_ref;
@@ -16,6 +17,13 @@ global:
         i8x_ob_get_ctx;
         i8x_ob_get_userdata;
         i8x_ob_set_userdata;
+
+        i8x_rb_new_from_note;
+        i8x_rb_get_note;
+        i8x_rb_bytes_left;
+        i8x_rb_read_uint8_t;
+        i8x_rb_read_uleb128;
+        i8x_rb_read_bytes;
 local:
         *;
 };

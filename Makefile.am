@@ -60,6 +60,7 @@ src_libi8x_la_SOURCES =\
 	src/context.c \
 	src/object.c \
 	src/note.c \
+	src/readbuf.c \
 	src/util.c
 
 EXTRA_DIST += src/libi8x.sym

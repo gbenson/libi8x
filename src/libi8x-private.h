@@ -20,7 +20,6 @@
 #ifndef _LIBI8X_PRIVATE_H_
 #define _LIBI8X_PRIVATE_H_
 
-#include <stdbool.h>
 #include <syslog.h>
 #include <stdbool.h>
 

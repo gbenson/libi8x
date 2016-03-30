@@ -114,6 +114,12 @@ i8x_note_get_src_offset (struct i8x_note *note)
   return note->srcoffset;
 }
 
+I8X_EXPORT size_t
+i8x_note_get_encoded_size (struct i8x_note *note)
+{
+  return note->encoded_size;
+}
+
 I8X_EXPORT const char *
 i8x_note_get_encoded (struct i8x_note *note)
 {

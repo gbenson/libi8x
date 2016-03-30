@@ -21,6 +21,7 @@
 #define _LIBI8X_H_
 
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus
@@ -44,6 +45,7 @@ i8x_err_e;
 struct i8x_ctx;
 struct i8x_note;
 struct i8x_object;
+struct i8x_readbuf;
 
 /*
  * i8x_object
@@ -139,7 +141,25 @@ i8x_err_e i8x_note_new_from_mem (struct i8x_ctx *ctx,
 				 struct i8x_note **note);
 const char *i8x_note_get_src_name (struct i8x_note *note);
 ssize_t i8x_note_get_src_offset (struct i8x_note *note);
+size_t i8x_note_get_encoded_size (struct i8x_note *note);
 const char *i8x_note_get_encoded (struct i8x_note *note);
+
+/*
+ * i8x_readbuf
+ *
+ * access to readbufs of i8x
+ */
+
+I8X_COMMON_OBJECT_FUNCTIONS_PREFIX (readbuf, rb);
+
+i8x_err_e i8x_rb_new_from_note (struct i8x_note *note,
+				struct i8x_readbuf **rb);
+struct i8x_note *i8x_rb_get_note (struct i8x_readbuf *rb);
+size_t i8x_rb_bytes_left (struct i8x_readbuf *rb);
+i8x_err_e i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result);
+i8x_err_e i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintmax_t *result);
+i8x_err_e i8x_rb_read_bytes (struct i8x_readbuf *rb, size_t nbytes,
+			     const char **result);
 
 #ifdef __cplusplus
 } /* extern "C" */
