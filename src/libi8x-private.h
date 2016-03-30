@@ -31,15 +31,15 @@ extern "C" {
 
 /* Errors.  */
 
-i8x_err_e i8x_set_error (struct i8x_ctx *ctx, i8x_err_e code,
-			 struct i8x_note *cause_note,
-			 const char *cause_ptr);
+i8x_err_e i8x_ctx_set_error (struct i8x_ctx *ctx, i8x_err_e code,
+			     struct i8x_note *cause_note,
+			     const char *cause_ptr);
 
 #define i8x_out_of_memory(ctx) \
-  i8x_set_error (ctx, I8X_OUT_OF_MEMORY, NULL, NULL)
+  i8x_ctx_set_error (ctx, I8X_OUT_OF_MEMORY, NULL, NULL)
 
-#define i8x_note_error(note, code, ptr)	\
-  i8x_set_error (i8x_note_get_ctx (note), code, note, ptr)
+#define i8x_note_error(note, code, ptr) \
+  i8x_ctx_set_error (i8x_note_get_ctx (note), code, note, ptr)
 
 /* Assertions.  */
 
@@ -69,8 +69,8 @@ i8x_log_null (struct i8x_ctx *ctx, const char *format, ...) {}
 
 #define i8x_log_cond(ctx, prio, arg...) \
   do { \
-    if (i8x_get_log_priority (ctx) >= prio) \
-      i8x_log (ctx, prio, __FILE__, __LINE__, __FUNCTION__, ## arg); \
+    if (i8x_ctx_get_log_priority (ctx) >= prio) \
+      i8x_ctx_log (ctx, prio, __FILE__, __LINE__, __FUNCTION__, ## arg); \
   } while (0)
 
 #ifdef ENABLE_LOGGING
@@ -97,9 +97,9 @@ i8x_log_null (struct i8x_ctx *ctx, const char *format, ...) {}
 
 #define I8X_EXPORT __attribute__ ((visibility ("default")))
 
-void i8x_log (struct i8x_ctx *ctx,
-	      int priority, const char *file, int line, const char *fn,
-	      const char *format, ...)
+void i8x_ctx_log (struct i8x_ctx *ctx,
+		  int priority, const char *file, int line,
+		  const char *fn, const char *format, ...)
   __attribute__ ((format (printf, 6, 7)));
 
 /* Placeholder for NLS.  */

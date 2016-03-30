@@ -36,7 +36,8 @@ error_i8x (struct i8x_ctx *ctx, i8x_err_e code)
 {
   static char buf[BUFSIZ];
 
-  fprintf (stderr, "%s\n", i8x_strerror_r (ctx, code, buf, sizeof (buf)));
+  fprintf (stderr, "%s\n",
+	   i8x_ctx_strerror_r (ctx, code, buf, sizeof (buf)));
 
   exit (EXIT_FAILURE);
 }
@@ -123,7 +124,7 @@ process_notes (struct i8x_ctx *ctx,
 static void
 process_elffile (struct i8x_ctx *ctx, const char *filename, Elf *elf)
 {
-  struct userdata *ud = (struct userdata *) i8x_get_userdata (ctx);
+  struct userdata *ud = (struct userdata *) i8x_ctx_get_userdata (ctx);
   struct list_entry *le;
   struct elffile *ef;
   Elf_Scn *scn = NULL;
@@ -185,7 +186,7 @@ process_mapping (struct i8x_ctx *ctx, const char *filename)
 static void
 read_mappings (struct i8x_ctx *ctx)
 {
-  struct userdata *ud = (struct userdata *) i8x_get_userdata (ctx);
+  struct userdata *ud = (struct userdata *) i8x_ctx_get_userdata (ctx);
   char mapfile[32]; /* Enough for the longest 64-bit PID.  */
   unsigned int len;
   FILE *fp;
@@ -236,18 +237,18 @@ tlsdump_process (pid_t pid)
   struct userdata ud;
   i8x_err_e err;
 
-  err = i8x_new (&ctx);
+  err = i8x_ctx_new (&ctx);
   if (err != I8X_OK)
     error_i8x (NULL, err);
 
   ud.pid = pid;
   ud.elfs = NULL;
-  i8x_set_userdata (ctx, &ud);
+  i8x_ctx_set_userdata (ctx, &ud);
 
   read_mappings (ctx);
 
   /* XXX free stuff in userdata e.g. the list of ELF files  */
-  i8x_unref (ctx);
+  i8x_ctx_unref (ctx);
 }
 
 int

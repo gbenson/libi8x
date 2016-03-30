@@ -68,9 +68,9 @@ struct i8x_ctx
 };
 
 void
-i8x_log (struct i8x_ctx *ctx,
-	 int priority, const char *file, int line, const char *fn,
-	 const char *format, ...)
+i8x_ctx_log (struct i8x_ctx *ctx,
+	     int priority, const char *file, int line, const char *fn,
+	     const char *format, ...)
 {
   va_list args;
 
@@ -89,7 +89,7 @@ log_stderr (struct i8x_ctx *ctx,
 }
 
 /**
- * i8x_get_userdata:
+ * i8x_ctx_get_userdata:
  * @ctx: i8x library context
  *
  * Retrieve stored data pointer from library context. This might be
@@ -98,20 +98,20 @@ log_stderr (struct i8x_ctx *ctx,
  * Returns: stored userdata
  **/
 I8X_EXPORT void *
-i8x_get_userdata (struct i8x_ctx *ctx)
+i8x_ctx_get_userdata (struct i8x_ctx *ctx)
 {
   return ctx->userdata;
 }
 
 /**
- * i8x_set_userdata:
+ * i8x_ctx_set_userdata:
  * @ctx: i8x library context
  * @userdata: data pointer
  *
  * Store custom @userdata in the library context.
  **/
 I8X_EXPORT void
-i8x_set_userdata (struct i8x_ctx *ctx, void *userdata)
+i8x_ctx_set_userdata (struct i8x_ctx *ctx, void *userdata)
 {
   ctx->userdata = userdata;
 }
@@ -136,7 +136,7 @@ log_priority (const char *priority)
 }
 
 /**
- * i8x_new:
+ * i8x_ctx_new:
  *
  * Create i8x library context. This reads the i8x configuration
  * and fills in the default values.
@@ -147,7 +147,7 @@ log_priority (const char *priority)
  * Returns: a new i8x library context
  **/
 I8X_EXPORT i8x_err_e
-i8x_new (struct i8x_ctx **ctx)
+i8x_ctx_new (struct i8x_ctx **ctx)
 {
   const char *env;
   struct i8x_ctx *c;
@@ -163,7 +163,7 @@ i8x_new (struct i8x_ctx **ctx)
   /* environment overwrites config */
   env = secure_getenv ("I8X_LOG");
   if (env != NULL)
-    i8x_set_log_priority (c, log_priority (env));
+    i8x_ctx_set_log_priority (c, log_priority (env));
 
   info (c, "ctx %p created\n", c);
   dbg (c, "log_priority=%d\n", c->log_priority);
@@ -173,7 +173,7 @@ i8x_new (struct i8x_ctx **ctx)
 }
 
 /**
- * i8x_ref:
+ * i8x_ctx_ref:
  * @ctx: i8x library context
  *
  * Take a reference of the i8x library context.
@@ -181,7 +181,7 @@ i8x_new (struct i8x_ctx **ctx)
  * Returns: the passed i8x library context
  **/
 I8X_EXPORT struct i8x_ctx *
-i8x_ref (struct i8x_ctx *ctx)
+i8x_ctx_ref (struct i8x_ctx *ctx)
 {
   if (ctx == NULL)
     return NULL;
@@ -192,14 +192,14 @@ i8x_ref (struct i8x_ctx *ctx)
 }
 
 /**
- * i8x_unref:
+ * i8x_ctx_unref:
  * @ctx: i8x library context
  *
  * Drop a reference of the i8x library context.
  *
  **/
 I8X_EXPORT struct i8x_ctx *
-i8x_unref (struct i8x_ctx *ctx)
+i8x_ctx_unref (struct i8x_ctx *ctx)
 {
   if (ctx == NULL)
     return NULL;
@@ -217,7 +217,7 @@ i8x_unref (struct i8x_ctx *ctx)
 }
 
 /**
- * i8x_set_log_fn:
+ * i8x_ctx_set_log_fn:
  * @ctx: i8x library context
  * @log_fn: function to be called for logging messages
  *
@@ -227,26 +227,26 @@ i8x_unref (struct i8x_ctx *ctx)
  *
  **/
 I8X_EXPORT void
-i8x_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn)
+i8x_ctx_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn)
 {
   ctx->log_fn = log_fn;
   info (ctx, "custom logging function %p registered\n", log_fn);
 }
 
 /**
- * i8x_get_log_priority:
+ * i8x_ctx_get_log_priority:
  * @ctx: i8x library context
  *
  * Returns: the current logging priority
  **/
 I8X_EXPORT int
-i8x_get_log_priority (struct i8x_ctx *ctx)
+i8x_ctx_get_log_priority (struct i8x_ctx *ctx)
 {
   return ctx->log_priority;
 }
 
 /**
- * i8x_set_log_priority:
+ * i8x_ctx_set_log_priority:
  * @ctx: i8x library context
  * @priority: the new logging priority
  *
@@ -254,14 +254,14 @@ i8x_get_log_priority (struct i8x_ctx *ctx)
  * are logged.
  **/
 I8X_EXPORT void
-i8x_set_log_priority (struct i8x_ctx *ctx, int priority)
+i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority)
 {
   ctx->log_priority = priority;
 }
 
 i8x_err_e
-i8x_set_error (struct i8x_ctx *ctx, i8x_err_e code,
-	       struct i8x_note *cause_note, const char *cause_ptr)
+i8x_ctx_set_error (struct i8x_ctx *ctx, i8x_err_e code,
+		   struct i8x_note *cause_note, const char *cause_ptr)
 {
   i8x_assert (code != I8X_OK);
 
@@ -302,7 +302,7 @@ error_message_for (i8x_err_e code)
 }
 
 static void __attribute__ ((format (printf, 3, 4)))
-i8x_strerror_printf (char **bufp, char *limit, const char *format, ...)
+xsnprintf (char **bufp, char *limit, const char *format, ...)
 {
   char *buf = *bufp;
   size_t bufsiz = limit - buf;
@@ -317,8 +317,8 @@ i8x_strerror_printf (char **bufp, char *limit, const char *format, ...)
 }
 
 I8X_EXPORT const char *
-i8x_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
-		char *buf, size_t bufsiz)
+i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
+		    char *buf, size_t bufsiz)
 {
   char *ptr = buf;
   char *limit = ptr + bufsiz;
@@ -339,17 +339,17 @@ i8x_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
   if (prefix == NULL)
     prefix = PACKAGE;
 
-  i8x_strerror_printf (&ptr, limit, "%s", prefix);
+  xsnprintf (&ptr, limit, "%s", prefix);
 
   if (offset >= 0)
-    i8x_strerror_printf (&ptr, limit, "[0x%lx]", offset);
+    xsnprintf (&ptr, limit, "[0x%lx]", offset);
 
-  i8x_strerror_printf (&ptr, limit, ": ");
+  xsnprintf (&ptr, limit, ": ");
 
   if (msg == NULL)
-    i8x_strerror_printf (&ptr, limit, _("unhandled error %d"), code);
+    xsnprintf (&ptr, limit, _("unhandled error %d"), code);
   else
-    i8x_strerror_printf (&ptr, limit, "%s", msg);
+    xsnprintf (&ptr, limit, "%s", msg);
 
   return buf;
 }

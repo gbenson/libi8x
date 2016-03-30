@@ -57,7 +57,7 @@ i8x_note_unref (struct i8x_note *note)
     return NULL;
 
   info (note->ctx, "note %p released\n", note);
-  i8x_unref (note->ctx);
+  i8x_ctx_unref (note->ctx);
   free (note);
 
   return NULL;
@@ -86,7 +86,7 @@ i8x_note_new_from_mem (struct i8x_ctx *ctx, const char *buf,
     return i8x_out_of_memory (ctx);
   memset (n, 0, sizeof (struct i8x_note));
 
-  n->ctx = i8x_ref (ctx);
+  n->ctx = i8x_ctx_ref (ctx);
   n->refcount = 1;
 
   n->encoded_size = bufsiz;
