@@ -117,14 +117,12 @@ typedef void i8x_log_fn_t (struct i8x_ctx *ctx,
 			   const char *fn,
 			   const char *format, va_list args);
 
-struct i8x_ctx *i8x_ctx_ref (struct i8x_ctx *ctx);
-struct i8x_ctx *i8x_ctx_unref (struct i8x_ctx *ctx);
+I8X_CONTEXT_OBJECT_FUNCTIONS (ctx);
+
 i8x_err_e i8x_ctx_new (struct i8x_ctx **ctx);
 void i8x_ctx_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn);
 int i8x_ctx_get_log_priority (struct i8x_ctx *ctx);
 void i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority);
-void *i8x_ctx_get_userdata (struct i8x_ctx *ctx);
-void i8x_ctx_set_userdata (struct i8x_ctx *ctx, void *userdata);
 const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 				char *buf, size_t bufsiz);
 

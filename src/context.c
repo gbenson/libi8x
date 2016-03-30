@@ -39,9 +39,9 @@
  */
 struct i8x_ctx
 {
-  int refcount;
+  I8X_OBJECT_FIELDS;
+
   i8x_log_fn_t *log_fn;
-  void *userdata;
   int log_priority;
   struct i8x_note *error_note;	/* Note that caused the last error.  */
   const char *error_ptr;	/* Pointer into error_note.  */
@@ -68,34 +68,6 @@ log_stderr (struct i8x_ctx *ctx,
   vfprintf (stderr, format, args);
 }
 
-/**
- * i8x_ctx_get_userdata:
- * @ctx: i8x library context
- *
- * Retrieve stored data pointer from library context. This might be
- * useful to access from callbacks like a custom logging function.
- *
- * Returns: stored userdata
- **/
-I8X_EXPORT void *
-i8x_ctx_get_userdata (struct i8x_ctx *ctx)
-{
-  return ctx->userdata;
-}
-
-/**
- * i8x_ctx_set_userdata:
- * @ctx: i8x library context
- * @userdata: data pointer
- *
- * Store custom @userdata in the library context.
- **/
-I8X_EXPORT void
-i8x_ctx_set_userdata (struct i8x_ctx *ctx, void *userdata)
-{
-  ctx->userdata = userdata;
-}
-
 static int
 log_priority (const char *priority)
 {
@@ -115,6 +87,22 @@ log_priority (const char *priority)
   return 0;
 }
 
+static void
+i8x_ctx_unlink (struct i8x_object *ob)
+{
+  struct i8x_ctx *ctx = (struct i8x_ctx *) ob;
+
+  i8x_note_unref (ctx->error_note);
+}
+
+const struct i8x_object_ops i8x_ctx_ops =
+  {
+    "ctx",			/* Object name.  */
+    sizeof (struct i8x_ctx),	/* Object size.  */
+    i8x_ctx_unlink,		/* Unlink function.  */
+    NULL,			/* Free function.  */
+  };
+
 /**
  * i8x_ctx_new:
  *
@@ -131,12 +119,12 @@ i8x_ctx_new (struct i8x_ctx **ctx)
 {
   const char *env;
   struct i8x_ctx *c;
+  i8x_err_e err;
 
-  c = calloc (1, sizeof (struct i8x_ctx));
-  if (c == NULL)
-    return i8x_out_of_memory (NULL);
+  err = i8x_ob_new (NULL, &i8x_ctx_ops, &c);
+  if (err != I8X_OK)
+    return err;
 
-  c->refcount = 1;
   c->log_fn = log_stderr;
   c->log_priority = LOG_ERR;
 
@@ -147,53 +135,10 @@ i8x_ctx_new (struct i8x_ctx **ctx)
 
   info (c, "ctx %p created\n", c);
   dbg (c, "log_priority=%d\n", c->log_priority);
+
   *ctx = c;
 
   return I8X_OK;
-}
-
-/**
- * i8x_ctx_ref:
- * @ctx: i8x library context
- *
- * Take a reference of the i8x library context.
- *
- * Returns: the passed i8x library context
- **/
-I8X_EXPORT struct i8x_ctx *
-i8x_ctx_ref (struct i8x_ctx *ctx)
-{
-  if (ctx == NULL)
-    return NULL;
-
-  ctx->refcount++;
-
-  return ctx;
-}
-
-/**
- * i8x_ctx_unref:
- * @ctx: i8x library context
- *
- * Drop a reference of the i8x library context.
- *
- **/
-I8X_EXPORT struct i8x_ctx *
-i8x_ctx_unref (struct i8x_ctx *ctx)
-{
-  if (ctx == NULL)
-    return NULL;
-
-  ctx->refcount--;
-  if (ctx->refcount > 0)
-    return NULL;
-
-  info (ctx, "context %p released\n", ctx);
-
-  i8x_note_unref (ctx->error_note);
-  free (ctx);
-
-  return NULL;
 }
 
 /**

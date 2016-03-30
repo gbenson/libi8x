@@ -243,7 +243,7 @@ tlsdump_process (pid_t pid)
 
   ud.pid = pid;
   ud.elfs = NULL;
-  i8x_ctx_set_userdata (ctx, &ud);
+  i8x_ctx_set_userdata (ctx, &ud, NULL);
 
   read_mappings (ctx);
 
