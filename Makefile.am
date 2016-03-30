@@ -29,9 +29,9 @@ SED_PROCESS = \
 %.pc: %.pc.in Makefile
 	$(SED_PROCESS)
 
-LIBI8X_CURRENT=2
+LIBI8X_CURRENT=0
 LIBI8X_REVISION=0
-LIBI8X_AGE=2
+LIBI8X_AGE=0
 
 pkginclude_HEADERS = src/i8x/libi8x.h
 lib_LTLIBRARIES = src/libi8x.la
