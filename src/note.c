@@ -24,49 +24,58 @@
 
 struct i8x_note
 {
-  struct i8x_ctx *ctx;
-  int refcount;
+  I8X_OBJECT_FIELDS;
 
-  const char *srcname; /* Name of the file this note came from.  */
-  ssize_t srcoffset;   /* Offset in the file this note came from.  */
+  char *srcname;	/* Name of the file this note came from.  */
+  ssize_t srcoffset;	/* Offset in the file this note came from.  */
 
-  size_t encoded_size; /* Size of encoded data, in bytes.  */
-  char encoded[0];     /* Encoded data.  Must be last in the struct.  */
+  size_t encoded_size;	/* Size of encoded data, in bytes.  */
+  char *encoded;	/* Encoded data.  */
 };
 
-I8X_EXPORT struct i8x_note *
-i8x_note_ref (struct i8x_note *note)
+static i8x_err_e
+i8x_note_init (struct i8x_note *note, const char *buf, size_t bufsiz,
+	       const char *srcname, ssize_t srcoffset)
 {
-  if (note == NULL)
-    return NULL;
+  if (srcname != NULL)
+    {
+      note->srcname = strdup (srcname);
 
-  note->refcount++;
+      if (note->srcname == NULL)
+	return i8x_out_of_memory (i8x_note_get_ctx (note));
+    }
 
-  return note;
+  note->srcoffset = srcoffset;
+
+  note->encoded_size = bufsiz;
+  note->encoded = malloc (bufsiz);
+  if (note->encoded == NULL)
+    return i8x_out_of_memory (i8x_note_get_ctx (note));
+
+  memcpy (note->encoded, buf, bufsiz);
+
+  return I8X_OK;
 }
 
-I8X_EXPORT struct i8x_note *
-i8x_note_unref (struct i8x_note *note)
+static void
+i8x_note_free (struct i8x_object *ob)
 {
-  if (note == NULL)
-    return NULL;
+  struct i8x_note *note = (struct i8x_note *) ob;
 
-  note->refcount--;
-  if (note->refcount > 0)
-    return NULL;
+  if (note->srcname != NULL)
+    free (note->srcname);
 
-  info (note->ctx, "note %p released\n", note);
-  i8x_ctx_unref (note->ctx);
-  free (note);
-
-  return NULL;
+  if (note->encoded != NULL)
+    free (note->encoded);
 }
 
-I8X_EXPORT struct i8x_ctx *
-i8x_note_get_ctx (struct i8x_note *note)
-{
-  return note->ctx;
-}
+const struct i8x_object_ops i8x_note_ops =
+  {
+    "note",			/* Object name.  */
+    sizeof (struct i8x_note),	/* Object size.  */
+    NULL,			/* Unlink function.  */
+    i8x_note_free,		/* Free function.  */
+  };
 
 I8X_EXPORT i8x_err_e
 i8x_note_new_from_mem (struct i8x_ctx *ctx, const char *buf,
@@ -74,31 +83,20 @@ i8x_note_new_from_mem (struct i8x_ctx *ctx, const char *buf,
 		       ssize_t srcoffset, struct i8x_note **note)
 {
   struct i8x_note *n;
-  size_t srcnamesiz = 0;
+  i8x_err_e err;
 
-  if (srcname != NULL && *srcname != '\0')
-    srcnamesiz = strlen (srcname) + 1;
+  err = i8x_ob_new (ctx, &i8x_note_ops, &n);
+  if (err != I8X_OK)
+    return err;
 
-  /* Allocate all the memory at once.  */
-  n = malloc (sizeof (struct i8x_note) + bufsiz + srcnamesiz);
-  if (n == NULL)
-    return i8x_out_of_memory (ctx);
-  memset (n, 0, sizeof (struct i8x_note));
-
-  n->ctx = i8x_ctx_ref (ctx);
-  n->refcount = 1;
-
-  n->encoded_size = bufsiz;
-  memcpy (n->encoded, buf, bufsiz);
-
-  if (srcnamesiz != 0)
+  err = i8x_note_init (n, buf, bufsiz, srcname, srcoffset);
+  if (err != I8X_OK)
     {
-      memcpy (n->encoded + bufsiz, srcname, srcnamesiz);
-      n->srcname = n->encoded + bufsiz;
-    }
-  n->srcoffset = srcoffset;
+      i8x_note_unref (n);
 
-  info (ctx, "note %p created\n", n);
+      return err;
+    }
+
   *note = n;
 
   return I8X_OK;

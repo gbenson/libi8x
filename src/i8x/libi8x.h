@@ -131,9 +131,8 @@ const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
  *
  * access to notes of i8x
  */
-struct i8x_note *i8x_note_ref (struct i8x_note *note);
-struct i8x_note *i8x_note_unref (struct i8x_note *note);
-struct i8x_ctx *i8x_note_get_ctx (struct i8x_note *note);
+I8X_COMMON_OBJECT_FUNCTIONS (note);
+
 i8x_err_e i8x_note_new_from_mem (struct i8x_ctx *ctx,
 				 const char *buf, size_t bufsiz,
 				 const char *srcname, ssize_t srcoffset,
