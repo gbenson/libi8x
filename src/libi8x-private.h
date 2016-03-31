@@ -147,6 +147,10 @@ struct i8x_chunk *i8x_chunk_get_next (struct i8x_chunk *chunk);
        chunk != NULL;				    \
        chunk = i8x_chunk_get_next (chunk))
 
+/* XXX for storing pointers you'll later error on.  */
+
+const char *i8x_rb_get_ptr (struct i8x_readbuf *rb);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

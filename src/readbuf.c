@@ -73,6 +73,12 @@ i8x_rb_get_note (struct i8x_readbuf *rb)
     i8x_ob_get_parent ((struct i8x_object *) rb);
 }
 
+const char *
+i8x_rb_get_ptr (struct i8x_readbuf *rb)
+{
+  return rb->ptr;
+}
+
 static i8x_err_e
 i8x_rb_error (i8x_err_e code, struct i8x_readbuf *rb)
 {
