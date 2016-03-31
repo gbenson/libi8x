@@ -40,6 +40,14 @@ typedef enum
 }
 i8x_err_e;
 
+/* chunk types */
+
+#define I8_CHUNK_SIGNATURE 1
+#define I8_CHUNK_BYTECODE 2
+#define I8_CHUNK_EXTERNALS 3
+#define I8_CHUNK_STRINGS 4
+#define I8_CHUNK_CODEINFO 5
+
 /* forward declarations */
 
 struct i8x_chunk;
