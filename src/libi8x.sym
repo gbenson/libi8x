@@ -36,6 +36,7 @@ global:
 	i8x_ob_set_userdata;
 
 	i8x_rb_new_from_note;
+	i8x_rb_new_from_chunk;
 	i8x_rb_get_note;
 	i8x_rb_bytes_left;
 	i8x_rb_read_uint8_t;

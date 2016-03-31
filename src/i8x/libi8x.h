@@ -229,6 +229,8 @@ I8X_COMMON_OBJECT_FUNCTIONS_PREFIX (readbuf, rb);
 
 i8x_err_e i8x_rb_new_from_note (struct i8x_note *note,
 				struct i8x_readbuf **rb);
+i8x_err_e i8x_rb_new_from_chunk (struct i8x_chunk *chunk,
+				 struct i8x_readbuf **rb);
 struct i8x_note *i8x_rb_get_note (struct i8x_readbuf *rb);
 size_t i8x_rb_bytes_left (struct i8x_readbuf *rb);
 i8x_err_e i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result);

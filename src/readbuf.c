@@ -66,6 +66,14 @@ i8x_rb_new_from_note (struct i8x_note *note, struct i8x_readbuf **rb)
 		     i8x_note_get_encoded_size (note), rb);
 }
 
+I8X_EXPORT i8x_err_e
+i8x_rb_new_from_chunk (struct i8x_chunk *chunk, struct i8x_readbuf **rb)
+{
+  return i8x_rb_new (i8x_chunk_get_note (chunk),
+		     i8x_chunk_get_encoded (chunk),
+		     i8x_chunk_get_encoded_size (chunk), rb);
+}
+
 I8X_EXPORT struct i8x_note *
 i8x_rb_get_note (struct i8x_readbuf *rb)
 {
