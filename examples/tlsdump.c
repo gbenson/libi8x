@@ -103,6 +103,7 @@ process_notes (struct i8x_ctx *ctx,
       const char *name = (const char *) data->d_buf + name_offset;
       const char *desc = (const char *) data->d_buf + desc_offset;
       struct i8x_note *note;
+      struct i8x_func *func;
       i8x_err_e err;
 
       if (strncmp (name, "GNU", 4) || nhdr.n_type != NT_GNU_INFINITY)
@@ -115,9 +116,15 @@ process_notes (struct i8x_ctx *ctx,
       if (err != I8X_OK)
 	error_i8x (ctx, err);
 
+      /* Create a function from the note.  */
+      err = i8x_func_new_from_note (note, &func);
+      i8x_note_unref (note);
+      if (err != I8X_OK)
+	error_i8x (ctx, err);
+
       /* XXX do stuff here.  */
 
-      i8x_note_unref (note);
+      i8x_func_unref (func);
     }
 }
 
