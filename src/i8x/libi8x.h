@@ -48,20 +48,6 @@ void *i8x_get_userdata (struct i8x_ctx *ctx);
 void i8x_set_userdata (struct i8x_ctx *ctx, void *userdata);
 
 /*
- * i8x_list
- *
- * access to i8x generated lists
- */
-struct i8x_list_entry;
-struct i8x_list_entry *i8x_list_entry_get_next (struct i8x_list_entry *list_entry);
-const char *i8x_list_entry_get_name (struct i8x_list_entry *list_entry);
-const char *i8x_list_entry_get_value (struct i8x_list_entry *list_entry);
-#define i8x_list_entry_foreach (list_entry, first_entry) \
-        for (list_entry = first_entry; \
-             list_entry != NULL; \
-             list_entry = i8x_list_entry_get_next (list_entry))
-
-/*
  * i8x_note
  *
  * access to notes of i8x
