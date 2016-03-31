@@ -32,6 +32,8 @@ struct i8x_chunk
   uintmax_t type_id;
   uintmax_t version;
 
+  const char *version_ptr;	/* For i8x_chunk_version_error.  */
+
   size_t encoded_size;	/* Size of encoded data, in bytes.  */
   const char *encoded;	/* Encoded data.  */
 };
@@ -58,6 +60,7 @@ i8x_chunk_new_from_rb (struct i8x_readbuf *rb, struct i8x_chunk **chunk)
   struct i8x_note *note = i8x_rb_get_note (rb);
   struct i8x_ctx *ctx = i8x_note_get_ctx (note);
   uintmax_t type_id, version;
+  const char *version_ptr;
   size_t encoded_size;
   const char *encoded;
   struct i8x_chunk *c;
@@ -67,6 +70,7 @@ i8x_chunk_new_from_rb (struct i8x_readbuf *rb, struct i8x_chunk **chunk)
   if (err != I8X_OK)
     return err;
 
+  version_ptr = i8x_rb_get_ptr (rb);
   err = i8x_rb_read_uleb128 (rb, &version);
   if (err != I8X_OK)
     return err;
@@ -97,6 +101,7 @@ i8x_chunk_new_from_rb (struct i8x_readbuf *rb, struct i8x_chunk **chunk)
 
   c->type_id = type_id;
   c->version = version;
+  c->version_ptr = version_ptr;
   c->encoded_size = encoded_size;
   c->encoded = encoded;
 
@@ -155,6 +160,14 @@ I8X_EXPORT uintmax_t
 i8x_chunk_get_version (struct i8x_chunk *chunk)
 {
   return chunk->version;
+}
+
+i8x_err_e
+i8x_chunk_version_error (struct i8x_chunk *chunk)
+{
+  return i8x_note_error (i8x_chunk_get_note (chunk),
+			 I8X_NOTE_UNHANDLED,
+			 chunk->version_ptr);
 }
 
 I8X_EXPORT size_t

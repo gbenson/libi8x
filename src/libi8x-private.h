@@ -141,6 +141,7 @@ struct i8x_object *i8x_ob_get_parent (struct i8x_object *ob);
 i8x_err_e i8x_chunk_list_new_from_readbuf (struct i8x_readbuf *rb,
 					   struct i8x_chunk **chunk_list);
 struct i8x_chunk *i8x_chunk_get_next (struct i8x_chunk *chunk);
+i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
 
 #define i8x_chunk_list_foreach(chunk, first_chunk)  \
   for (chunk = first_chunk;			    \
