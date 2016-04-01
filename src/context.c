@@ -43,8 +43,11 @@ struct i8x_ctx
 
   i8x_log_fn_t *log_fn;
   int log_priority;
+
   struct i8x_note *error_note;	/* Note that caused the last error.  */
   const char *error_ptr;	/* Pointer into error_note.  */
+
+  struct i8x_func *first_func;  /* Linked list of registered functions.  */
 };
 
 void
@@ -93,6 +96,7 @@ i8x_ctx_unlink (struct i8x_object *ob)
   struct i8x_ctx *ctx = (struct i8x_ctx *) ob;
 
   i8x_note_unref (ctx->error_note);
+  i8x_func_unref (ctx->first_func);
 }
 
 const struct i8x_object_ops i8x_ctx_ops =
@@ -277,4 +281,32 @@ i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
     xsnprintf (&ptr, limit, "%s", msg);
 
   return buf;
+}
+
+I8X_EXPORT i8x_err_e
+i8x_ctx_register_func (struct i8x_ctx *ctx, struct i8x_func *func)
+{
+  i8x_assert (i8x_func_get_ctx(func) == ctx);
+
+  dbg (ctx, "registering %s\n", i8x_func_get_fullname (func));
+
+  i8x_func_list_add (&ctx->first_func, func);
+
+  // XXX lots TODO here
+
+  return I8X_OK;
+}
+
+I8X_EXPORT i8x_err_e
+i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
+{
+  i8x_assert (i8x_func_get_ctx(func) == ctx);
+
+  dbg (ctx, "unregistering %s\n", i8x_func_get_fullname (func));
+
+  i8x_func_list_remove (&ctx->first_func, func);
+
+  // XXX lots TODO here
+
+  return I8X_OK;
 }

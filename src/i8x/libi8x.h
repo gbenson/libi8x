@@ -155,6 +155,10 @@ int i8x_ctx_get_log_priority (struct i8x_ctx *ctx);
 void i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority);
 const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 				char *buf, size_t bufsiz);
+i8x_err_e i8x_ctx_register_func (struct i8x_ctx *ctx,
+				 struct i8x_func *func);
+i8x_err_e i8x_ctx_unregister_func (struct i8x_ctx *ctx,
+				   struct i8x_func *func);
 
 /*
  * i8x_func
