@@ -148,6 +148,13 @@ i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
        chunk != NULL;				    \
        chunk = i8x_chunk_get_next (chunk))
 
+/* Function lists.  */
+
+void i8x_func_list_add (struct i8x_func **list_head,
+			struct i8x_func *func);
+void i8x_func_list_remove (struct i8x_func **list_head,
+			   struct i8x_func *func);
+
 /* Function signatures.  */
 
 i8x_err_e i8x_fs_new_from_readbuf (struct i8x_readbuf *rb,
