@@ -122,9 +122,11 @@ process_notes (struct i8x_ctx *ctx,
       if (err != I8X_OK)
 	error_i8x (ctx, err);
 
-      /* XXX do stuff here.  */
-
+      /* Register the function.  */
+      err = i8x_ctx_register_func (ctx, func);
       i8x_func_unref (func);
+      if (err != I8X_OK)
+	error_i8x (ctx, err);
     }
 }
 
