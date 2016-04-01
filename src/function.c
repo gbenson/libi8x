@@ -30,6 +30,50 @@ struct i8x_func
   struct i8x_note *note;	/* The note, or NULL if native.  */
 };
 
+static i8x_err_e
+i8x_bcf_unpack_signature (struct i8x_func *func)
+{
+  struct i8x_note *note = func->note;
+  struct i8x_readbuf *rb;
+  struct i8x_chunk *chunk;
+  i8x_err_e err;
+
+  err = i8x_note_get_unique_chunk (note, I8_CHUNK_SIGNATURE,
+				   I8X_NOTE_UNHANDLED,
+				   I8X_NOTE_UNHANDLED, &chunk);
+  if (err != I8X_OK)
+    return err;
+
+  if (i8x_chunk_get_version (chunk) != 2)
+    return i8x_chunk_version_error (chunk);
+
+  err = i8x_rb_new_from_chunk (chunk, &rb);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_fs_new_from_readbuf (rb, &func->sig);
+
+  i8x_rb_unref (rb);
+
+  if (err == I8X_OK)
+    dbg (i8x_func_get_ctx (func),
+	 "func %p is %s\n", func, i8x_fs_get_fullname (func->sig));
+
+  return err;
+}
+
+static i8x_err_e
+i8x_bcf_init (struct i8x_func *func)
+{
+  i8x_err_e err;
+
+  err = i8x_bcf_unpack_signature (func);
+  if (err != I8X_OK)
+    return err;
+
+  return I8X_OK;
+}
+
 static void
 i8x_func_unlink (struct i8x_object *ob)
 {
@@ -59,6 +103,15 @@ i8x_func_new_from_note (struct i8x_note *note, struct i8x_func **func)
     return err;
 
   f->note = i8x_note_ref (note);
+
+  err = i8x_bcf_init (f);
+  if (err != I8X_OK)
+    {
+      i8x_func_unref (f);
+
+      return err;
+    }
+
   f->impl_fn = NULL; // XXX!
 
   *func = f;
@@ -76,6 +129,8 @@ i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcsig *sig,
   err = i8x_ob_new (ctx, &i8x_func_ops, &f);
   if (err != I8X_OK)
     return err;
+
+  dbg (ctx, "func %p is %s\n", f, i8x_fs_get_fullname (sig));
 
   f->sig = i8x_fs_ref (sig);
   f->impl_fn = impl_fn;
