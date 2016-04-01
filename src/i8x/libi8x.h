@@ -52,6 +52,7 @@ i8x_err_e;
 
 struct i8x_chunk;
 struct i8x_ctx;
+struct i8x_funcsig;
 struct i8x_note;
 struct i8x_object;
 struct i8x_readbuf;
@@ -149,6 +150,21 @@ int i8x_ctx_get_log_priority (struct i8x_ctx *ctx);
 void i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority);
 const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 				char *buf, size_t bufsiz);
+
+/*
+ * i8x_funcsig
+ *
+ * access to funcsigs of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS_PREFIX (funcsig, fs);
+
+i8x_err_e i8x_fs_new (struct i8x_ctx *ctx,
+		      const char *provider,
+		      const char *name,
+		      const char *encoded_ptypes,
+		      const char *encoded_rtypes,
+		      struct i8x_funcsig **fs);
+const char *i8x_fs_get_fullname (struct i8x_funcsig *fs);
 
 /*
  * i8x_note

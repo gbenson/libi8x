@@ -148,6 +148,11 @@ i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
        chunk != NULL;				    \
        chunk = i8x_chunk_get_next (chunk))
 
+/* Function signatures.  */
+
+i8x_err_e i8x_fs_new_from_readbuf (struct i8x_readbuf *rb,
+				   struct i8x_funcsig **fs);
+
 /* XXX for storing pointers you'll later error on.  */
 
 const char *i8x_rb_get_ptr (struct i8x_readbuf *rb);
