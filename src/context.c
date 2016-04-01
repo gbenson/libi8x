@@ -95,8 +95,8 @@ i8x_ctx_unlink (struct i8x_object *ob)
 {
   struct i8x_ctx *ctx = (struct i8x_ctx *) ob;
 
-  i8x_note_unref (ctx->error_note);
-  i8x_func_unref (ctx->first_func);
+  ctx->error_note = i8x_note_unref (ctx->error_note);
+  ctx->first_func = i8x_func_unref (ctx->first_func);
 }
 
 const struct i8x_object_ops i8x_ctx_ops =
@@ -196,7 +196,7 @@ i8x_ctx_set_error (struct i8x_ctx *ctx, i8x_err_e code,
 
   if (ctx != NULL)
     {
-      i8x_note_unref (ctx->error_note);
+      ctx->error_note = i8x_note_unref (ctx->error_note);
       ctx->error_note = i8x_note_ref (cause_note);
 
       ctx->error_ptr = cause_ptr;

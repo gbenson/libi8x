@@ -56,7 +56,7 @@ i8x_bcf_unpack_signature (struct i8x_func *func)
 
   err = i8x_fs_new_from_readbuf (rb, &func->sig);
 
-  i8x_rb_unref (rb);
+  rb = i8x_rb_unref (rb);
 
   if (err == I8X_OK)
     dbg (i8x_func_get_ctx (func),
@@ -82,9 +82,9 @@ i8x_func_unlink (struct i8x_object *ob)
 {
   struct i8x_func *func = (struct i8x_func *) ob;
 
-  i8x_func_unref (func->next);
-  i8x_fs_unref (func->sig);
-  i8x_note_unref (func->note);
+  func->next = i8x_func_unref (func->next);
+  func->sig = i8x_fs_unref (func->sig);
+  func->note = i8x_note_unref (func->note);
 }
 
 const struct i8x_object_ops i8x_func_ops =
@@ -111,7 +111,7 @@ i8x_func_new_from_note (struct i8x_note *note, struct i8x_func **func)
   err = i8x_bcf_init (f);
   if (err != I8X_OK)
     {
-      i8x_func_unref (f);
+      f = i8x_func_unref (f);
 
       return err;
     }

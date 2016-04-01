@@ -119,7 +119,7 @@ i8x_fs_new (struct i8x_ctx *ctx, const char *provider,
   err = i8x_fs_init (f, provider, name, ptypes, rtypes);
   if (err != I8X_OK)
     {
-      i8x_fs_unref (f);
+      f = i8x_fs_unref (f);
 
       return err;
     }

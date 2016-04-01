@@ -57,14 +57,14 @@ i8x_ob_unref_1 (struct i8x_object *ob, enum ref_sense_e sense)
     ob->ops->unlink_fn (ob);
 
   ctx = i8x_ctx_ref (i8x_ob_get_ctx (ob));
-  i8x_ob_unref_parent (ob->parent);
+  ob->parent = i8x_ob_unref_parent (ob->parent);
 
   if (ob->refcount[RS_BACK] > 0)
     warn (ctx, "%s %p released with references\n", ob->ops->name, ob);
   else
     info (ctx, "%s %p released\n", ob->ops->name, ob);
 
-  i8x_ctx_unref (ctx);
+  ctx = i8x_ctx_unref (ctx);
 
   if (ob->ops->free_fn != NULL)
     ob->ops->free_fn (ob);

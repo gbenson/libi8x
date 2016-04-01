@@ -43,7 +43,7 @@ i8x_chunk_unlink (struct i8x_object *ob)
 {
   struct i8x_chunk *chunk = (struct i8x_chunk *) ob;
 
-  i8x_chunk_unref (chunk->next);
+  chunk->next = i8x_chunk_unref (chunk->next);
 }
 
 const struct i8x_object_ops i8x_chunk_ops =
@@ -124,7 +124,7 @@ i8x_chunk_list_new_from_readbuf (struct i8x_readbuf *rb,
       err = i8x_chunk_new_from_rb (rb, next_chunk);
       if (err != I8X_OK)
 	{
-	  i8x_chunk_unref (first_chunk);
+	  first_chunk = i8x_chunk_unref (first_chunk);
 	  return err;
 	}
 

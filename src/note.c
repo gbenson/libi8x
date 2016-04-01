@@ -50,7 +50,7 @@ i8x_note_locate_chunks (struct i8x_note *note)
 
   err = i8x_chunk_list_new_from_readbuf (rb, &note->first_chunk);
 
-  i8x_rb_unref (rb);
+  rb = i8x_rb_unref (rb);
 
   return err;
 }
@@ -90,7 +90,7 @@ i8x_note_unlink (struct i8x_object *ob)
 {
   struct i8x_note *note = (struct i8x_note *) ob;
 
-  i8x_chunk_unref (note->first_chunk);
+  note->first_chunk = i8x_chunk_unref (note->first_chunk);
 }
 
 static void
@@ -128,7 +128,7 @@ i8x_note_new_from_buf (struct i8x_ctx *ctx, const char *buf,
   err = i8x_note_init (n, buf, bufsiz, srcname, srcoffset);
   if (err != I8X_OK)
     {
-      i8x_note_unref (n);
+      n = i8x_note_unref (n);
 
       return err;
     }
