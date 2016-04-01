@@ -78,7 +78,7 @@ const struct i8x_object_ops i8x_note_ops =
   };
 
 I8X_EXPORT i8x_err_e
-i8x_note_new_from_mem (struct i8x_ctx *ctx, const char *buf,
+i8x_note_new_from_buf (struct i8x_ctx *ctx, const char *buf,
 		       size_t bufsiz, const char *srcname,
 		       ssize_t srcoffset, struct i8x_note **note)
 {

@@ -109,7 +109,7 @@ process_notes (struct i8x_ctx *ctx,
 	continue;
 
       /* Create the i8x_note.  */
-      err = i8x_note_new_from_mem (ctx, desc, nhdr.n_descsz,
+      err = i8x_note_new_from_buf (ctx, desc, nhdr.n_descsz,
 				   ef->filename,
 				   scn_offset + desc_offset, &note);
       if (err != I8X_OK)
