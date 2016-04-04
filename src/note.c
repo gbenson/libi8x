@@ -33,6 +33,9 @@ struct i8x_note
   char *encoded;	/* Encoded data.  */
 
   struct i8x_chunk *first_chunk;  /* Linked list of chunks.  */
+
+  size_t strings_size;	/* Size of string table, in bytes.  */
+  const char *strings;	/* String table.  */
 };
 
 static i8x_err_e
@@ -238,6 +241,62 @@ i8x_note_get_unique_chunk (struct i8x_note *note, uintmax_t type_id,
     }
 
   *chunk = c;
+
+  return I8X_OK;
+}
+
+static i8x_err_e
+i8x_note_locate_strings (struct i8x_note *note)
+{
+  struct i8x_chunk *chunk;
+  const char *strings;
+  i8x_err_e err;
+
+  err = i8x_note_get_unique_chunk (note, I8_CHUNK_STRINGS,
+				   I8X_NOTE_UNHANDLED,
+				   I8X_NOTE_UNHANDLED, &chunk);
+  if (err != I8X_OK)
+    return err;
+
+  if (i8x_chunk_get_version (chunk) != 1)
+    return i8x_chunk_version_error (chunk);
+
+  note->strings_size = i8x_chunk_get_encoded_size (chunk);
+  strings = i8x_chunk_get_encoded (chunk);
+
+  if (strings[note->strings_size - 1] != '\0')
+    return i8x_note_error (note, I8X_NOTE_CORRUPT, strings);
+
+  note->strings = strings;
+
+  return I8X_OK;
+}
+
+I8X_EXPORT i8x_err_e
+i8x_rb_read_offset_string (struct i8x_readbuf *rb, const char **result)
+{
+  struct i8x_note *note = i8x_rb_get_note (rb);
+  const char *offset_ptr;
+  size_t offset;
+  i8x_err_e err;
+
+  offset_ptr = i8x_rb_get_ptr (rb);
+
+  err = i8x_rb_read_uleb128 (rb, &offset);
+  if (err != I8X_OK)
+    return err;
+
+  if (note->strings == NULL)
+    {
+      err = i8x_note_locate_strings (note);
+      if (err != I8X_OK)
+	return err;
+    }
+
+  if (offset >= note->strings_size)
+    return i8x_note_error (note, I8X_NOTE_CORRUPT, offset_ptr);
+
+  *result = note->strings + offset;
 
   return I8X_OK;
 }

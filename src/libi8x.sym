@@ -33,6 +33,7 @@ global:
 	i8x_rb_read_uint8_t;
 	i8x_rb_read_uleb128;
 	i8x_rb_read_bytes;
+	i8x_rb_read_offset_string;
 local:
 	*;
 };

@@ -195,6 +195,8 @@ i8x_err_e i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result);
 i8x_err_e i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintmax_t *result);
 i8x_err_e i8x_rb_read_bytes (struct i8x_readbuf *rb, size_t nbytes,
 			     const char **result);
+i8x_err_e i8x_rb_read_offset_string (struct i8x_readbuf *rb,
+				     const char **result);
 
 #ifdef __cplusplus
 } /* extern "C" */
