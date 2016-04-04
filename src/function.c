@@ -31,6 +31,7 @@ struct i8x_func
   i8x_impl_fn_t *impl_fn;	/* The function's implementation.  */
 
   struct i8x_note *note;	/* The note, or NULL if native.  */
+  struct i8x_list *externals;	/* List of external references.  */
 };
 
 static i8x_err_e
@@ -66,11 +67,57 @@ i8x_bcf_unpack_signature (struct i8x_func *func)
 }
 
 static i8x_err_e
+i8x_bcf_unpack_externals (struct i8x_func *func)
+{
+  struct i8x_chunk *chunk;
+  struct i8x_readbuf *rb;
+  i8x_err_e err;
+
+  err = i8x_note_get_unique_chunk (i8x_func_get_note (func),
+				   I8_CHUNK_EXTERNALS,
+				   I8X_OK, I8X_NOTE_UNHANDLED,
+				   &chunk);
+  if (err != I8X_OK || chunk == NULL)
+    return err;
+
+  if (i8x_chunk_get_version (chunk) != 1)
+    return i8x_chunk_version_error (chunk);
+
+  err = i8x_list_new (i8x_func_get_ctx (func), true, &func->externals);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_rb_new_from_chunk (chunk, &rb);
+  if (err != I8X_OK)
+    return err;
+
+  while (i8x_rb_bytes_left (rb) > 0)
+    {
+      struct i8x_ext *ext;
+
+      err = i8x_ext_new_from_readbuf (rb, &ext);
+      if (err != I8X_OK)
+	break;
+
+      i8x_ext_list_append (func->externals, ext);
+      ext = i8x_ext_unref (ext);
+    }
+
+  rb = i8x_rb_unref (rb);
+
+  return err;
+}
+
+static i8x_err_e
 i8x_bcf_init (struct i8x_func *func)
 {
   i8x_err_e err;
 
   err = i8x_bcf_unpack_signature (func);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_bcf_unpack_externals (func);
   if (err != I8X_OK)
     return err;
 
@@ -84,6 +131,7 @@ i8x_func_unlink (struct i8x_object *ob)
 
   func->next = i8x_func_unref (func->next);
   func->sig = i8x_funcref_unref (func->sig);
+  func->externals = i8x_list_unref (func->externals);
   func->note = i8x_note_unref (func->note);
 }
 
