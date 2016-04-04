@@ -220,6 +220,21 @@ i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
        chunk != NULL;				    \
        chunk = i8x_chunk_get_next (chunk))
 
+/* Externals.  */
+
+struct i8x_ext;
+
+I8X_COMMON_OBJECT_FUNCTIONS (ext);
+I8X_LISTITEM_OBJECT_FUNCTIONS (ext);
+
+#define i8x_ext_list_foreach(item, list)		\
+  for (item = i8x_ext_list_get_first (list);		\
+       item != NULL;					\
+       item = i8x_ext_list_get_next (list, item))
+
+i8x_err_e i8x_ext_new_from_readbuf (struct i8x_readbuf *rb,
+				    struct i8x_ext **ext);
+
 /* Function lists.  */
 
 void i8x_func_list_add (struct i8x_func **list_head,
