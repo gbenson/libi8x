@@ -152,3 +152,31 @@ i8x_rb_read_bytes (struct i8x_readbuf *rb, size_t nbytes,
 
   return I8X_OK;
 }
+
+i8x_err_e
+i8x_rb_read_funcref (struct i8x_readbuf *rb, struct i8x_funcref **ref)
+{
+  const char *provider, *name, *ptypes, *rtypes;
+  i8x_err_e err;
+
+  err = i8x_rb_read_offset_string (rb, &provider);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_rb_read_offset_string (rb, &name);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_rb_read_offset_string (rb, &ptypes);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_rb_read_offset_string (rb, &rtypes);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_ctx_get_funcref (i8x_rb_get_ctx (rb),
+			     provider, name, ptypes, rtypes, ref);
+
+  return err;
+}
