@@ -22,10 +22,7 @@
 
 struct i8x_func
 {
-  I8X_OBJECT_FIELDS;
-
-  struct i8x_func *next;	/* Next function in the context's
-				   list of registered functions.  */
+  I8X_LISTITEM_OBJECT_FIELDS;
 
   struct i8x_funcref *sig;	/* The function's signature.  */
   i8x_impl_fn_t *impl_fn;	/* The function's implementation.  */
@@ -129,7 +126,6 @@ i8x_func_unlink (struct i8x_object *ob)
 {
   struct i8x_func *func = (struct i8x_func *) ob;
 
-  func->next = i8x_func_unref (func->next);
   func->sig = i8x_funcref_unref (func->sig);
   func->externals = i8x_list_unref (func->externals);
   func->note = i8x_note_unref (func->note);
@@ -202,21 +198,4 @@ I8X_EXPORT struct i8x_note *
 i8x_func_get_note (struct i8x_func *func)
 {
   return func->note;
-}
-
-void
-i8x_func_list_add (struct i8x_func **list_head,
-		   struct i8x_func *func)
-{
-  i8x_assert (func->next == NULL);
-
-  func->next = *list_head;
-  *list_head = i8x_func_ref (func);
-}
-
-void
-i8x_func_list_remove (struct i8x_func **list_head,
-		      struct i8x_func *func)
-{
-  i8x_not_implemented ();
 }

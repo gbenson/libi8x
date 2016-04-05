@@ -50,7 +50,7 @@ struct i8x_ctx
   struct i8x_list *funcrefs;	/* List of interned function references.  */
   struct i8x_list *symrefs;	/* List of interned symbol references.  */
 
-  struct i8x_func *first_func;  /* Linked list of registered functions.  */
+  struct i8x_list *functions;	/* List of registered functions.  */
 };
 
 void
@@ -98,6 +98,10 @@ i8x_ctx_init (struct i8x_ctx *ctx)
 {
   i8x_err_e err;
 
+  err = i8x_list_new (ctx, true, &ctx->functions);
+  if (err != I8X_OK)
+    return err;
+
   err = i8x_list_new (ctx, false, &ctx->funcrefs);
   if (err != I8X_OK)
     return err;
@@ -115,7 +119,8 @@ i8x_ctx_unlink (struct i8x_object *ob)
   struct i8x_ctx *ctx = (struct i8x_ctx *) ob;
 
   ctx->error_note = i8x_note_unref (ctx->error_note);
-  ctx->first_func = i8x_func_unref (ctx->first_func);
+
+  ctx->functions = i8x_list_unref (ctx->functions);
 
   ctx->funcrefs = i8x_list_unref (ctx->funcrefs);
   ctx->symrefs = i8x_list_unref (ctx->symrefs);
@@ -412,7 +417,7 @@ i8x_ctx_register_func (struct i8x_ctx *ctx, struct i8x_func *func)
 
   dbg (ctx, "registering %s\n", i8x_func_get_fullname (func));
 
-  i8x_func_list_add (&ctx->first_func, func);
+  i8x_func_list_append (ctx->functions, func);
 
   // XXX lots TODO here
 
@@ -426,7 +431,7 @@ i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
 
   dbg (ctx, "unregistering %s\n", i8x_func_get_fullname (func));
 
-  i8x_func_list_remove (&ctx->first_func, func);
+  i8x_func_list_remove (ctx->functions, func);
 
   // XXX lots TODO here
 

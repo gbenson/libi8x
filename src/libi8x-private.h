@@ -235,12 +235,14 @@ I8X_LISTITEM_OBJECT_FUNCTIONS (ext);
 i8x_err_e i8x_ext_new_from_readbuf (struct i8x_readbuf *rb,
 				    struct i8x_ext **ext);
 
-/* Function lists.  */
+/* Functions.  */
 
-void i8x_func_list_add (struct i8x_func **list_head,
-			struct i8x_func *func);
-void i8x_func_list_remove (struct i8x_func **list_head,
-			   struct i8x_func *func);
+I8X_LISTITEM_OBJECT_FUNCTIONS (func);
+
+#define i8x_func_list_foreach(item, list)		\
+  for (item = i8x_func_list_get_first (list);		\
+       item != NULL;					\
+       item = i8x_func_list_get_next (list, item))
 
 /* Function references.  */
 
