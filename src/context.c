@@ -47,6 +47,8 @@ struct i8x_ctx
   struct i8x_note *error_note;	/* Note that caused the last error.  */
   const char *error_ptr;	/* Pointer into error_note.  */
 
+  struct i8x_list *funcrefs;	/* List of interned function references.  */
+
   struct i8x_func *first_func;  /* Linked list of registered functions.  */
 };
 
@@ -90,6 +92,18 @@ log_priority (const char *priority)
   return 0;
 }
 
+static i8x_err_e
+i8x_ctx_init (struct i8x_ctx *ctx)
+{
+  i8x_err_e err;
+
+  err = i8x_list_new (ctx, false, &ctx->funcrefs);
+  if (err != I8X_OK)
+    return err;
+
+  return err;
+}
+
 static void
 i8x_ctx_unlink (struct i8x_object *ob)
 {
@@ -97,6 +111,8 @@ i8x_ctx_unlink (struct i8x_object *ob)
 
   ctx->error_note = i8x_note_unref (ctx->error_note);
   ctx->first_func = i8x_func_unref (ctx->first_func);
+
+  ctx->funcrefs = i8x_list_unref (ctx->funcrefs);
 }
 
 const struct i8x_object_ops i8x_ctx_ops =
@@ -139,6 +155,14 @@ i8x_ctx_new (struct i8x_ctx **ctx)
 
   info (c, "ctx %p created\n", c);
   dbg (c, "log_priority=%d\n", c->log_priority);
+
+  err = i8x_ctx_init (c);
+  if (err != I8X_OK)
+    {
+      c = i8x_ctx_unref (c);
+
+      return err;
+    }
 
   *ctx = c;
 
@@ -281,6 +305,60 @@ i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
     xsnprintf (&ptr, limit, "%s", msg);
 
   return buf;
+}
+
+I8X_EXPORT i8x_err_e
+i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *provider,
+		     const char *name, const char *ptypes,
+		     const char *rtypes, struct i8x_funcref **refp)
+{
+  struct i8x_funcref *ref;
+  size_t fullname_size;
+  char *fullname;
+  i8x_err_e err;
+
+  /* Build the full name.  */
+  fullname_size = (strlen (provider)
+		   + 2   /* "::"  */
+		   + strlen (name)
+		   + 1   /* '('  */
+		   + strlen (ptypes)
+		   + 1   /* ')'  */
+		   + strlen (rtypes)
+		   + 1); /* '\0'  */
+  fullname = alloca (fullname_size);
+  snprintf (fullname, fullname_size,
+	    "%s::%s(%s)%s", provider, name, ptypes, rtypes);
+
+  /* If we have this reference already then return it.  */
+  i8x_funcref_list_foreach (ref, ctx->funcrefs)
+    {
+      if (strcmp (i8x_funcref_get_fullname (ref), fullname) == 0)
+	{
+	  *refp = i8x_funcref_ref (ref);
+
+	  return I8X_OK;
+	}
+    }
+
+  /* It's a new reference that needs creating.  */
+  err = i8x_funcref_new (ctx, fullname, ptypes, rtypes, &ref);
+  if (err != I8X_OK)
+    return err;
+
+  i8x_funcref_list_append (ctx->funcrefs, ref);
+
+  *refp = ref;
+
+  return I8X_OK;
+}
+
+void
+i8x_ctx_forget_funcref (struct i8x_funcref *ref)
+{
+  struct i8x_ctx *ctx = i8x_funcref_get_ctx (ref);
+
+  i8x_funcref_list_remove (ctx->funcrefs, ref);
 }
 
 I8X_EXPORT i8x_err_e

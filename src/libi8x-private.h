@@ -196,6 +196,10 @@ i8x_err_e i8x_list_new (struct i8x_ctx *ctx,
 void i8x_list_append (struct i8x_list *head, struct i8x_listitem *item);
 void i8x_list_remove (struct i8x_list *head, struct i8x_listitem *item);
 
+/* Private i8x_ctx functions.  */
+
+void i8x_ctx_forget_funcref (struct i8x_funcref *ref);
+
 /* Chunks.  */
 
 i8x_err_e i8x_chunk_list_new_from_readbuf (struct i8x_readbuf *rb,
@@ -214,6 +218,19 @@ void i8x_func_list_add (struct i8x_func **list_head,
 			struct i8x_func *func);
 void i8x_func_list_remove (struct i8x_func **list_head,
 			   struct i8x_func *func);
+
+/* Function references.  */
+
+I8X_LISTITEM_OBJECT_FUNCTIONS (funcref);
+
+#define i8x_funcref_list_foreach(item, list)		\
+  for (item = i8x_funcref_list_get_first (list);	\
+       item != NULL;					\
+       item = i8x_funcref_list_get_next (list, item))
+
+i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
+			   const char *ptypes, const char *rtypes,
+			   struct i8x_funcref **ref);
 
 /* Function signatures.  */
 

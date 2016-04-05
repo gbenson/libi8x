@@ -61,6 +61,7 @@ src_libi8x_la_SOURCES =\
 	src/context.c \
 	src/funcsig.c \
 	src/function.c \
+	src/funcref.c \
 	src/list.c \
 	src/object.c \
 	src/note.c \
