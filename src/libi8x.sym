@@ -15,9 +15,6 @@ global:
 	i8x_ctx_register_func;
 	i8x_ctx_unregister_func;
 
-	i8x_fs_new;
-	i8x_fs_get_fullname;
-
 	i8x_func_new_from_note;
 	i8x_func_new_native;
 	i8x_func_get_note;

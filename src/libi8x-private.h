@@ -232,11 +232,6 @@ i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
 			   const char *ptypes, const char *rtypes,
 			   struct i8x_funcref **ref);
 
-/* Function signatures.  */
-
-i8x_err_e i8x_fs_new_from_readbuf (struct i8x_readbuf *rb,
-				   struct i8x_funcsig **fs);
-
 /* Read buffers.  */
 
 const char *i8x_rb_get_ptr (struct i8x_readbuf *rb);

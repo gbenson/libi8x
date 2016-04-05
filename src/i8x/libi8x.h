@@ -54,7 +54,6 @@ struct i8x_chunk;
 struct i8x_ctx;
 struct i8x_func;
 struct i8x_funcref;
-struct i8x_funcsig;
 struct i8x_note;
 struct i8x_object;
 struct i8x_readbuf;
@@ -194,21 +193,6 @@ struct i8x_note *i8x_func_get_note (struct i8x_func *func);
 I8X_COMMON_OBJECT_FUNCTIONS (funcref);
 
 const char *i8x_funcref_get_fullname (struct i8x_funcref *ref);
-
-/*
- * i8x_funcsig
- *
- * access to funcsigs of i8x
- */
-I8X_COMMON_OBJECT_FUNCTIONS_PREFIX (funcsig, fs);
-
-i8x_err_e i8x_fs_new (struct i8x_ctx *ctx,
-		      const char *provider,
-		      const char *name,
-		      const char *encoded_ptypes,
-		      const char *encoded_rtypes,
-		      struct i8x_funcsig **fs);
-const char *i8x_fs_get_fullname (struct i8x_funcsig *fs);
 
 /*
  * i8x_note
