@@ -27,7 +27,7 @@ struct i8x_func
   struct i8x_func *next;	/* Next function in the context's
 				   list of registered functions.  */
 
-  struct i8x_funcsig *sig;	/* The function's signature.  */
+  struct i8x_funcref *sig;	/* The function's signature.  */
   i8x_impl_fn_t *impl_fn;	/* The function's implementation.  */
 
   struct i8x_note *note;	/* The note, or NULL if native.  */
@@ -54,13 +54,13 @@ i8x_bcf_unpack_signature (struct i8x_func *func)
   if (err != I8X_OK)
     return err;
 
-  err = i8x_fs_new_from_readbuf (rb, &func->sig);
+  err = i8x_rb_read_funcref (rb, &func->sig);
 
   rb = i8x_rb_unref (rb);
 
   if (err == I8X_OK)
     dbg (i8x_func_get_ctx (func),
-	 "func %p is %s\n", func, i8x_fs_get_fullname (func->sig));
+	 "func %p is %s\n", func, i8x_funcref_get_fullname (func->sig));
 
   return err;
 }
@@ -83,7 +83,7 @@ i8x_func_unlink (struct i8x_object *ob)
   struct i8x_func *func = (struct i8x_func *) ob;
 
   func->next = i8x_func_unref (func->next);
-  func->sig = i8x_fs_unref (func->sig);
+  func->sig = i8x_funcref_unref (func->sig);
   func->note = i8x_note_unref (func->note);
 }
 
@@ -124,7 +124,7 @@ i8x_func_new_from_note (struct i8x_note *note, struct i8x_func **func)
 }
 
 I8X_EXPORT i8x_err_e
-i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcsig *sig,
+i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcref *sig,
 		     i8x_impl_fn_t *impl_fn, struct i8x_func **func)
 {
   struct i8x_func *f;
@@ -134,9 +134,9 @@ i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcsig *sig,
   if (err != I8X_OK)
     return err;
 
-  dbg (ctx, "func %p is %s\n", f, i8x_fs_get_fullname (sig));
+  dbg (ctx, "func %p is %s\n", f, i8x_funcref_get_fullname (sig));
 
-  f->sig = i8x_fs_ref (sig);
+  f->sig = i8x_funcref_ref (sig);
   f->impl_fn = impl_fn;
 
   *func = f;
@@ -144,7 +144,7 @@ i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcsig *sig,
   return I8X_OK;
 }
 
-I8X_EXPORT struct i8x_funcsig *
+I8X_EXPORT struct i8x_funcref *
 i8x_func_get_signature (struct i8x_func *func)
 {
   return func->sig;
