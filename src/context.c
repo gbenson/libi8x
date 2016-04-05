@@ -413,13 +413,11 @@ i8x_ctx_forget_symref (struct i8x_symref *ref)
 I8X_EXPORT i8x_err_e
 i8x_ctx_register_func (struct i8x_ctx *ctx, struct i8x_func *func)
 {
-  i8x_assert (i8x_func_get_ctx(func) == ctx);
-
-  dbg (ctx, "registering %s\n", i8x_func_get_fullname (func));
+  dbg (ctx, "registering func %p\n", func);
+  i8x_assert (i8x_func_get_ctx (func) == ctx);
 
   i8x_func_list_append (ctx->functions, func);
-
-  // XXX lots TODO here
+  i8x_funcref_register_func (i8x_func_get_signature (func), func);
 
   return I8X_OK;
 }
@@ -427,13 +425,11 @@ i8x_ctx_register_func (struct i8x_ctx *ctx, struct i8x_func *func)
 I8X_EXPORT i8x_err_e
 i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
 {
-  i8x_assert (i8x_func_get_ctx(func) == ctx);
+  dbg (ctx, "unregistering func %p\n", func);
+  i8x_assert (i8x_func_get_ctx (func) == ctx);
 
-  dbg (ctx, "unregistering %s\n", i8x_func_get_fullname (func));
-
+  i8x_funcref_unregister_func (i8x_func_get_signature (func), func);
   i8x_func_list_remove (ctx->functions, func);
-
-  // XXX lots TODO here
 
   return I8X_OK;
 }
