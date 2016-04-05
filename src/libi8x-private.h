@@ -136,6 +136,66 @@ i8x_err_e i8x_ob_new (void *parent, const struct i8x_object_ops *ops,
 		      void *ob);
 struct i8x_object *i8x_ob_get_parent (struct i8x_object *ob);
 
+/* Linked lists.  */
+
+struct i8x_listitem
+{
+  I8X_OBJECT_FIELDS;
+
+  struct i8x_listitem *next;
+  struct i8x_listitem *prev;
+};
+
+#define I8X_LISTITEM_OBJECT_FIELDS struct i8x_listitem li
+
+#define I8X_LISTITEM_OBJECT_FUNCTIONS_PREFIX(TYPE, PREFIX)		\
+  static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
+  i8x_ ## PREFIX ## _list_get_next (struct i8x_list *head,		\
+				    struct i8x_ ## TYPE *item)		\
+  {									\
+    struct i8x_listitem *next = ((struct i8x_listitem *) item)->next;	\
+									\
+    if (next == (struct i8x_listitem *) head)				\
+      return NULL;							\
+									\
+    return (struct i8x_ ## TYPE *) next;				\
+  }									\
+									\
+  static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
+  i8x_ ## PREFIX ## _list_get_first (struct i8x_list *head)		\
+  {									\
+    return i8x_ ## PREFIX ## _list_get_next (				\
+      head, (struct i8x_ ## TYPE *) head);				\
+  }									\
+									\
+  static inline void __attribute__ ((always_inline))			\
+  i8x_ ## PREFIX ## _list_append (struct i8x_list *head,		\
+				  struct i8x_ ## TYPE *item)		\
+  {									\
+    i8x_list_append (head, (struct i8x_listitem *) item);		\
+  }									\
+									\
+  static inline void __attribute__ ((always_inline))			\
+  i8x_ ## PREFIX ## _list_remove (struct i8x_list *head,		\
+				  struct i8x_ ## TYPE *item)		\
+  {									\
+    i8x_list_remove (head, (struct i8x_listitem *) item);		\
+  }
+
+#define I8X_LISTITEM_OBJECT_FUNCTIONS(TYPE) \
+  I8X_LISTITEM_OBJECT_FUNCTIONS_PREFIX (TYPE, TYPE)
+
+struct i8x_list;
+
+I8X_COMMON_OBJECT_FUNCTIONS (list);
+I8X_COMMON_OBJECT_FUNCTIONS (listitem);
+
+i8x_err_e i8x_list_new (struct i8x_ctx *ctx,
+			bool reference_items,
+			struct i8x_list **list);
+void i8x_list_append (struct i8x_list *head, struct i8x_listitem *item);
+void i8x_list_remove (struct i8x_list *head, struct i8x_listitem *item);
+
 /* Chunks.  */
 
 i8x_err_e i8x_chunk_list_new_from_readbuf (struct i8x_readbuf *rb,
