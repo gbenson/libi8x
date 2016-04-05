@@ -48,6 +48,7 @@ struct i8x_ctx
   const char *error_ptr;	/* Pointer into error_note.  */
 
   struct i8x_list *funcrefs;	/* List of interned function references.  */
+  struct i8x_list *symrefs;	/* List of interned symbol references.  */
 
   struct i8x_func *first_func;  /* Linked list of registered functions.  */
 };
@@ -101,6 +102,10 @@ i8x_ctx_init (struct i8x_ctx *ctx)
   if (err != I8X_OK)
     return err;
 
+  err = i8x_list_new (ctx, false, &ctx->symrefs);
+  if (err != I8X_OK)
+    return err;
+
   return err;
 }
 
@@ -113,6 +118,7 @@ i8x_ctx_unlink (struct i8x_object *ob)
   ctx->first_func = i8x_func_unref (ctx->first_func);
 
   ctx->funcrefs = i8x_list_unref (ctx->funcrefs);
+  ctx->symrefs = i8x_list_unref (ctx->symrefs);
 }
 
 const struct i8x_object_ops i8x_ctx_ops =
@@ -359,6 +365,44 @@ i8x_ctx_forget_funcref (struct i8x_funcref *ref)
   struct i8x_ctx *ctx = i8x_funcref_get_ctx (ref);
 
   i8x_funcref_list_remove (ctx->funcrefs, ref);
+}
+
+i8x_err_e
+i8x_ctx_get_symref (struct i8x_ctx *ctx, const char *name,
+		    struct i8x_symref **refp)
+{
+  struct i8x_symref *ref;
+  i8x_err_e err;
+
+  /* If we have this reference already then return it.  */
+  i8x_symref_list_foreach (ref, ctx->symrefs)
+    {
+      if (strcmp (i8x_symref_get_name (ref), name) == 0)
+	{
+	  *refp = i8x_symref_ref (ref);
+
+	  return I8X_OK;
+	}
+    }
+
+  /* It's a new reference that needs creating.  */
+  err = i8x_symref_new (ctx, name, &ref);
+  if (err != I8X_OK)
+    return err;
+
+  i8x_symref_list_append (ctx->symrefs, ref);
+
+  *refp = ref;
+
+  return I8X_OK;
+}
+
+void
+i8x_ctx_forget_symref (struct i8x_symref *ref)
+{
+  struct i8x_ctx *ctx = i8x_symref_get_ctx (ref);
+
+  i8x_symref_list_remove (ctx->symrefs, ref);
 }
 
 I8X_EXPORT i8x_err_e

@@ -29,6 +29,10 @@
 extern "C" {
 #endif
 
+/* Forward declarations.  */
+
+struct i8x_symref;
+
 /* Errors.  */
 
 i8x_err_e i8x_ctx_set_error (struct i8x_ctx *ctx, i8x_err_e code,
@@ -199,6 +203,10 @@ void i8x_list_remove (struct i8x_list *head, struct i8x_listitem *item);
 /* Private i8x_ctx functions.  */
 
 void i8x_ctx_forget_funcref (struct i8x_funcref *ref);
+i8x_err_e i8x_ctx_get_symref (struct i8x_ctx *ctx,
+			      const char *name,
+			      struct i8x_symref **ref);
+void i8x_ctx_forget_symref (struct i8x_symref *ref);
 
 /* Chunks.  */
 
@@ -237,6 +245,20 @@ i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
 const char *i8x_rb_get_ptr (struct i8x_readbuf *rb);
 i8x_err_e i8x_rb_read_funcref (struct i8x_readbuf *rb,
 			       struct i8x_funcref **ref);
+
+/* Symbols.  */
+
+I8X_COMMON_OBJECT_FUNCTIONS (symref);
+I8X_LISTITEM_OBJECT_FUNCTIONS (symref);
+
+#define i8x_symref_list_foreach(item, list)		\
+  for (item = i8x_symref_list_get_first (list);		\
+       item != NULL;					\
+       item = i8x_symref_list_get_next (list, item))
+
+i8x_err_e i8x_symref_new (struct i8x_ctx *ctx, const char *name,
+			  struct i8x_symref **ref);
+const char *i8x_symref_get_name (struct i8x_symref *ref);
 
 #ifdef __cplusplus
 } /* extern "C" */
