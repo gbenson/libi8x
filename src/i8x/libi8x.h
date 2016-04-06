@@ -63,6 +63,18 @@ struct i8x_readbuf;
 
 typedef i8x_err_e i8x_impl_fn_t (struct i8x_func *func); // XXX...
 
+struct i8x_native_fn
+{
+  const char *provider;
+  const char *name;
+  const char *encoded_ptypes;
+  const char *encoded_rtypes;
+
+  i8x_impl_fn_t *impl_fn;
+};
+
+#define I8X_END_TABLE {NULL}
+
 /*
  * i8x_object
  *
@@ -172,6 +184,8 @@ i8x_err_e i8x_ctx_register_native_func (struct i8x_ctx *ctx,
 					const char *encoded_ptypes,
 					const char *encoded_rtypes,
 					i8x_impl_fn_t *impl_fn);
+i8x_err_e i8x_ctx_register_native_funcs (struct i8x_ctx *ctx,
+					 const struct i8x_native_fn *table);
 
 /*
  * i8x_func

@@ -460,3 +460,29 @@ i8x_ctx_register_native_func (struct i8x_ctx *ctx,
 
   return err;
 }
+
+/* convenience */
+/* note it can stop mid-way! */
+
+I8X_EXPORT i8x_err_e
+i8x_ctx_register_native_funcs (struct i8x_ctx *ctx,
+			       const struct i8x_native_fn *table)
+{
+  i8x_err_e err = I8X_OK;
+
+  while (table->provider != NULL)
+    {
+      err = i8x_ctx_register_native_func (ctx,
+					  table->provider,
+					  table->name,
+					  table->encoded_ptypes,
+					  table->encoded_rtypes,
+					  table->impl_fn);
+      if (err != I8X_OK)
+	break;
+
+      table++;
+    }
+
+  return err;
+}

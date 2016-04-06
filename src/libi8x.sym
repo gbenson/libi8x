@@ -15,6 +15,7 @@ global:
 	i8x_ctx_register_func;
 	i8x_ctx_unregister_func;
 	i8x_ctx_register_native_func;
+	i8x_ctx_register_native_funcs;
 
 	i8x_func_new_from_note;
 	i8x_func_new_native;
