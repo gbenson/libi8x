@@ -433,3 +433,30 @@ i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
 
   return I8X_OK;
 }
+
+/* convenience */
+
+I8X_EXPORT i8x_err_e
+i8x_ctx_register_native_func (struct i8x_ctx *ctx,
+			      const char *provider, const char *name,
+			      const char *ptypes, const char *rtypes,
+			      i8x_impl_fn_t *impl_fn)
+{
+  struct i8x_funcref *sig;
+  struct i8x_func *func;
+  i8x_err_e err;
+
+  err = i8x_ctx_get_funcref (ctx, provider, name, ptypes, rtypes, &sig);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_func_new_native (ctx, sig, impl_fn, &func);
+  i8x_funcref_unref (sig);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_ctx_register_func (ctx, func);
+  i8x_func_unref (func);
+
+  return err;
+}

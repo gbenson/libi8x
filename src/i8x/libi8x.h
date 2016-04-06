@@ -166,6 +166,12 @@ i8x_err_e i8x_ctx_register_func (struct i8x_ctx *ctx,
 				 struct i8x_func *func);
 i8x_err_e i8x_ctx_unregister_func (struct i8x_ctx *ctx,
 				   struct i8x_func *func);
+i8x_err_e i8x_ctx_register_native_func (struct i8x_ctx *ctx,
+					const char *provider,
+					const char *name,
+					const char *encoded_ptypes,
+					const char *encoded_rtypes,
+					i8x_impl_fn_t *impl_fn);
 
 /*
  * i8x_func
