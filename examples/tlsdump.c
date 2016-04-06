@@ -239,6 +239,26 @@ read_mappings (struct i8x_ctx *ctx)
   fclose (fp);
 }
 
+static i8x_err_e
+ps_getpid (struct i8x_func *func)
+{
+  error ("%s:%d: Not implemented.", __FILE__, __LINE__);
+}
+
+static i8x_err_e
+ps_get_thread_area (struct i8x_func *func)
+{
+  error ("%s:%d: Not implemented.", __FILE__, __LINE__);
+}
+
+static struct i8x_native_fn native_func_table[] =
+{
+  {"procservice", "getpid",          "",   "i",  ps_getpid},
+  {"procservice", "get_thread_area", "ii", "ip", ps_get_thread_area},
+
+  I8X_END_TABLE
+};
+
 static void
 tlsdump_process (pid_t pid)
 {
@@ -253,6 +273,10 @@ tlsdump_process (pid_t pid)
   ud.pid = pid;
   ud.elfs = NULL;
   i8x_ctx_set_userdata (ctx, &ud, NULL);
+
+  err = i8x_ctx_register_native_funcs (ctx, native_func_table);
+  if (err != I8X_OK)
+    error_i8x (ctx, err);
 
   read_mappings (ctx);
 
