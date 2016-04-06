@@ -31,6 +31,8 @@ extern "C" {
 
 /* Forward declarations.  */
 
+struct i8x_ext;
+struct i8x_list;
 struct i8x_symref;
 
 /* Errors.  */
@@ -136,12 +138,11 @@ struct i8x_object
 
 #define I8X_OBJECT_FIELDS struct i8x_object _ob
 
-i8x_err_e i8x_ob_new (void *parent, const struct i8x_object_ops *ops,
-		      void *ob);
-struct i8x_object *i8x_ob_get_parent (struct i8x_object *ob);
-
-/* Linked lists.  */
-
+/*
+ * i8x_listitem
+ *
+ * access to listitems of i8x
+ */
 struct i8x_listitem
 {
   I8X_OBJECT_FIELDS;
@@ -189,10 +190,14 @@ struct i8x_listitem
 #define I8X_LISTITEM_OBJECT_FUNCTIONS(TYPE) \
   I8X_LISTITEM_OBJECT_FUNCTIONS_PREFIX (TYPE, TYPE)
 
-struct i8x_list;
-
-I8X_COMMON_OBJECT_FUNCTIONS (list);
 I8X_COMMON_OBJECT_FUNCTIONS (listitem);
+
+/*
+ * i8x_list
+ *
+ * access to lists of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (list);
 
 i8x_err_e i8x_list_new (struct i8x_ctx *ctx,
 			bool reference_items,
@@ -200,30 +205,11 @@ i8x_err_e i8x_list_new (struct i8x_ctx *ctx,
 void i8x_list_append (struct i8x_list *head, struct i8x_listitem *item);
 void i8x_list_remove (struct i8x_list *head, struct i8x_listitem *item);
 
-/* Private i8x_ctx functions.  */
-
-void i8x_ctx_forget_funcref (struct i8x_funcref *ref);
-i8x_err_e i8x_ctx_get_symref (struct i8x_ctx *ctx,
-			      const char *name,
-			      struct i8x_symref **ref);
-void i8x_ctx_forget_symref (struct i8x_symref *ref);
-
-/* Chunks.  */
-
-i8x_err_e i8x_chunk_list_new_from_readbuf (struct i8x_readbuf *rb,
-					   struct i8x_chunk **chunk_list);
-struct i8x_chunk *i8x_chunk_get_next (struct i8x_chunk *chunk);
-i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
-
-#define i8x_chunk_list_foreach(chunk, first_chunk)  \
-  for (chunk = first_chunk;			    \
-       chunk != NULL;				    \
-       chunk = i8x_chunk_get_next (chunk))
-
-/* Externals.  */
-
-struct i8x_ext;
-
+/*
+ * i8x_ext
+ *
+ * access to exts of i8x
+ */
 I8X_COMMON_OBJECT_FUNCTIONS (ext);
 I8X_LISTITEM_OBJECT_FUNCTIONS (ext);
 
@@ -235,7 +221,44 @@ I8X_LISTITEM_OBJECT_FUNCTIONS (ext);
 i8x_err_e i8x_ext_new_from_readbuf (struct i8x_readbuf *rb,
 				    struct i8x_ext **ext);
 
-/* Functions.  */
+/*
+ * i8x_symref
+ *
+ * access to symrefs of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (symref);
+I8X_LISTITEM_OBJECT_FUNCTIONS (symref);
+
+#define i8x_symref_list_foreach(item, list)		\
+  for (item = i8x_symref_list_get_first (list);		\
+       item != NULL;					\
+       item = i8x_symref_list_get_next (list, item))
+
+i8x_err_e i8x_symref_new (struct i8x_ctx *ctx, const char *name,
+			  struct i8x_symref **ref);
+const char *i8x_symref_get_name (struct i8x_symref *ref);
+
+/* i8x_chunk private functions.  */
+
+i8x_err_e i8x_chunk_list_new_from_readbuf (struct i8x_readbuf *rb,
+					   struct i8x_chunk **chunk_list);
+struct i8x_chunk *i8x_chunk_get_next (struct i8x_chunk *chunk);
+i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
+
+#define i8x_chunk_list_foreach(chunk, first_chunk)  \
+  for (chunk = first_chunk;			    \
+       chunk != NULL;				    \
+       chunk = i8x_chunk_get_next (chunk))
+
+/* i8x_ctx private functions.  */
+
+void i8x_ctx_forget_funcref (struct i8x_funcref *ref);
+i8x_err_e i8x_ctx_get_symref (struct i8x_ctx *ctx,
+			      const char *name,
+			      struct i8x_symref **ref);
+void i8x_ctx_forget_symref (struct i8x_symref *ref);
+
+/* i8x_func private functions.  */
 
 I8X_LISTITEM_OBJECT_FUNCTIONS (func);
 
@@ -244,7 +267,7 @@ I8X_LISTITEM_OBJECT_FUNCTIONS (func);
        item != NULL;					\
        item = i8x_func_list_get_next (list, item))
 
-/* Function references.  */
+/* i8x_funcref private functions.  */
 
 I8X_LISTITEM_OBJECT_FUNCTIONS (funcref);
 
@@ -257,25 +280,17 @@ i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
 			   const char *ptypes, const char *rtypes,
 			   struct i8x_funcref **ref);
 
-/* Read buffers.  */
+/* i8x_object private functions.  */
+
+i8x_err_e i8x_ob_new (void *parent, const struct i8x_object_ops *ops,
+		      void *ob);
+struct i8x_object *i8x_ob_get_parent (struct i8x_object *ob);
+
+/* i8x_readbuf private functions.  */
 
 const char *i8x_rb_get_ptr (struct i8x_readbuf *rb);
 i8x_err_e i8x_rb_read_funcref (struct i8x_readbuf *rb,
 			       struct i8x_funcref **ref);
-
-/* Symbols.  */
-
-I8X_COMMON_OBJECT_FUNCTIONS (symref);
-I8X_LISTITEM_OBJECT_FUNCTIONS (symref);
-
-#define i8x_symref_list_foreach(item, list)		\
-  for (item = i8x_symref_list_get_first (list);		\
-       item != NULL;					\
-       item = i8x_symref_list_get_next (list, item))
-
-i8x_err_e i8x_symref_new (struct i8x_ctx *ctx, const char *name,
-			  struct i8x_symref **ref);
-const char *i8x_symref_get_name (struct i8x_symref *ref);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -7,10 +7,10 @@ global:
 	i8x_chunk_get_encoded;
 
 	i8x_ctx_new;
+	i8x_ctx_strerror_r;
 	i8x_ctx_set_log_fn;
 	i8x_ctx_get_log_priority;
 	i8x_ctx_set_log_priority;
-	i8x_ctx_strerror_r;
 	i8x_ctx_get_funcref;
 	i8x_ctx_register_func;
 	i8x_ctx_unregister_func;

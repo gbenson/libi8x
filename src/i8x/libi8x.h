@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-/* error codes */
+/* Error codes.  */
 
 typedef enum
 {
@@ -40,7 +40,7 @@ typedef enum
 }
 i8x_err_e;
 
-/* chunk types */
+/* Chunk types.  */
 
 #define I8_CHUNK_SIGNATURE 1
 #define I8_CHUNK_BYTECODE 2
@@ -48,7 +48,7 @@ i8x_err_e;
 #define I8_CHUNK_STRINGS 4
 #define I8_CHUNK_CODEINFO 5
 
-/* forward declarations */
+/* Forward declarations.  */
 
 struct i8x_chunk;
 struct i8x_ctx;
@@ -150,11 +150,11 @@ typedef void i8x_log_fn_t (struct i8x_ctx *ctx,
 I8X_CONTEXT_OBJECT_FUNCTIONS (ctx);
 
 i8x_err_e i8x_ctx_new (struct i8x_ctx **ctx);
+const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
+				char *buf, size_t bufsiz);
 void i8x_ctx_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn);
 int i8x_ctx_get_log_priority (struct i8x_ctx *ctx);
 void i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority);
-const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
-				char *buf, size_t bufsiz);
 i8x_err_e i8x_ctx_get_funcref (struct i8x_ctx *ctx,
 			       const char *provider,
 			       const char *name,
