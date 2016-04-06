@@ -279,6 +279,10 @@ I8X_LISTITEM_OBJECT_FUNCTIONS (funcref);
 i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
 			   const char *ptypes, const char *rtypes,
 			   struct i8x_funcref **ref);
+void i8x_funcref_register_func (struct i8x_funcref *ref,
+				struct i8x_func *func);
+void i8x_funcref_unregister_func (struct i8x_funcref *ref,
+				  struct i8x_func *func);
 
 /* i8x_object private functions.  */
 

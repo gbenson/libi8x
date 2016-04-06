@@ -27,6 +27,14 @@ struct i8x_funcref
   I8X_LISTITEM_OBJECT_FIELDS;
 
   char *fullname;	/* Fully qualified name.  */
+
+  int regcount;		/* Number of functions registered in this
+			   context with this signature.  */
+
+  /* Pointer to the exactly one function registered in the
+     context with this signature, or NULL if there is not
+     exactly one function registered with this signature.  */
+  struct i8x_func *resolved;
 };
 
 static i8x_err_e
@@ -96,4 +104,30 @@ I8X_EXPORT const char *
 i8x_funcref_get_fullname (struct i8x_funcref *ref)
 {
   return ref->fullname;
+}
+
+void
+i8x_funcref_register_func (struct i8x_funcref *ref,
+			   struct i8x_func *func)
+{
+  ref->regcount++;
+
+  if (ref->regcount != 1)
+    func = NULL;
+
+  ref->resolved = func;
+}
+
+void
+i8x_funcref_unregister_func (struct i8x_funcref *ref,
+			     struct i8x_func *func)
+{
+  ref->regcount--;
+
+  if (ref->regcount == 1)
+    i8x_not_implemented ();
+  else
+    func = NULL;
+
+  ref->resolved = func;
 }
