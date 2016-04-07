@@ -205,6 +205,16 @@ void i8x_list_append (struct i8x_list *head, struct i8x_listitem *item);
 void i8x_list_remove (struct i8x_list *head, struct i8x_listitem *item);
 
 /*
+ * i8x_code
+ *
+ * access to codes of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (code);
+
+i8x_err_e i8x_code_new_from_func (struct i8x_func *func,
+				  struct i8x_code **code);
+
+/*
  * i8x_ext
  *
  * access to exts of i8x

@@ -59,6 +59,7 @@ src_libi8x_la_SOURCES =\
 	src/libi8x-private.h \
 	src/opcodes.h \
 	src/chunk.c \
+	src/code.c \
 	src/context.c \
 	src/external.c \
 	src/function.c \
