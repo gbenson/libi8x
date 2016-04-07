@@ -219,6 +219,8 @@ I8X_LISTITEM_OBJECT_FUNCTIONS (ext);
 
 i8x_err_e i8x_ext_new_from_readbuf (struct i8x_readbuf *rb,
 				    struct i8x_ext **ext);
+struct i8x_funcref *i8x_ext_as_funcref (struct i8x_ext *ext);
+struct i8x_symref *i8x_ext_as_symref (struct i8x_ext *ext);
 
 /*
  * i8x_symref

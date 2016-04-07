@@ -27,8 +27,8 @@ struct i8x_ext
 {
   I8X_LISTITEM_OBJECT_FIELDS;
 
-  struct i8x_funcref *func;	/* Non-NULL for function externals.  */
-  struct i8x_symref *sym;	/* Non-NULL for symbol externals.  */
+  struct i8x_funcref *funcref;	/* Non-NULL for function externals.  */
+  struct i8x_symref *symref;	/* Non-NULL for symbol externals.  */
 };
 
 static void
@@ -36,8 +36,8 @@ i8x_ext_unlink (struct i8x_object *ob)
 {
   struct i8x_ext *ext = (struct i8x_ext *) ob;
 
-  ext->func = i8x_funcref_unref (ext->func);
-  ext->sym = i8x_symref_unref (ext->sym);
+  ext->funcref = i8x_funcref_unref (ext->funcref);
+  ext->symref = i8x_symref_unref (ext->symref);
 }
 
 const struct i8x_object_ops i8x_ext_ops =
@@ -74,12 +74,12 @@ i8x_ext_new_from_readbuf (struct i8x_readbuf *rb, struct i8x_ext **ext)
   switch (type_id)
     {
     case I8_EXT_FUNCTION:
-      err = i8x_rb_read_funcref (rb, &e->func);
+      err = i8x_rb_read_funcref (rb, &e->funcref);
       if (err != I8X_OK)
 	break;
 
       dbg (i8x_note_get_ctx (note),
-	   "ext %p is funcref %p\n", e, e->func);
+	   "ext %p is funcref %p\n", e, e->funcref);
 
       break;
 
@@ -88,12 +88,12 @@ i8x_ext_new_from_readbuf (struct i8x_readbuf *rb, struct i8x_ext **ext)
       if (err != I8X_OK)
 	break;
 
-      err = i8x_ctx_get_symref (i8x_note_get_ctx (note), name, &e->sym);
+      err = i8x_ctx_get_symref (i8x_note_get_ctx (note), name, &e->symref);
       if (err != I8X_OK)
 	break;
 
       dbg (i8x_note_get_ctx (note),
-	   "ext %p is symref %p\n", e, e->sym);
+	   "ext %p is symref %p\n", e, e->symref);
 
       break;
 
@@ -107,4 +107,16 @@ i8x_ext_new_from_readbuf (struct i8x_readbuf *rb, struct i8x_ext **ext)
     i8x_ext_unref (e);
 
   return err;
+}
+
+struct i8x_funcref *
+i8x_ext_as_funcref (struct i8x_ext *ext)
+{
+  return ext->funcref;
+}
+
+struct i8x_symref *
+i8x_ext_as_symref (struct i8x_ext *ext)
+{
+  return ext->symref;
 }
