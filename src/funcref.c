@@ -131,3 +131,9 @@ i8x_funcref_unregister_func (struct i8x_funcref *ref,
 
   ref->resolved = func;
 }
+
+I8X_EXPORT bool
+i8x_funcref_is_resolved (struct i8x_funcref *ref)
+{
+  return ref->resolved != NULL;
+}

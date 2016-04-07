@@ -21,7 +21,6 @@
 #define _LIBI8X_PRIVATE_H_
 
 #include <syslog.h>
-#include <stdbool.h>
 
 #include <i8x/libi8x.h>
 

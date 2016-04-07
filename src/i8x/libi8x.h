@@ -21,6 +21,7 @@
 #define _LIBI8X_H_
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -193,6 +194,7 @@ struct i8x_note *i8x_func_get_note (struct i8x_func *func);
 I8X_COMMON_OBJECT_FUNCTIONS (funcref);
 
 const char *i8x_funcref_get_fullname (struct i8x_funcref *ref);
+bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
 
 /*
  * i8x_note
