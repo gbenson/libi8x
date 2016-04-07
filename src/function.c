@@ -28,6 +28,7 @@ struct i8x_func
 
   struct i8x_note *note;	/* The note, or NULL if native.  */
   struct i8x_list *externals;	/* List of external references.  */
+  struct i8x_code *code;	/* Compiled bytecode.  */
 
   bool observed_available;	/* The last observer we called.  */
 };
@@ -119,6 +120,10 @@ i8x_bcf_init (struct i8x_func *func)
   if (err != I8X_OK)
     return err;
 
+  err = i8x_code_new_from_func (func, &func->code);
+  if (err != I8X_OK)
+    return err;
+
   return I8X_OK;
 }
 
@@ -130,6 +135,7 @@ i8x_func_unlink (struct i8x_object *ob)
   if (func->observed_available)
     i8x_ctx_fire_availability_observer (func, false);
 
+  func->code = i8x_code_unref (func->code);
   func->sig = i8x_funcref_unref (func->sig);
   func->externals = i8x_list_unref (func->externals);
   func->note = i8x_note_unref (func->note);
