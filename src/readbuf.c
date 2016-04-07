@@ -17,11 +17,14 @@
    License along with the Infinity Note Execution Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+#include <byteswap.h>
 #include "libi8x-private.h"
 
 struct i8x_readbuf
 {
   I8X_OBJECT_FIELDS;
+
+  i8x_byte_order_e byte_order;	/* Byte order for multibyte values.  */
 
   const char *start;	/* Pointer to first byte of buffer.  */
   const char *limit;	/* Pointer to byte after last byte of buffer.  */
@@ -78,6 +81,18 @@ i8x_rb_get_note (struct i8x_readbuf *rb)
     i8x_ob_get_parent ((struct i8x_object *) rb);
 }
 
+I8X_EXPORT i8x_byte_order_e
+i8x_rb_get_byte_order (struct i8x_readbuf *rb)
+{
+  return rb->byte_order;
+}
+
+I8X_EXPORT void
+i8x_rb_set_byte_order (struct i8x_readbuf *rb, i8x_byte_order_e order)
+{
+  rb->byte_order = order;
+}
+
 const char *
 i8x_rb_get_ptr (struct i8x_readbuf *rb)
 {
@@ -99,15 +114,82 @@ i8x_rb_bytes_left (struct i8x_readbuf *rb)
 }
 
 I8X_EXPORT i8x_err_e
-i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result)
+i8x_rb_read_byte_order_mark (struct i8x_readbuf *rb)
 {
-  if (i8x_rb_bytes_left (rb) < 1)
-    return i8x_rb_error (I8X_NOTE_CORRUPT, rb);
+  const char *saved_ptr = rb->ptr;
+  i8x_byte_order_e saved_order = rb->byte_order;
+  uint16_t new_order;
+  i8x_err_e err;
 
-  *result = *rb->ptr++;
+  rb->byte_order = I8X_BYTE_ORDER_STANDARD;
+  err = i8x_rb_read_uint16_t (rb, &new_order);
+  rb->byte_order = saved_order;
+  if (err != I8X_OK)
+    return err;
+
+  if (new_order != I8X_BYTE_ORDER_STANDARD
+      && new_order != I8X_BYTE_ORDER_REVERSED)
+    return i8x_note_error (i8x_rb_get_note (rb),
+			   I8X_NOTE_INVALID, saved_ptr);
+
+  rb->byte_order = new_order;
 
   return I8X_OK;
 }
+
+I8X_EXPORT i8x_err_e
+i8x_rb_read_int8_t (struct i8x_readbuf *rb, int8_t *result)
+{
+  if (i8x_rb_bytes_left (rb) < sizeof (int8_t))
+    return i8x_rb_error (I8X_NOTE_CORRUPT, rb);
+
+  *result = *(uint8_t *) rb->ptr;
+  rb->ptr += sizeof (int8_t);
+
+  return I8X_OK;
+}
+
+I8X_EXPORT i8x_err_e
+i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result)
+{
+  if (i8x_rb_bytes_left (rb) < sizeof (uint8_t))
+    return i8x_rb_error (I8X_NOTE_CORRUPT, rb);
+
+  *result = *(uint8_t *) rb->ptr;
+  rb->ptr += sizeof (uint8_t);
+
+  return I8X_OK;
+}
+
+#define I8X_RB_READ_FIXED_MULTI_1(TYPE, BSWAP)				\
+  I8X_EXPORT i8x_err_e							\
+  i8x_rb_read_ ## TYPE (struct i8x_readbuf *rb, TYPE *result)		\
+  {									\
+    TYPE tmp;								\
+									\
+    if (i8x_rb_bytes_left (rb) < sizeof (TYPE))				\
+      return i8x_rb_error (I8X_NOTE_CORRUPT, rb);			\
+									\
+    tmp = *(TYPE *) rb->ptr;						\
+    rb->ptr += sizeof (TYPE);						\
+									\
+    if (rb->byte_order == I8X_BYTE_ORDER_REVERSED)			\
+      tmp = BSWAP (tmp);						\
+    else								\
+      i8x_assert (rb->byte_order == I8X_BYTE_ORDER_STANDARD);		\
+									\
+    *result = tmp;							\
+									\
+    return I8X_OK;							\
+  }
+
+#define I8X_RB_READ_FIXED_MULTI(SIZE)					\
+  I8X_RB_READ_FIXED_MULTI_1 (int ## SIZE ## _t, bswap_ ## SIZE)		\
+  I8X_RB_READ_FIXED_MULTI_1 (uint ## SIZE ## _t, bswap_ ## SIZE)
+
+I8X_RB_READ_FIXED_MULTI (16)
+I8X_RB_READ_FIXED_MULTI (32)
+I8X_RB_READ_FIXED_MULTI (64)
 
 I8X_EXPORT i8x_err_e
 i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintmax_t *rp)
