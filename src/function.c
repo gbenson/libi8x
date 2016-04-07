@@ -199,3 +199,22 @@ i8x_func_get_note (struct i8x_func *func)
 {
   return func->note;
 }
+
+bool
+i8x_func_all_deps_resolved (struct i8x_func *func)
+{
+  struct i8x_ext *ext;
+
+  if (func->externals == NULL)
+    return true;
+
+  i8x_ext_list_foreach (ext, func->externals)
+    {
+      struct i8x_funcref *ref = i8x_ext_as_funcref (ext);
+
+      if (ref != NULL && !i8x_funcref_is_resolved (ref))
+	return false;
+    }
+
+  return true;
+}

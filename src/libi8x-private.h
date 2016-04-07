@@ -268,6 +268,8 @@ I8X_LISTITEM_OBJECT_FUNCTIONS (func);
        item != NULL;					\
        item = i8x_func_list_get_next (list, item))
 
+bool i8x_func_all_deps_resolved (struct i8x_func *func);
+
 /* i8x_funcref private functions.  */
 
 I8X_LISTITEM_OBJECT_FUNCTIONS (funcref);
@@ -284,6 +286,8 @@ void i8x_funcref_register_func (struct i8x_funcref *ref,
 				struct i8x_func *func);
 void i8x_funcref_unregister_func (struct i8x_funcref *ref,
 				  struct i8x_func *func);
+void i8x_funcref_reset_is_resolved (struct i8x_funcref *ref);
+void i8x_funcref_mark_unresolved (struct i8x_funcref *ref);
 
 /* i8x_object private functions.  */
 

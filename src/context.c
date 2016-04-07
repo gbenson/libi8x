@@ -410,6 +410,43 @@ i8x_ctx_forget_symref (struct i8x_symref *ref)
   i8x_symref_list_remove (ctx->symrefs, ref);
 }
 
+static void
+i8x_ctx_resolve_funcrefs (struct i8x_ctx *ctx)
+{
+  struct i8x_funcref *ref;
+  bool finished = false;
+
+  /* Mark all function references as resolved or not based
+     on whether they resolve to a unique registered function.
+     Dependencies are ignored at this stage.  */
+  i8x_funcref_list_foreach (ref, ctx->funcrefs)
+    i8x_funcref_reset_is_resolved (ref);
+
+  /* Mark functions unresolved if any of their dependencies
+     are unresolved.  Repeat until nothing changes.  */
+  while (finished)
+    {
+      struct i8x_func *func;
+
+      finished = true;
+
+      i8x_func_list_foreach (func, ctx->functions)
+	{
+	  ref = i8x_func_get_signature (func);
+
+	  if (!i8x_funcref_is_resolved (ref))
+	    continue;
+
+	  if (i8x_func_all_deps_resolved (func))
+	    continue;
+
+	  i8x_funcref_mark_unresolved (ref);
+
+	  finished = false;
+	}
+    }
+}
+
 I8X_EXPORT i8x_err_e
 i8x_ctx_register_func (struct i8x_ctx *ctx, struct i8x_func *func)
 {
@@ -418,6 +455,7 @@ i8x_ctx_register_func (struct i8x_ctx *ctx, struct i8x_func *func)
 
   i8x_func_list_append (ctx->functions, func);
   i8x_funcref_register_func (i8x_func_get_signature (func), func);
+  i8x_ctx_resolve_funcrefs (ctx);
 
   return I8X_OK;
 }
@@ -429,6 +467,7 @@ i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
   i8x_assert (i8x_func_get_ctx (func) == ctx);
 
   i8x_funcref_unregister_func (i8x_func_get_signature (func), func);
+  i8x_ctx_resolve_funcrefs (ctx);
   i8x_func_list_remove (ctx->functions, func);
 
   return I8X_OK;

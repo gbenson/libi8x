@@ -31,10 +31,14 @@ struct i8x_funcref
   int regcount;		/* Number of functions registered in this
 			   context with this signature.  */
 
-  /* Pointer to the exactly one function registered in the
+  /* Pointers to the exactly one function registered in the
      context with this signature, or NULL if there is not
-     exactly one function registered with this signature.  */
-  struct i8x_func *resolved;
+     exactly one function registered with this signature.
+     The internal version ignores dependencies; the external
+     version will be the same as the internal version if
+     all dependent functions are also resolved, NULL otherwise.  */
+  struct i8x_func *int_resolved;
+  struct i8x_func *ext_resolved;
 };
 
 static i8x_err_e
@@ -115,7 +119,7 @@ i8x_funcref_register_func (struct i8x_funcref *ref,
   if (ref->regcount != 1)
     func = NULL;
 
-  ref->resolved = func;
+  ref->int_resolved = func;
 }
 
 void
@@ -129,11 +133,23 @@ i8x_funcref_unregister_func (struct i8x_funcref *ref,
   else
     func = NULL;
 
-  ref->resolved = func;
+  ref->int_resolved = func;
+}
+
+void
+i8x_funcref_reset_is_resolved (struct i8x_funcref *ref)
+{
+  ref->ext_resolved = ref->int_resolved;
+}
+
+void
+i8x_funcref_mark_unresolved (struct i8x_funcref *ref)
+{
+  ref->ext_resolved = NULL;
 }
 
 I8X_EXPORT bool
 i8x_funcref_is_resolved (struct i8x_funcref *ref)
 {
-  return ref->resolved != NULL;
+  return ref->ext_resolved != NULL;
 }
