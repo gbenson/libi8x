@@ -20,8 +20,6 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-
-#include <i8x/libi8x.h>
 #include "libi8x-private.h"
 
 /**

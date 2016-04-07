@@ -18,8 +18,6 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
-
-#include <i8x/libi8x.h>
 #include "libi8x-private.h"
 
 void

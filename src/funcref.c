@@ -18,8 +18,6 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <string.h>
-
-#include <i8x/libi8x.h>
 #include "libi8x-private.h"
 
 struct i8x_funcref

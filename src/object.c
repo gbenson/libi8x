@@ -17,7 +17,6 @@
    License along with the Infinity Note Execution Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <i8x/libi8x.h>
 #include "libi8x-private.h"
 
 static struct i8x_object *i8x_ob_unref_parent (struct i8x_object *ob);
