@@ -11,6 +11,8 @@ global:
 	i8x_ctx_set_log_fn;
 	i8x_ctx_get_log_priority;
 	i8x_ctx_set_log_priority;
+	i8x_ctx_set_func_available_cb;
+	i8x_ctx_set_func_unavailable_cb;
 	i8x_ctx_get_funcref;
 	i8x_ctx_register_func;
 	i8x_ctx_unregister_func;

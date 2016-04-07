@@ -51,6 +51,13 @@ struct i8x_ctx
   struct i8x_list *symrefs;	/* List of interned symbol references.  */
 
   struct i8x_list *functions;	/* List of registered functions.  */
+
+  /* User-supplied function called when a function becomes available.  */
+  i8x_func_cb_t *func_avail_observer_fn;
+
+  /* User-supplied function called when a function is about to become
+     unavailable.  */
+  i8x_func_cb_t *func_unavail_observer_fn;
 };
 
 void
@@ -221,6 +228,34 @@ I8X_EXPORT void
 i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority)
 {
   ctx->log_priority = priority;
+}
+
+I8X_EXPORT void
+i8x_ctx_set_func_available_cb (struct i8x_ctx *ctx,
+			       i8x_func_cb_t *func_avail_cb_fn)
+{
+  ctx->func_avail_observer_fn = func_avail_cb_fn;
+}
+
+I8X_EXPORT void
+i8x_ctx_set_func_unavailable_cb (struct i8x_ctx *ctx,
+				 i8x_func_cb_t *func_unavail_cb_fn)
+{
+  ctx->func_unavail_observer_fn = func_unavail_cb_fn;
+}
+
+void
+i8x_ctx_fire_availability_observer (struct i8x_func *func,
+				    bool is_available)
+{
+  struct i8x_ctx *ctx = i8x_func_get_ctx (func);
+  i8x_func_cb_t *cb =
+    is_available
+    ? ctx->func_avail_observer_fn
+    : ctx->func_unavail_observer_fn;
+
+  if (cb != NULL)
+    cb (func);
 }
 
 i8x_err_e
@@ -414,6 +449,7 @@ static void
 i8x_ctx_resolve_funcrefs (struct i8x_ctx *ctx)
 {
   struct i8x_funcref *ref;
+  struct i8x_func *func;
   bool finished = false;
 
   /* Mark all function references as resolved or not based
@@ -424,10 +460,8 @@ i8x_ctx_resolve_funcrefs (struct i8x_ctx *ctx)
 
   /* Mark functions unresolved if any of their dependencies
      are unresolved.  Repeat until nothing changes.  */
-  while (finished)
+  while (!finished)
     {
-      struct i8x_func *func;
-
       finished = true;
 
       i8x_func_list_foreach (func, ctx->functions)
@@ -445,6 +479,10 @@ i8x_ctx_resolve_funcrefs (struct i8x_ctx *ctx)
 	  finished = false;
 	}
     }
+
+  /* Notify the user of any function availability changes.  */
+  i8x_func_list_foreach (func, ctx->functions)
+    i8x_func_fire_availability_observers (func);
 }
 
 I8X_EXPORT i8x_err_e

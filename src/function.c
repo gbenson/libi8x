@@ -29,6 +29,8 @@ struct i8x_func
 
   struct i8x_note *note;	/* The note, or NULL if native.  */
   struct i8x_list *externals;	/* List of external references.  */
+
+  bool observed_available;	/* The last observer we called.  */
 };
 
 static i8x_err_e
@@ -126,6 +128,9 @@ i8x_func_unlink (struct i8x_object *ob)
 {
   struct i8x_func *func = (struct i8x_func *) ob;
 
+  if (func->observed_available)
+    i8x_ctx_fire_availability_observer (func, false);
+
   func->sig = i8x_funcref_unref (func->sig);
   func->externals = i8x_list_unref (func->externals);
   func->note = i8x_note_unref (func->note);
@@ -217,4 +222,17 @@ i8x_func_all_deps_resolved (struct i8x_func *func)
     }
 
   return true;
+}
+
+void
+i8x_func_fire_availability_observers (struct i8x_func *func)
+{
+  bool is_available = i8x_funcref_is_resolved (func->sig);
+
+  if (is_available == func->observed_available)
+    return;
+
+  i8x_ctx_fire_availability_observer (func, is_available);
+
+  func->observed_available = is_available;
 }

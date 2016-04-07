@@ -258,6 +258,8 @@ i8x_err_e i8x_ctx_get_symref (struct i8x_ctx *ctx,
 			      const char *name,
 			      struct i8x_symref **ref);
 void i8x_ctx_forget_symref (struct i8x_symref *ref);
+void i8x_ctx_fire_availability_observer (struct i8x_func *func,
+					 bool is_available);
 
 /* i8x_func private functions.  */
 
@@ -269,6 +271,7 @@ I8X_LISTITEM_OBJECT_FUNCTIONS (func);
        item = i8x_func_list_get_next (list, item))
 
 bool i8x_func_all_deps_resolved (struct i8x_func *func);
+void i8x_func_fire_availability_observers (struct i8x_func *func);
 
 /* i8x_funcref private functions.  */
 
