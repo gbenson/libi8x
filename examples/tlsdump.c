@@ -260,6 +260,20 @@ static struct i8x_native_fn native_func_table[] =
 };
 
 static void
+function_available (struct i8x_func *func)
+{
+  //printf ("\x1B[32m%s became available\x1B[0m\n",
+  //	  i8x_func_get_fullname (func));
+}
+
+static void
+function_unavailable (struct i8x_func *func)
+{
+  //printf ("\x1B[33m%s became unavailable\x1B[0m\n",
+  //	  i8x_func_get_fullname (func));
+}
+
+static void
 tlsdump_process (pid_t pid)
 {
   struct i8x_ctx *ctx;
@@ -269,6 +283,9 @@ tlsdump_process (pid_t pid)
   err = i8x_ctx_new (&ctx);
   if (err != I8X_OK)
     error_i8x (NULL, err);
+
+  i8x_ctx_set_func_available_cb (ctx, function_available);
+  i8x_ctx_set_func_unavailable_cb (ctx, function_unavailable);
 
   ud.pid = pid;
   ud.elfs = NULL;
