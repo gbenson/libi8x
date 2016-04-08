@@ -70,7 +70,7 @@ src_libi8x_la_SOURCES =\
 	src/symref.c \
 	src/util.c
 
-EXTRA_DIST += src/libi8x.sym
+EXTRA_DIST += src/libi8x.sym src/optable.c
 
 src_libi8x_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIBI8X_CURRENT):$(LIBI8X_REVISION):$(LIBI8X_AGE) \
