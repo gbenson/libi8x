@@ -57,6 +57,7 @@ global:
 	i8x_rb_read_uint32_t;
 	i8x_rb_read_int64_t;
 	i8x_rb_read_uint64_t;
+	i8x_rb_read_sleb128;
 	i8x_rb_read_uleb128;
 	i8x_rb_read_bytes;
 	i8x_rb_read_offset_string;

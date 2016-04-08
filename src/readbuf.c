@@ -192,6 +192,12 @@ I8X_RB_READ_FIXED_MULTI (32)
 I8X_RB_READ_FIXED_MULTI (64)
 
 I8X_EXPORT i8x_err_e
+i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intmax_t *rp)
+{
+  i8x_not_implemented ();
+}
+
+I8X_EXPORT i8x_err_e
 i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintmax_t *rp)
 {
   uintmax_t result = 0;
