@@ -193,6 +193,13 @@ i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
 
 /* i8x_ctx private functions.  */
 
+i8x_err_e i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
+					 const char *provider,
+					 const char *name,
+					 const char *encoded_ptypes,
+					 const char *encoded_rtypes,
+					 struct i8x_note *src_note,
+					 struct i8x_funcref **ref);
 void i8x_ctx_forget_funcref (struct i8x_funcref *ref);
 i8x_err_e i8x_ctx_get_symref (struct i8x_ctx *ctx,
 			      const char *name,
@@ -216,6 +223,7 @@ I8X_LISTABLE_OBJECT_FUNCTIONS (funcref);
 
 i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
 			   const char *ptypes, const char *rtypes,
+			   struct i8x_note *src_note,
 			   struct i8x_funcref **ref);
 struct i8x_funcref *i8x_object_as_funcref (struct i8x_object *ob);
 void i8x_funcref_register_func (struct i8x_funcref *ref,

@@ -351,10 +351,17 @@ i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
   return buf;
 }
 
-I8X_EXPORT i8x_err_e
-i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *provider,
-		     const char *name, const char *ptypes,
-		     const char *rtypes, struct i8x_funcref **refp)
+/* Internal version of i8x_ctx_get_funcref with an extra source note
+   argument for error-reporting.  If the source note is not NULL then
+   rtypes and ptypes MUST be pointers into the note's buffer or any
+   resulting error messages will contain nonsense offsets.  */
+
+i8x_err_e
+i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
+			       const char *provider, const char *name,
+			       const char *ptypes, const char *rtypes,
+			       struct i8x_note *src_note,
+			       struct i8x_funcref **refp)
 {
   struct i8x_listitem *li;
   struct i8x_funcref *ref;
@@ -389,7 +396,7 @@ i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *provider,
     }
 
   /* It's a new reference that needs creating.  */
-  err = i8x_funcref_new (ctx, fullname, ptypes, rtypes, &ref);
+  err = i8x_funcref_new (ctx, fullname, ptypes, rtypes, src_note, &ref);
   if (err != I8X_OK)
     return err;
 
@@ -404,6 +411,15 @@ i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *provider,
   *refp = ref;
 
   return I8X_OK;
+}
+
+I8X_EXPORT i8x_err_e
+i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *provider,
+		     const char *name, const char *ptypes,
+		     const char *rtypes, struct i8x_funcref **refp)
+{
+  return i8x_ctx_get_funcref_with_note (ctx, provider, name,
+					ptypes, rtypes, NULL, refp);
 }
 
 void

@@ -41,7 +41,8 @@ struct i8x_funcref
 
 static i8x_err_e
 i8x_funcref_init (struct i8x_funcref *ref, const char *fullname,
-		  const char *ptypes, const char *rtypes)
+		  const char *ptypes, const char *rtypes,
+		  struct i8x_note *src_note)
 {
   ref->fullname = strdup (fullname);
   if (ref->fullname == NULL)
@@ -78,7 +79,7 @@ const struct i8x_object_ops i8x_funcref_ops =
 i8x_err_e
 i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
 		 const char *ptypes, const char *rtypes,
-		 struct i8x_funcref **ref)
+		 struct i8x_note *src_note, struct i8x_funcref **ref)
 {
   struct i8x_funcref *r;
   i8x_err_e err;
@@ -87,7 +88,7 @@ i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
   if (err != I8X_OK)
     return err;
 
-  err = i8x_funcref_init (r, fullname, ptypes, rtypes);
+  err = i8x_funcref_init (r, fullname, ptypes, rtypes, src_note);
   if (err != I8X_OK)
     {
       r = i8x_funcref_unref (r);
