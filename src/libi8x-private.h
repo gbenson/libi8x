@@ -223,6 +223,9 @@ i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
 
 /* i8x_ctx private functions.  */
 
+struct i8x_type *i8x_ctx_get_integer_type (struct i8x_ctx *ctx);
+struct i8x_type *i8x_ctx_get_pointer_type (struct i8x_ctx *ctx);
+struct i8x_type *i8x_ctx_get_opaque_type (struct i8x_ctx *ctx);
 i8x_err_e i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
 					 const char *provider,
 					 const char *name,

@@ -57,6 +57,11 @@ struct i8x_ctx
   /* User-supplied function called when a function is about to become
      unavailable.  */
   i8x_func_cb_t *func_unavail_observer_fn;
+
+  /* The three core types.  */
+  struct i8x_type *integer_type;
+  struct i8x_type *pointer_type;
+  struct i8x_type *opaque_type;
 };
 
 void
@@ -120,6 +125,18 @@ i8x_ctx_init (struct i8x_ctx *ctx)
   if (err != I8X_OK)
     return err;
 
+  err = i8x_type_new_coretype (ctx, I8_TYPE_INTEGER, &ctx->integer_type);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_type_new_coretype (ctx, I8_TYPE_POINTER, &ctx->pointer_type);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_type_new_coretype (ctx, I8_TYPE_OPAQUE, &ctx->opaque_type);
+  if (err != I8X_OK)
+    return err;
+
   return err;
 }
 
@@ -135,6 +152,10 @@ i8x_ctx_unlink (struct i8x_object *ob)
   ctx->funcrefs = i8x_list_unref (ctx->funcrefs);
   ctx->symrefs = i8x_list_unref (ctx->symrefs);
   ctx->functypes = i8x_list_unref (ctx->functypes);
+
+  ctx->integer_type = i8x_type_unref (ctx->integer_type);
+  ctx->pointer_type = i8x_type_unref (ctx->pointer_type);
+  ctx->opaque_type = i8x_type_unref (ctx->opaque_type);
 }
 
 const struct i8x_object_ops i8x_ctx_ops =
@@ -355,6 +376,24 @@ i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
     xsnprintf (&ptr, limit, "%s", msg);
 
   return buf;
+}
+
+struct i8x_type *
+i8x_ctx_get_integer_type (struct i8x_ctx *ctx)
+{
+  return ctx->integer_type;
+}
+
+struct i8x_type *
+i8x_ctx_get_pointer_type (struct i8x_ctx *ctx)
+{
+  return ctx->pointer_type;
+}
+
+struct i8x_type *
+i8x_ctx_get_opaque_type (struct i8x_ctx *ctx)
+{
+  return ctx->opaque_type;
 }
 
 /* Internal version of i8x_ctx_get_funcref with an extra source note
