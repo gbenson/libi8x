@@ -68,6 +68,7 @@ src_libi8x_la_SOURCES =\
 	src/note.c \
 	src/readbuf.c \
 	src/symref.c \
+	src/type.c \
 	src/util.c
 
 EXTRA_DIST += src/libi8x.sym src/optable.c

@@ -25,6 +25,7 @@ struct i8x_funcref
   I8X_OBJECT_FIELDS;
 
   char *fullname;	/* Fully qualified name.  */
+  struct i8x_type *type;	/* The function's type.  */
 
   int regcount;		/* Number of functions registered in this
 			   context with this signature.  */
@@ -41,12 +42,13 @@ struct i8x_funcref
 
 static i8x_err_e
 i8x_funcref_init (struct i8x_funcref *ref, const char *fullname,
-		  const char *ptypes, const char *rtypes,
-		  struct i8x_note *src_note)
+		  struct i8x_type *type)
 {
   ref->fullname = strdup (fullname);
   if (ref->fullname == NULL)
     return i8x_out_of_memory (i8x_funcref_get_ctx (ref));
+
+  ref->type = i8x_type_ref (type);
 
   return I8X_OK;
 }
@@ -55,6 +57,8 @@ static void
 i8x_funcref_unlink (struct i8x_object *ob)
 {
   struct i8x_funcref *ref = (struct i8x_funcref *) ob;
+
+  ref->type = i8x_type_unref (ref->type);
 
   i8x_ctx_forget_funcref (ref);
 }
@@ -78,8 +82,7 @@ const struct i8x_object_ops i8x_funcref_ops =
 
 i8x_err_e
 i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
-		 const char *ptypes, const char *rtypes,
-		 struct i8x_note *src_note, struct i8x_funcref **ref)
+		 struct i8x_type *type, struct i8x_funcref **ref)
 {
   struct i8x_funcref *r;
   i8x_err_e err;
@@ -88,7 +91,7 @@ i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
   if (err != I8X_OK)
     return err;
 
-  err = i8x_funcref_init (r, fullname, ptypes, rtypes, src_note);
+  err = i8x_funcref_init (r, fullname, type);
   if (err != I8X_OK)
     {
       r = i8x_funcref_unref (r);

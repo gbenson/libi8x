@@ -47,6 +47,7 @@ struct i8x_ctx
 
   struct i8x_list *funcrefs;	/* List of interned function references.  */
   struct i8x_list *symrefs;	/* List of interned symbol references.  */
+  struct i8x_list *functypes;	/* List of interned function types.  */
 
   struct i8x_list *functions;	/* List of registered functions.  */
 
@@ -115,6 +116,10 @@ i8x_ctx_init (struct i8x_ctx *ctx)
   if (err != I8X_OK)
     return err;
 
+  err = i8x_list_new (ctx, false, &ctx->functypes);
+  if (err != I8X_OK)
+    return err;
+
   return err;
 }
 
@@ -129,6 +134,7 @@ i8x_ctx_unlink (struct i8x_object *ob)
 
   ctx->funcrefs = i8x_list_unref (ctx->funcrefs);
   ctx->symrefs = i8x_list_unref (ctx->symrefs);
+  ctx->functypes = i8x_list_unref (ctx->functypes);
 }
 
 const struct i8x_object_ops i8x_ctx_ops =
@@ -365,6 +371,7 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
 {
   struct i8x_listitem *li;
   struct i8x_funcref *ref;
+  struct i8x_type *functype;
   size_t fullname_size;
   char *fullname;
   i8x_err_e err;
@@ -396,7 +403,15 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
     }
 
   /* It's a new reference that needs creating.  */
-  err = i8x_funcref_new (ctx, fullname, ptypes, rtypes, src_note, &ref);
+  err = i8x_ctx_get_functype (ctx,
+			      ptypes, ptypes + strlen (ptypes),
+			      rtypes, rtypes + strlen (rtypes),
+			      src_note, &functype);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_funcref_new (ctx, fullname, functype, &ref);
+  i8x_type_unref (functype);
   if (err != I8X_OK)
     return err;
 
@@ -475,6 +490,76 @@ i8x_ctx_forget_symref (struct i8x_symref *ref)
   struct i8x_ctx *ctx = i8x_symref_get_ctx (ref);
 
   i8x_list_remove_symref (ctx->symrefs, ref);
+}
+
+i8x_err_e
+i8x_ctx_get_functype (struct i8x_ctx *ctx,
+		      const char *ptypes_start,
+		      const char *ptypes_limit,
+		      const char *rtypes_start,
+		      const char *rtypes_limit,
+		      struct i8x_note *src_note,
+		      struct i8x_type **typep)
+{
+  struct i8x_listitem *li;
+  struct i8x_type *type;
+  size_t ptypes_size = ptypes_limit - ptypes_start;
+  size_t rtypes_size = rtypes_limit - rtypes_start;
+  size_t encoded_size;
+  char *encoded, *ptr;
+  i8x_err_e err;
+
+  /* Build the encoded form.  */
+  encoded_size = (1	/* I8_TYPE_FUNCTION  */
+		  + rtypes_size
+		  + 1   /* '('  */
+		  + ptypes_size
+		  + 1   /* ')'  */
+		  + 1); /* '\0'  */
+  ptr = encoded = alloca (encoded_size);
+  *(ptr++) = I8_TYPE_FUNCTION;
+  memcpy (ptr, rtypes_start, rtypes_size);
+  ptr += rtypes_size;
+  *(ptr++) = '(';
+  memcpy (ptr, ptypes_start, ptypes_size);
+  ptr += ptypes_size;
+  *(ptr++) = ')';
+  *(ptr++) = '\0';
+
+  /* If we have this type already then return it.  */
+  i8x_list_foreach (ctx->functypes, li)
+    {
+      type = i8x_listitem_get_type (li);
+
+      if (strcmp (i8x_type_get_encoded (type), encoded) == 0)
+	{
+	  *typep = i8x_type_ref (type);
+
+	  return I8X_OK;
+	}
+    }
+
+  /* It's a new type that needs creating.  */
+  err = i8x_type_new_functype (ctx, encoded,
+			       ptypes_start, ptypes_limit,
+			       rtypes_start, rtypes_limit,
+			       src_note, &type);
+  if (err != I8X_OK)
+    return err;
+
+  i8x_list_append_type (ctx->functypes, type);
+
+  *typep = type;
+
+  return I8X_OK;
+}
+
+void
+i8x_ctx_forget_functype (struct i8x_type *type)
+{
+  struct i8x_ctx *ctx = i8x_type_get_ctx (type);
+
+  i8x_list_remove_type (ctx->functypes, type);
 }
 
 static void

@@ -28,9 +28,17 @@
 extern "C" {
 #endif
 
+/* Encoded types.  */
+
+#define I8_TYPE_INTEGER	 'i'
+#define I8_TYPE_POINTER	 'p'
+#define I8_TYPE_OPAQUE	 'o'
+#define I8_TYPE_FUNCTION 'F'
+
 /* Forward declarations.  */
 
 struct i8x_symref;
+struct i8x_type;
 
 /* Errors.  */
 
@@ -182,6 +190,28 @@ i8x_err_e i8x_symref_new (struct i8x_ctx *ctx, const char *name,
 struct i8x_symref *i8x_object_as_symref (struct i8x_object *ob);
 const char *i8x_symref_get_name (struct i8x_symref *ref);
 
+/*
+ * i8x_type
+ *
+ * access to types of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (type);
+I8X_LIST_FUNCTIONS (type);
+I8X_LISTABLE_OBJECT_FUNCTIONS (type);
+
+i8x_err_e i8x_type_new_coretype (struct i8x_ctx *ctx,
+				 char encoded,
+				 struct i8x_type **type);
+i8x_err_e i8x_type_new_functype (struct i8x_ctx *ctx,
+				 const char *encoded,
+				 const char *ptypes_start,
+				 const char *ptypes_limit,
+				 const char *rtypes_start,
+				 const char *rtypes_limit,
+				 struct i8x_note *src_note,
+				 struct i8x_type **type);
+const char *i8x_type_get_encoded (struct i8x_type *type);
+
 /* i8x_chunk private functions.  */
 
 I8X_LIST_FUNCTIONS (chunk);
@@ -205,6 +235,14 @@ i8x_err_e i8x_ctx_get_symref (struct i8x_ctx *ctx,
 			      const char *name,
 			      struct i8x_symref **ref);
 void i8x_ctx_forget_symref (struct i8x_symref *ref);
+i8x_err_e i8x_ctx_get_functype (struct i8x_ctx *ctx,
+				const char *encoded_ptypes_start,
+				const char *encoded_ptypes_limit,
+				const char *encoded_rtypes_start,
+				const char *encoded_rtypes_limit,
+				struct i8x_note *src_note,
+				struct i8x_type **type);
+void i8x_ctx_forget_functype (struct i8x_type *type);
 void i8x_ctx_fire_availability_observer (struct i8x_func *func,
 					 bool is_available);
 
@@ -222,8 +260,7 @@ I8X_LIST_FUNCTIONS (funcref);
 I8X_LISTABLE_OBJECT_FUNCTIONS (funcref);
 
 i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
-			   const char *ptypes, const char *rtypes,
-			   struct i8x_note *src_note,
+			   struct i8x_type *functype,
 			   struct i8x_funcref **ref);
 struct i8x_funcref *i8x_object_as_funcref (struct i8x_object *ob);
 void i8x_funcref_register_func (struct i8x_funcref *ref,
