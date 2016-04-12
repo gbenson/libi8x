@@ -37,8 +37,7 @@ global:
 	i8x_note_get_src_offset;
 	i8x_note_get_encoded_size;
 	i8x_note_get_encoded;
-	i8x_note_get_first_chunk;
-	i8x_note_get_next_chunk;
+	i8x_note_get_chunks;
 	i8x_note_get_unique_chunk;
 
 	i8x_ob_ref;

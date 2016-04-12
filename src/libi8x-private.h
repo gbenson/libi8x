@@ -198,15 +198,12 @@ const char *i8x_symref_get_name (struct i8x_symref *ref);
 
 /* i8x_chunk private functions.  */
 
-i8x_err_e i8x_chunk_list_new_from_readbuf (struct i8x_readbuf *rb,
-					   struct i8x_chunk **chunk_list);
-struct i8x_chunk *i8x_chunk_get_next (struct i8x_chunk *chunk);
-i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
+I8X_LIST_FUNCTIONS (chunk);
 
-#define i8x_chunk_list_foreach(chunk, first_chunk)  \
-  for (chunk = first_chunk;			    \
-       chunk != NULL;				    \
-       chunk = i8x_chunk_get_next (chunk))
+i8x_err_e i8x_chunk_new_from_readbuf (struct i8x_readbuf *rb,
+				      struct i8x_chunk **chunk);
+i8x_err_e i8x_chunk_unhandled_error (struct i8x_chunk *chunk);
+i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
 
 /* i8x_ctx private functions.  */
 

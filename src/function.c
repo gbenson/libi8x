@@ -42,8 +42,7 @@ i8x_bcf_unpack_signature (struct i8x_func *func)
   i8x_err_e err;
 
   err = i8x_note_get_unique_chunk (note, I8_CHUNK_SIGNATURE,
-				   I8X_NOTE_UNHANDLED,
-				   I8X_NOTE_UNHANDLED, &chunk);
+				   true, &chunk);
   if (err != I8X_OK)
     return err;
 
@@ -74,8 +73,7 @@ i8x_bcf_unpack_externals (struct i8x_func *func)
 
   err = i8x_note_get_unique_chunk (i8x_func_get_note (func),
 				   I8_CHUNK_EXTERNALS,
-				   I8X_OK, I8X_NOTE_UNHANDLED,
-				   &chunk);
+				   false, &chunk);
   if (err != I8X_OK || chunk == NULL)
     return err;
 

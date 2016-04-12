@@ -30,7 +30,7 @@ struct i8x_note
   size_t encoded_size;	/* Size of encoded data, in bytes.  */
   char *encoded;	/* Encoded data.  */
 
-  struct i8x_chunk *first_chunk;  /* Linked list of chunks.  */
+  struct i8x_list *chunks;  /* Linked list of chunks.  */
 
   size_t strings_size;	/* Size of string table, in bytes.  */
   const char *strings;	/* String table.  */
@@ -42,11 +42,35 @@ i8x_note_locate_chunks (struct i8x_note *note)
   struct i8x_readbuf *rb;
   i8x_err_e err;
 
+  err = i8x_list_new (i8x_note_get_ctx (note), true, &note->chunks);
+  if (err != I8X_OK)
+    return err;
+
   err = i8x_rb_new_from_note (note, &rb);
   if (err != I8X_OK)
     return err;
 
-  err = i8x_chunk_list_new_from_readbuf (rb, &note->first_chunk);
+  while (i8x_rb_bytes_left (rb) > 0)
+    {
+      struct i8x_chunk *chunk;
+
+      err = i8x_chunk_new_from_readbuf (rb, &chunk);
+      if (err != I8X_OK)
+	break;
+
+      /* Note consumers MUST treat chunks of zero size
+	 as if they were not present.  */
+      if (i8x_chunk_get_encoded_size (chunk) == 0)
+	{
+	  i8x_chunk_unref (chunk);
+	  continue;
+	}
+
+      err = i8x_list_append_chunk (note->chunks, chunk);
+      chunk = i8x_chunk_unref (chunk);
+      if (err != I8X_OK)
+	break;
+    }
 
   rb = i8x_rb_unref (rb);
 
@@ -88,7 +112,7 @@ i8x_note_unlink (struct i8x_object *ob)
 {
   struct i8x_note *note = (struct i8x_note *) ob;
 
-  note->first_chunk = i8x_chunk_unref (note->first_chunk);
+  note->chunks = i8x_list_unref (note->chunks);
 }
 
 static void
@@ -160,85 +184,36 @@ i8x_note_get_encoded (struct i8x_note *note)
   return note->encoded;
 }
 
-static struct i8x_chunk *
-i8x_note_get_chunk (struct i8x_note *note,
-		    struct i8x_chunk *first_chunk, uintmax_t type_id)
+I8X_EXPORT struct i8x_list *
+i8x_note_get_chunks (struct i8x_note *note)
 {
-  struct i8x_chunk *chunk;
-
-  i8x_chunk_list_foreach (chunk, first_chunk)
-    {
-      if (i8x_chunk_get_type_id (chunk) == type_id)
-	return chunk;
-    }
-
-  return NULL;
-}
-
-I8X_EXPORT i8x_err_e
-i8x_note_get_first_chunk (struct i8x_note *note, uintmax_t type_id,
-			  i8x_err_e notfound_err,
-			  struct i8x_chunk **chunk)
-{
-  struct i8x_chunk *c;
-
-  c = i8x_note_get_chunk (note, note->first_chunk, type_id);
-
-  if (c == NULL && notfound_err != I8X_OK)
-    return i8x_note_error (note, notfound_err, NULL);
-
-  *chunk = c;
-
-  return I8X_OK;
-}
-
-I8X_EXPORT i8x_err_e
-i8x_note_get_next_chunk (struct i8x_note *note, struct i8x_chunk *ref,
-			 i8x_err_e notfound_err,
-			 struct i8x_chunk **chunk)
-{
-  struct i8x_chunk *c;
-
-  i8x_assert (i8x_chunk_get_note (ref) == note);
-
-  c = i8x_note_get_chunk (note,
-			  i8x_chunk_get_next (ref),
-			  i8x_chunk_get_type_id (ref));
-
-  if (c == NULL && notfound_err != I8X_OK)
-    return i8x_note_error (note, notfound_err,
-			   i8x_chunk_get_encoded (ref));
-
-  *chunk = c;
-
-  return I8X_OK;
+  return note->chunks;
 }
 
 I8X_EXPORT i8x_err_e
 i8x_note_get_unique_chunk (struct i8x_note *note, uintmax_t type_id,
-			   i8x_err_e notfound_err,
-			   i8x_err_e notunique_err,
-			   struct i8x_chunk **chunk)
+			   bool must_exist, struct i8x_chunk **chunkp)
 {
-  struct i8x_chunk *c;
-  i8x_err_e err;
+  struct i8x_chunk *found = NULL;
+  struct i8x_listitem *li;
 
-  err = i8x_note_get_first_chunk (note, type_id, notfound_err, &c);
-  if (err != I8X_OK)
-    return err;
-
-  if (c != NULL)
+  i8x_list_foreach (note->chunks, li)
     {
-      struct i8x_chunk *d;
+      struct i8x_chunk *chunk = i8x_listitem_get_chunk (li);
 
-      err = i8x_note_get_next_chunk (note, c, I8X_OK, &d);
+      if (i8x_chunk_get_type_id (chunk) != type_id)
+	continue;
 
-      if (d != NULL)
-	return i8x_note_error (note, notunique_err,
-			       i8x_chunk_get_encoded (d));
+      if (found != NULL)
+	return i8x_chunk_unhandled_error (chunk);
+
+      found = chunk;
     }
 
-  *chunk = c;
+  if (found == NULL && must_exist)
+    return i8x_note_error (note, I8X_NOTE_UNHANDLED, NULL);
+
+  *chunkp = found;
 
   return I8X_OK;
 }
@@ -251,8 +226,7 @@ i8x_note_locate_strings (struct i8x_note *note)
   i8x_err_e err;
 
   err = i8x_note_get_unique_chunk (note, I8_CHUNK_STRINGS,
-				   I8X_NOTE_UNHANDLED,
-				   I8X_NOTE_UNHANDLED, &chunk);
+				   true, &chunk);
   if (err != I8X_OK)
     return err;
 
