@@ -30,7 +30,6 @@ extern "C" {
 
 /* Forward declarations.  */
 
-struct i8x_ext;
 struct i8x_symref;
 
 /* Errors.  */
@@ -168,20 +167,6 @@ I8X_COMMON_OBJECT_FUNCTIONS (code);
 
 i8x_err_e i8x_code_new_from_func (struct i8x_func *func,
 				  struct i8x_code **code);
-
-/*
- * i8x_ext
- *
- * access to exts of i8x
- */
-I8X_COMMON_OBJECT_FUNCTIONS (ext);
-I8X_LIST_FUNCTIONS (ext);
-I8X_LISTABLE_OBJECT_FUNCTIONS (ext);
-
-i8x_err_e i8x_ext_new_from_readbuf (struct i8x_readbuf *rb,
-				    struct i8x_ext **ext);
-struct i8x_funcref *i8x_ext_as_funcref (struct i8x_ext *ext);
-struct i8x_symref *i8x_ext_as_symref (struct i8x_ext *ext);
 
 /*
  * i8x_symref

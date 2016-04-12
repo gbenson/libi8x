@@ -64,6 +64,51 @@ i8x_bcf_unpack_signature (struct i8x_func *func)
   return err;
 }
 
+#define I8_EXT_FUNCTION 'f'
+#define I8_EXT_SYMBOL 's'
+
+static i8x_err_e
+i8x_bcf_unpack_one_external (struct i8x_readbuf *rb,
+			     struct i8x_object **ext)
+{
+  struct i8x_note *note = i8x_rb_get_note (rb);
+  struct i8x_object *e;
+  const char *error_ptr;
+  uint8_t type_id;
+  const char *name;
+  i8x_err_e err;
+
+  error_ptr = i8x_rb_get_ptr (rb);
+
+  err = i8x_rb_read_uint8_t (rb, &type_id);
+  if (err != I8X_OK)
+    return err;
+
+  switch (type_id)
+    {
+    case I8_EXT_FUNCTION:
+      err = i8x_rb_read_funcref (rb, (struct i8x_funcref **) &e);
+      break;
+
+    case I8_EXT_SYMBOL:
+      err = i8x_rb_read_offset_string (rb, &name);
+      if (err != I8X_OK)
+	break;
+
+      err = i8x_ctx_get_symref (i8x_note_get_ctx (note), name,
+				(struct i8x_symref **) &e);
+      break;
+
+    default:
+      err = i8x_note_error (note, I8X_NOTE_UNHANDLED, error_ptr);
+    }
+
+  if (err == I8X_OK)
+    *ext = e;
+
+  return err;
+}
+
 static i8x_err_e
 i8x_bcf_unpack_externals (struct i8x_func *func)
 {
@@ -90,14 +135,14 @@ i8x_bcf_unpack_externals (struct i8x_func *func)
 
   while (i8x_rb_bytes_left (rb) > 0)
     {
-      struct i8x_ext *ext;
+      struct i8x_object *ref;
 
-      err = i8x_ext_new_from_readbuf (rb, &ext);
+      err = i8x_bcf_unpack_one_external (rb, &ref);
       if (err != I8X_OK)
 	break;
 
-      err = i8x_list_append_ext (func->externals, ext);
-      ext = i8x_ext_unref (ext);
+      err = i8x_list_append (func->externals, ref);
+      ref = i8x_ob_unref (ref);
       if (err != I8X_OK)
 	break;
     }
@@ -215,13 +260,10 @@ i8x_func_all_deps_resolved (struct i8x_func *func)
 {
   struct i8x_listitem *li;
 
-  if (func->externals == NULL)
-    return true;
-
   i8x_list_foreach (func->externals, li)
     {
-      struct i8x_ext *ext = i8x_listitem_get_ext (li);
-      struct i8x_funcref *ref = i8x_ext_as_funcref (ext);
+      struct i8x_funcref *ref
+	= i8x_object_as_funcref (i8x_listitem_get_object (li));
 
       if (ref != NULL && !i8x_funcref_is_resolved (ref))
 	return false;
