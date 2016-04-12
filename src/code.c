@@ -23,12 +23,6 @@
 
 typedef uint_fast16_t i8x_opcode_t;
 
-union i8x_operand
-{
-  intptr_t s;
-  uintptr_t u;
-};
-
 struct i8x_instr
 {
   const char *location;		/* Pointer into the note, for errors.  */
@@ -36,7 +30,7 @@ struct i8x_instr
 
   const struct i8x_opdesc *desc;/* Description (name, operand types).  */
 
-  union i8x_operand op1, op2;	/* Operands.  */
+  union i8x_value op1, op2;	/* Operands.  */
 };
 
 struct i8x_code
@@ -142,12 +136,12 @@ i8x_code_read_opcode (struct i8x_readbuf *rb, i8x_opcode_t *opcode)
 static i8x_err_e
 i8x_code_read_operand (struct i8x_readbuf *rb,
 		       i8x_operand_type_e type,
-		       union i8x_operand *operand)
+		       union i8x_value *operand)
 {
   const char *location = i8x_rb_get_ptr (rb);
   intmax_t signed_result;
   uintmax_t unsigned_result;
-  union i8x_operand result;
+  union i8x_value result;
   bool is_signed;
   i8x_err_e err;
 
@@ -204,8 +198,8 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
   /* Check for overflow.  */
   if (is_signed)
     {
-      result.s = signed_result;
-      if (result.s != signed_result)
+      result.i = signed_result;
+      if (result.i != signed_result)
 	return i8x_note_error (i8x_rb_get_note(rb),
 			       I8X_NOTE_UNHANDLED, location);
     }

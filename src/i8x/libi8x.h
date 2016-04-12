@@ -79,6 +79,16 @@ struct i8x_note;
 struct i8x_object;
 struct i8x_readbuf;
 
+/* Values.  */
+
+union i8x_value
+{
+  void *p;			/* Pointer and opaque values.  */
+  intptr_t i;			/* Signed integer values.  */
+  uintptr_t u;			/* Unsigned integer values.  */
+  struct i8x_funcref *f;	/* Function values.  */
+};
+
 /* Native functions.  */
 
 typedef i8x_err_e i8x_impl_fn_t (struct i8x_func *func); // XXX...
