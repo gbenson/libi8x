@@ -198,7 +198,6 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   struct i8x_note *note = i8x_code_get_note (code);
   struct i8x_chunk *chunk;
   struct i8x_readbuf *rb;
-  const char *start;
   i8x_err_e err;
 
   // XXX doesn't need to exist!
@@ -211,6 +210,7 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
     return i8x_chunk_version_error (chunk);
 
   code->code_size = i8x_chunk_get_encoded_size (chunk);
+  code->code_start = i8x_chunk_get_encoded (chunk);
 
   code->itable = calloc (code->code_size, sizeof (struct i8x_instr *));
   if (code->itable == NULL)
@@ -222,12 +222,11 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 
   i8x_rb_set_byte_order (rb, code->byte_order);
 
-  start = i8x_rb_get_ptr (rb);
   while (i8x_rb_bytes_left (rb) > 0)
     {
       const char *ptr = i8x_rb_get_ptr (rb);
       struct i8x_instr *op;
-      size_t bcp = ptr - start;
+      size_t bcp = ptr - code->code_start;
 
       op = code->itable[bcp] = calloc (1, sizeof (struct i8x_instr));
       if (op == NULL)

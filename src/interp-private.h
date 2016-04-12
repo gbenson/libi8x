@@ -77,6 +77,7 @@ struct i8x_code
 
   i8x_byte_order_e byte_order;	/* The byte order of the code chunk.  */
 
+  const char *code_start;	/* First byte of undecoded bytecode.  */
   size_t code_size;		/* Size of bytecode, in bytes.  */
   struct i8x_instr **itable;	/* Sparse table of instructions.  */
 
