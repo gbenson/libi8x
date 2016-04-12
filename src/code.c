@@ -200,6 +200,11 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   struct i8x_readbuf *rb;
   i8x_err_e err;
 
+  /* Make sure there's no operation defined as opcode 0, as we
+     use it to denote slots in the itable that cannot be jumped
+     to because they're part of other instructions.  */
+  i8x_assert (optable[0].name == NULL);
+
   // XXX doesn't need to exist!
   err = i8x_note_get_unique_chunk (note, I8_CHUNK_BYTECODE,
 				   true, &chunk);
@@ -212,7 +217,7 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   code->code_size = i8x_chunk_get_encoded_size (chunk);
   code->code_start = i8x_chunk_get_encoded (chunk);
 
-  code->itable = calloc (code->code_size, sizeof (struct i8x_instr *));
+  code->itable = calloc (code->code_size, sizeof (struct i8x_instr));
   if (code->itable == NULL)
     return i8x_out_of_memory (i8x_note_get_ctx (note));
 
@@ -225,15 +230,8 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   while (i8x_rb_bytes_left (rb) > 0)
     {
       const char *ptr = i8x_rb_get_ptr (rb);
-      struct i8x_instr *op;
       size_t bcp = ptr - code->code_start;
-
-      op = code->itable[bcp] = calloc (1, sizeof (struct i8x_instr));
-      if (op == NULL)
-	{
-	  err = i8x_out_of_memory (i8x_note_get_ctx (note));
-	  break;
-	}
+      struct i8x_instr *op = &code->itable[bcp];
 
       err = i8x_code_read_opcode (rb, &op->code);
       if (err != I8X_OK)
@@ -286,17 +284,7 @@ i8x_code_free (struct i8x_object *ob)
   struct i8x_code *code = (struct i8x_code *) ob;
 
   if (code->itable != NULL)
-    {
-      for (size_t bcp = 0; bcp < code->code_size; bcp++)
-	{
-	  struct i8x_instr *op = code->itable[bcp];
-
-	  if (op != NULL)
-	    free (op);
-	}
-
-      free (code->itable);
-    }
+    free (code->itable);
 }
 
 const struct i8x_object_ops i8x_code_ops =
