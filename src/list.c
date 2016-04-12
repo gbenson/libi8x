@@ -39,6 +39,8 @@ struct i8x_listitem
   struct i8x_object *ob;
 };
 
+I8X_COMMON_OBJECT_FUNCTIONS (listitem);
+
 static struct i8x_list *
 i8x_listitem_get_list (struct i8x_listitem *li)
 {
@@ -178,20 +180,18 @@ i8x_list_remove (struct i8x_list *list, struct i8x_object *ob)
   item = i8x_listitem_unref (item);
 }
 
-struct i8x_listitem *
+I8X_EXPORT struct i8x_listitem *
 i8x_list_get_first (struct i8x_list *list)
 {
   if (list == NULL)
     return NULL;
 
-  return i8x_listitem_get_next (list->head);
+  return i8x_list_get_next (list, list->head);
 }
 
-struct i8x_listitem *
-i8x_listitem_get_next (struct i8x_listitem *li)
+I8X_EXPORT struct i8x_listitem *
+i8x_list_get_next (struct i8x_list *list, struct i8x_listitem *li)
 {
-  struct i8x_list *list = i8x_listitem_get_list (li);
-
   li = li->next;
   if (li == list->head)
     return NULL;
@@ -199,7 +199,7 @@ i8x_listitem_get_next (struct i8x_listitem *li)
   return li;
 }
 
-struct i8x_object *
+I8X_EXPORT struct i8x_object *
 i8x_listitem_get_object (struct i8x_listitem *li)
 {
   return li->ob;

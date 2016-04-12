@@ -67,6 +67,8 @@ struct i8x_chunk;
 struct i8x_ctx;
 struct i8x_func;
 struct i8x_funcref;
+struct i8x_list;
+struct i8x_listitem;
 struct i8x_note;
 struct i8x_object;
 struct i8x_readbuf;
@@ -102,6 +104,7 @@ void *i8x_ob_get_userdata (struct i8x_object *ob);
 void i8x_ob_set_userdata (struct i8x_object *ob,
 			  void *userdata,
 			  i8x_userdata_cleanup_fn *userdata_cleanup);
+struct i8x_object *i8x_listitem_get_object (struct i8x_listitem *item);
 
 #define I8X_NOPARENT_OBJECT_FUNCTIONS(TYPE, PREFIX)			\
   static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
@@ -146,6 +149,16 @@ void i8x_ob_set_userdata (struct i8x_object *ob,
 
 #define I8X_COMMON_OBJECT_FUNCTIONS(TYPE) \
   I8X_COMMON_OBJECT_FUNCTIONS_PREFIX (TYPE, TYPE)
+
+#define I8X_LISTABLE_OBJECT_FUNCTIONS_PREFIX(TYPE, PREFIX)		\
+  static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
+  i8x_listitem_get_ ## PREFIX (struct i8x_listitem *item)		\
+  {									\
+    return (struct i8x_ ## TYPE *) i8x_listitem_get_object (item);	\
+  }
+
+#define I8X_LISTABLE_OBJECT_FUNCTIONS(TYPE) \
+  I8X_LISTABLE_OBJECT_FUNCTIONS_PREFIX (TYPE, TYPE)
 
 /*
  * i8x_chunk
@@ -233,6 +246,22 @@ I8X_COMMON_OBJECT_FUNCTIONS (funcref);
 
 const char *i8x_funcref_get_fullname (struct i8x_funcref *ref);
 bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
+
+/*
+ * i8x_list
+ *
+ * access to lists of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (list);
+
+struct i8x_listitem *i8x_list_get_first (struct i8x_list *list);
+struct i8x_listitem *i8x_list_get_next (struct i8x_list *list,
+					struct i8x_listitem *curr);
+
+#define i8x_list_foreach(list, item)		\
+  for (item = i8x_list_get_first (list);	\
+       item != NULL;				\
+       item = i8x_list_get_next (list, item))
 
 /*
  * i8x_note
