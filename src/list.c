@@ -21,28 +21,51 @@
 
 struct i8x_list
 {
-  I8X_LISTITEM_OBJECT_FIELDS;
+  I8X_OBJECT_FIELDS;
 
-  bool manage_references;	/* True if the list should reference
-				   the items it contains.  */
+  /* The head of the list.  */
+  struct i8x_listitem *head;
+
+  /* True if listitems should own references to their objects.  */
+  bool manage_references;
 };
+
+struct i8x_listitem
+{
+  I8X_OBJECT_FIELDS;
+
+  struct i8x_listitem *next, *prev;
+
+  struct i8x_object *ob;
+};
+
+static struct i8x_list *
+i8x_listitem_get_list (struct i8x_listitem *li)
+{
+  return (struct i8x_list *)
+    i8x_ob_get_parent ((struct i8x_object *) li);
+
+}
 
 static void
 i8x_list_unlink (struct i8x_object *ob)
 {
   struct i8x_list *list = (struct i8x_list *) ob;
-  struct i8x_listitem *item, *next;
 
-  if (!list->manage_references)
-    return;
+  list->head = i8x_listitem_unref (list->head);
+}
 
-  for (item = list->li.next;
-       item != (struct i8x_listitem *) list;
-       item = next)
-    {
-      next = item->next;
-      item = i8x_listitem_unref (item);
-    }
+static void
+i8x_listitem_unlink (struct i8x_object *ob)
+{
+  struct i8x_listitem *li = (struct i8x_listitem *) ob;
+  struct i8x_list *list = i8x_listitem_get_list (li);
+
+  if (list->manage_references)
+    li->ob = i8x_ob_unref (li->ob);
+
+  if (li->next != list->head)
+    li->next = i8x_listitem_unref (li->next);
 }
 
 const struct i8x_object_ops i8x_list_ops =
@@ -53,8 +76,38 @@ const struct i8x_object_ops i8x_list_ops =
     NULL,				/* Free function.  */
   };
 
+const struct i8x_object_ops i8x_listitem_ops =
+  {
+    "listitem",				/* Object name.  */
+    sizeof (struct i8x_listitem),	/* Object size.  */
+    i8x_listitem_unlink,		/* Unlink function.  */
+    NULL,				/* Free function.  */
+  };
+
+static i8x_err_e
+i8x_listitem_new (struct i8x_list *list,
+		  struct i8x_object *ob,
+		  struct i8x_listitem **li)
+{
+  struct i8x_listitem *l;
+  i8x_err_e err;
+
+  err = i8x_ob_new (list, &i8x_listitem_ops, &l);
+  if (err != I8X_OK)
+    return err;
+
+  if (list->manage_references)
+    ob = i8x_ob_ref (ob);
+
+  l->ob = ob;
+
+  *li = l;
+
+  return I8X_OK;
+}
+
 i8x_err_e
-i8x_list_new (struct i8x_ctx *ctx, bool reference_items,
+i8x_list_new (struct i8x_ctx *ctx, bool manage_references,
 	      struct i8x_list **list)
 {
   struct i8x_list *l;
@@ -64,38 +117,90 @@ i8x_list_new (struct i8x_ctx *ctx, bool reference_items,
   if (err != I8X_OK)
     return err;
 
-  l->li.prev = l->li.next = (struct i8x_listitem *) l;
-  l->manage_references = reference_items;
+  l->manage_references = manage_references;
+
+  err = i8x_listitem_new (l, NULL, &l->head);
+  if (err != I8X_OK)
+    {
+      l = i8x_list_unref (l);
+
+      return err;
+    }
+
+  l->head->next = l->head->prev = l->head;
 
   *list = l;
 
   return I8X_OK;
 }
 
-void
-i8x_list_append (struct i8x_list *headp, struct i8x_listitem *item)
+i8x_err_e
+i8x_list_append (struct i8x_list *list, struct i8x_object *ob)
 {
-  struct i8x_listitem *head = (struct i8x_listitem *) headp;
+  struct i8x_listitem *head = list->head;
   struct i8x_listitem *last = head->prev;
+  struct i8x_listitem *item;
+  i8x_err_e err;
 
-  /* Ensure this item is not already in a list.  */
-  i8x_assert (item->prev == NULL && item->next == NULL);
-
-  if (headp->manage_references)
-    item = i8x_listitem_ref (item);
+  err = i8x_listitem_new (list, ob, &item);
+  if (err != I8X_OK)
+    return err;
 
   item->prev = last;
-  item->next = head;
+  item->next = list->head;
   last->next = item;
   head->prev = item;
+
+  return I8X_OK;
+}
+
+static struct i8x_listitem *
+i8x_list_get_listitem (struct i8x_list *list, struct i8x_object *ob)
+{
+  struct i8x_listitem *li;
+
+  i8x_list_foreach (list, li)
+    if (li->ob == ob)
+      return li;
+
+  return NULL;
 }
 
 void
-i8x_list_remove (struct i8x_list *list, struct i8x_listitem *item)
+i8x_list_remove (struct i8x_list *list, struct i8x_object *ob)
 {
+  struct i8x_listitem *item = i8x_list_get_listitem (list, ob);
+
   item->prev->next = item->next;
   item->next->prev = item->prev;
 
-  if (list->manage_references)
-    item = i8x_listitem_unref (item);
+  item->next = NULL;
+  item = i8x_listitem_unref (item);
+}
+
+struct i8x_listitem *
+i8x_list_get_first (struct i8x_list *list)
+{
+  if (list == NULL)
+    return NULL;
+
+  return i8x_listitem_get_next (list->head);
+}
+
+struct i8x_listitem *
+i8x_listitem_get_next (struct i8x_listitem *li)
+{
+  struct i8x_list *list = i8x_listitem_get_list (li);
+
+  li = li->next;
+  if (li == list->head)
+    return NULL;
+
+  return li;
+}
+
+struct i8x_object *
+i8x_listitem_get_object (struct i8x_listitem *li)
+{
+  return li->ob;
 }

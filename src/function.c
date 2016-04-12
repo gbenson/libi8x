@@ -21,7 +21,7 @@
 
 struct i8x_func
 {
-  I8X_LISTITEM_OBJECT_FIELDS;
+  I8X_OBJECT_FIELDS;
 
   struct i8x_funcref *sig;	/* The function's signature.  */
   i8x_impl_fn_t *impl_fn;	/* The function's implementation.  */
@@ -98,8 +98,10 @@ i8x_bcf_unpack_externals (struct i8x_func *func)
       if (err != I8X_OK)
 	break;
 
-      i8x_ext_list_append (func->externals, ext);
+      err = i8x_list_append_ext (func->externals, ext);
       ext = i8x_ext_unref (ext);
+      if (err != I8X_OK)
+	break;
     }
 
   rb = i8x_rb_unref (rb);
@@ -213,13 +215,14 @@ i8x_func_get_note (struct i8x_func *func)
 bool
 i8x_func_all_deps_resolved (struct i8x_func *func)
 {
-  struct i8x_ext *ext;
+  struct i8x_listitem *li;
 
   if (func->externals == NULL)
     return true;
 
-  i8x_ext_list_foreach (ext, func->externals)
+  i8x_list_foreach (func->externals, li)
     {
+      struct i8x_ext *ext = i8x_listitem_get_ext (li);
       struct i8x_funcref *ref = i8x_ext_as_funcref (ext);
 
       if (ref != NULL && !i8x_funcref_is_resolved (ref))

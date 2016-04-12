@@ -22,7 +22,7 @@
 
 struct i8x_funcref
 {
-  I8X_LISTITEM_OBJECT_FIELDS;
+  I8X_OBJECT_FIELDS;
 
   char *fullname;	/* Fully qualified name.  */
 

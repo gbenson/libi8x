@@ -22,7 +22,7 @@
 
 struct i8x_symref
 {
-  I8X_LISTITEM_OBJECT_FIELDS;
+  I8X_OBJECT_FIELDS;
 
   char *name;	/* The symbol's name.  */
 };

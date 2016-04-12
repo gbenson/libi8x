@@ -21,7 +21,7 @@
 
 struct i8x_ext
 {
-  I8X_LISTITEM_OBJECT_FIELDS;
+  I8X_OBJECT_FIELDS;
 
   struct i8x_funcref *funcref;	/* Non-NULL for function externals.  */
   struct i8x_symref *symref;	/* Non-NULL for symbol externals.  */

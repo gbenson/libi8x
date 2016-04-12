@@ -356,6 +356,7 @@ i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *provider,
 		     const char *name, const char *ptypes,
 		     const char *rtypes, struct i8x_funcref **refp)
 {
+  struct i8x_listitem *li;
   struct i8x_funcref *ref;
   size_t fullname_size;
   char *fullname;
@@ -375,8 +376,10 @@ i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *provider,
 	    "%s::%s(%s)%s", provider, name, ptypes, rtypes);
 
   /* If we have this reference already then return it.  */
-  i8x_funcref_list_foreach (ref, ctx->funcrefs)
+  i8x_list_foreach (ctx->funcrefs, li)
     {
+      ref = i8x_listitem_get_funcref (li);
+
       if (strcmp (i8x_funcref_get_fullname (ref), fullname) == 0)
 	{
 	  *refp = i8x_funcref_ref (ref);
@@ -390,7 +393,13 @@ i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *provider,
   if (err != I8X_OK)
     return err;
 
-  i8x_funcref_list_append (ctx->funcrefs, ref);
+  err = i8x_list_append_funcref (ctx->funcrefs, ref);
+  if (err != I8X_OK)
+    {
+      ref = i8x_funcref_unref (ref);
+
+      return err;
+    }
 
   *refp = ref;
 
@@ -402,19 +411,22 @@ i8x_ctx_forget_funcref (struct i8x_funcref *ref)
 {
   struct i8x_ctx *ctx = i8x_funcref_get_ctx (ref);
 
-  i8x_funcref_list_remove (ctx->funcrefs, ref);
+  i8x_list_remove_funcref (ctx->funcrefs, ref);
 }
 
 i8x_err_e
 i8x_ctx_get_symref (struct i8x_ctx *ctx, const char *name,
 		    struct i8x_symref **refp)
 {
+  struct i8x_listitem *li;
   struct i8x_symref *ref;
   i8x_err_e err;
 
   /* If we have this reference already then return it.  */
-  i8x_symref_list_foreach (ref, ctx->symrefs)
+  i8x_list_foreach (ctx->symrefs, li)
     {
+      ref = i8x_listitem_get_symref (li);
+
       if (strcmp (i8x_symref_get_name (ref), name) == 0)
 	{
 	  *refp = i8x_symref_ref (ref);
@@ -428,7 +440,13 @@ i8x_ctx_get_symref (struct i8x_ctx *ctx, const char *name,
   if (err != I8X_OK)
     return err;
 
-  i8x_symref_list_append (ctx->symrefs, ref);
+  err = i8x_list_append_symref (ctx->symrefs, ref);
+  if (err != I8X_OK)
+    {
+      ref = i8x_symref_unref (ref);
+
+      return err;
+    }
 
   *refp = ref;
 
@@ -440,21 +458,24 @@ i8x_ctx_forget_symref (struct i8x_symref *ref)
 {
   struct i8x_ctx *ctx = i8x_symref_get_ctx (ref);
 
-  i8x_symref_list_remove (ctx->symrefs, ref);
+  i8x_list_remove_symref (ctx->symrefs, ref);
 }
 
 static void
 i8x_ctx_resolve_funcrefs (struct i8x_ctx *ctx)
 {
-  struct i8x_funcref *ref;
-  struct i8x_func *func;
+  struct i8x_listitem *li;
   bool finished = false;
 
   /* Mark all function references as resolved or not based
      on whether they resolve to a unique registered function.
      Dependencies are ignored at this stage.  */
-  i8x_funcref_list_foreach (ref, ctx->funcrefs)
-    i8x_funcref_reset_is_resolved (ref);
+  i8x_list_foreach (ctx->funcrefs, li)
+    {
+      struct i8x_funcref *ref = i8x_listitem_get_funcref (li);
+
+      i8x_funcref_reset_is_resolved (ref);
+    }
 
   /* Mark functions unresolved if any of their dependencies
      are unresolved.  Repeat until nothing changes.  */
@@ -462,9 +483,10 @@ i8x_ctx_resolve_funcrefs (struct i8x_ctx *ctx)
     {
       finished = true;
 
-      i8x_func_list_foreach (func, ctx->functions)
+      i8x_list_foreach (ctx->functions, li)
 	{
-	  ref = i8x_func_get_signature (func);
+	  struct i8x_func *func = i8x_listitem_get_func (li);
+	  struct i8x_funcref *ref = i8x_func_get_signature (func);
 
 	  if (!i8x_funcref_is_resolved (ref))
 	    continue;
@@ -479,17 +501,26 @@ i8x_ctx_resolve_funcrefs (struct i8x_ctx *ctx)
     }
 
   /* Notify the user of any function availability changes.  */
-  i8x_func_list_foreach (func, ctx->functions)
-    i8x_func_fire_availability_observers (func);
+  i8x_list_foreach (ctx->functions, li)
+    {
+      struct i8x_func *func = i8x_listitem_get_func (li);
+
+      i8x_func_fire_availability_observers (func);
+    }
 }
 
 I8X_EXPORT i8x_err_e
 i8x_ctx_register_func (struct i8x_ctx *ctx, struct i8x_func *func)
 {
+  i8x_err_e err;
+
   dbg (ctx, "registering func %p\n", func);
   i8x_assert (i8x_func_get_ctx (func) == ctx);
 
-  i8x_func_list_append (ctx->functions, func);
+  err = i8x_list_append_func (ctx->functions, func);
+  if (err != I8X_OK)
+    return err;
+
   i8x_funcref_register_func (i8x_func_get_signature (func), func);
   i8x_ctx_resolve_funcrefs (ctx);
 
@@ -504,7 +535,7 @@ i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
 
   i8x_funcref_unregister_func (i8x_func_get_signature (func), func);
   i8x_ctx_resolve_funcrefs (ctx);
-  i8x_func_list_remove (ctx->functions, func);
+  i8x_list_remove_func (ctx->functions, func);
 
   return I8X_OK;
 }

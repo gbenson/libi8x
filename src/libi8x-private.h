@@ -32,6 +32,7 @@ extern "C" {
 
 struct i8x_ext;
 struct i8x_list;
+struct i8x_listitem;
 struct i8x_symref;
 
 /* Errors.  */
@@ -138,60 +139,6 @@ struct i8x_object
 #define I8X_OBJECT_FIELDS struct i8x_object _ob
 
 /*
- * i8x_listitem
- *
- * access to listitems of i8x
- */
-struct i8x_listitem
-{
-  I8X_OBJECT_FIELDS;
-
-  struct i8x_listitem *next;
-  struct i8x_listitem *prev;
-};
-
-#define I8X_LISTITEM_OBJECT_FIELDS struct i8x_listitem li
-
-#define I8X_LISTITEM_OBJECT_FUNCTIONS_PREFIX(TYPE, PREFIX)		\
-  static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
-  i8x_ ## PREFIX ## _list_get_next (struct i8x_list *head,		\
-				    struct i8x_ ## TYPE *item)		\
-  {									\
-    struct i8x_listitem *next = ((struct i8x_listitem *) item)->next;	\
-									\
-    if (next == (struct i8x_listitem *) head)				\
-      return NULL;							\
-									\
-    return (struct i8x_ ## TYPE *) next;				\
-  }									\
-									\
-  static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
-  i8x_ ## PREFIX ## _list_get_first (struct i8x_list *head)		\
-  {									\
-    return i8x_ ## PREFIX ## _list_get_next (				\
-      head, (struct i8x_ ## TYPE *) head);				\
-  }									\
-									\
-  static inline void __attribute__ ((always_inline))			\
-  i8x_ ## PREFIX ## _list_append (struct i8x_list *head,		\
-				  struct i8x_ ## TYPE *item)		\
-  {									\
-    i8x_list_append (head, (struct i8x_listitem *) item);		\
-  }									\
-									\
-  static inline void __attribute__ ((always_inline))			\
-  i8x_ ## PREFIX ## _list_remove (struct i8x_list *head,		\
-				  struct i8x_ ## TYPE *item)		\
-  {									\
-    i8x_list_remove (head, (struct i8x_listitem *) item);		\
-  }
-
-#define I8X_LISTITEM_OBJECT_FUNCTIONS(TYPE) \
-  I8X_LISTITEM_OBJECT_FUNCTIONS_PREFIX (TYPE, TYPE)
-
-I8X_COMMON_OBJECT_FUNCTIONS (listitem);
-
-/*
  * i8x_list
  *
  * access to lists of i8x
@@ -199,10 +146,50 @@ I8X_COMMON_OBJECT_FUNCTIONS (listitem);
 I8X_COMMON_OBJECT_FUNCTIONS (list);
 
 i8x_err_e i8x_list_new (struct i8x_ctx *ctx,
-			bool reference_items,
+			bool manage_references,
 			struct i8x_list **list);
-void i8x_list_append (struct i8x_list *head, struct i8x_listitem *item);
-void i8x_list_remove (struct i8x_list *head, struct i8x_listitem *item);
+i8x_err_e i8x_list_append (struct i8x_list *list, struct i8x_object *ob);
+void i8x_list_remove (struct i8x_list *list, struct i8x_object *ob);
+struct i8x_listitem *i8x_list_get_first (struct i8x_list *list);
+
+#define i8x_list_foreach(list, item)		\
+  for (item = i8x_list_get_first (list);	\
+       item != NULL;				\
+       item = i8x_listitem_get_next (item))
+
+/*
+ * i8x_listitem
+ *
+ * access to listitems of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (listitem);
+
+struct i8x_listitem *i8x_listitem_get_next (struct i8x_listitem *li);
+struct i8x_object *i8x_listitem_get_object (struct i8x_listitem *li);
+
+#define I8X_LISTITEM_OBJECT_FUNCTIONS_PREFIX(TYPE, PREFIX)		\
+  static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
+  i8x_listitem_get_ ## PREFIX (struct i8x_listitem *li)			\
+  {									\
+    return (struct i8x_ ## TYPE *) i8x_listitem_get_object (li);	\
+  }									\
+									\
+  static inline i8x_err_e __attribute__ ((always_inline))		\
+  i8x_list_append_ ## PREFIX (struct i8x_list *list,			\
+			      struct i8x_ ## TYPE *ob)			\
+  {									\
+    return i8x_list_append (list, (struct i8x_object *) ob);		\
+  }									\
+									\
+  static inline void __attribute__ ((always_inline))			\
+  i8x_list_remove_ ## PREFIX (struct i8x_list *list,			\
+			      struct i8x_ ## TYPE *ob)			\
+  {									\
+    i8x_list_remove (list, (struct i8x_object *) ob);			\
+  }
+
+#define I8X_LISTITEM_OBJECT_FUNCTIONS(TYPE) \
+  I8X_LISTITEM_OBJECT_FUNCTIONS_PREFIX (TYPE, TYPE)
 
 /*
  * i8x_code
@@ -222,11 +209,6 @@ i8x_err_e i8x_code_new_from_func (struct i8x_func *func,
 I8X_COMMON_OBJECT_FUNCTIONS (ext);
 I8X_LISTITEM_OBJECT_FUNCTIONS (ext);
 
-#define i8x_ext_list_foreach(item, list)		\
-  for (item = i8x_ext_list_get_first (list);		\
-       item != NULL;					\
-       item = i8x_ext_list_get_next (list, item))
-
 i8x_err_e i8x_ext_new_from_readbuf (struct i8x_readbuf *rb,
 				    struct i8x_ext **ext);
 struct i8x_funcref *i8x_ext_as_funcref (struct i8x_ext *ext);
@@ -239,11 +221,6 @@ struct i8x_symref *i8x_ext_as_symref (struct i8x_ext *ext);
  */
 I8X_COMMON_OBJECT_FUNCTIONS (symref);
 I8X_LISTITEM_OBJECT_FUNCTIONS (symref);
-
-#define i8x_symref_list_foreach(item, list)		\
-  for (item = i8x_symref_list_get_first (list);		\
-       item != NULL;					\
-       item = i8x_symref_list_get_next (list, item))
 
 i8x_err_e i8x_symref_new (struct i8x_ctx *ctx, const char *name,
 			  struct i8x_symref **ref);
@@ -275,22 +252,12 @@ void i8x_ctx_fire_availability_observer (struct i8x_func *func,
 
 I8X_LISTITEM_OBJECT_FUNCTIONS (func);
 
-#define i8x_func_list_foreach(item, list)		\
-  for (item = i8x_func_list_get_first (list);		\
-       item != NULL;					\
-       item = i8x_func_list_get_next (list, item))
-
 bool i8x_func_all_deps_resolved (struct i8x_func *func);
 void i8x_func_fire_availability_observers (struct i8x_func *func);
 
 /* i8x_funcref private functions.  */
 
 I8X_LISTITEM_OBJECT_FUNCTIONS (funcref);
-
-#define i8x_funcref_list_foreach(item, list)		\
-  for (item = i8x_funcref_list_get_first (list);	\
-       item != NULL;					\
-       item = i8x_funcref_list_get_next (list, item))
 
 i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
 			   const char *ptypes, const char *rtypes,
