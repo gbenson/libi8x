@@ -88,6 +88,12 @@ i8x_symref_new (struct i8x_ctx *ctx, const char *name,
   return I8X_OK;
 }
 
+struct i8x_symref *
+i8x_object_as_symref (struct i8x_object *ob)
+{
+  return (struct i8x_symref *) i8x_ob_cast (ob, &i8x_symref_ops);
+}
+
 const char *
 i8x_symref_get_name (struct i8x_symref *ref)
 {

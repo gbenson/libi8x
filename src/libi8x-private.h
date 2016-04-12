@@ -194,6 +194,7 @@ I8X_LISTABLE_OBJECT_FUNCTIONS (symref);
 
 i8x_err_e i8x_symref_new (struct i8x_ctx *ctx, const char *name,
 			  struct i8x_symref **ref);
+struct i8x_symref *i8x_object_as_symref (struct i8x_object *ob);
 const char *i8x_symref_get_name (struct i8x_symref *ref);
 
 /* i8x_chunk private functions.  */
@@ -231,6 +232,7 @@ I8X_LISTABLE_OBJECT_FUNCTIONS (funcref);
 i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
 			   const char *ptypes, const char *rtypes,
 			   struct i8x_funcref **ref);
+struct i8x_funcref *i8x_object_as_funcref (struct i8x_object *ob);
 void i8x_funcref_register_func (struct i8x_funcref *ref,
 				struct i8x_func *func);
 void i8x_funcref_unregister_func (struct i8x_funcref *ref,
@@ -249,6 +251,8 @@ i8x_err_e i8x_list_new (struct i8x_ctx *ctx,
 i8x_err_e i8x_ob_new (void *parent, const struct i8x_object_ops *ops,
 		      void *ob);
 struct i8x_object *i8x_ob_get_parent (struct i8x_object *ob);
+struct i8x_object *i8x_ob_cast (struct i8x_object *ob,
+				const struct i8x_object_ops *ops);
 
 /* i8x_readbuf private functions.  */
 
