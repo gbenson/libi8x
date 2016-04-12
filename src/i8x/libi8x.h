@@ -43,6 +43,7 @@ typedef enum
 
   /* Other errors.  */
   I8X_ENOMEM = -999,
+  I8X_EINVAL,
 }
 i8x_err_e;
 

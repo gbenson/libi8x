@@ -49,6 +49,9 @@ i8x_err_e i8x_ctx_set_error (struct i8x_ctx *ctx, i8x_err_e code,
 #define i8x_out_of_memory(ctx) \
   i8x_ctx_set_error (ctx, I8X_ENOMEM, NULL, NULL)
 
+#define i8x_invalid_argument(ctx) \
+  i8x_ctx_set_error (ctx, I8X_EINVAL, NULL, NULL)
+
 #define i8x_note_error(note, code, ptr) \
   i8x_ctx_set_error (i8x_note_get_ctx (note), code, note, ptr)
 

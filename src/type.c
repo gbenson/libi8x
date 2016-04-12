@@ -25,6 +25,9 @@ struct i8x_type
   I8X_OBJECT_FIELDS;
 
   char *encoded;	/* The type's encoded form.  */
+
+  /* Lists of parameter and return types, for function types.  */
+  struct i8x_list *ptypes, *rtypes;
 };
 
 static bool
@@ -34,17 +37,199 @@ i8x_type_is_functype (struct i8x_type *type)
 }
 
 static i8x_err_e
+i8x_tld_error (struct i8x_ctx *ctx, i8x_err_e code,
+	       struct i8x_note *cause_note, const char *cause_ptr)
+{
+  if (cause_note == NULL)
+    return i8x_invalid_argument (ctx);
+  else
+    return i8x_note_error (cause_note, code, cause_ptr);
+}
+
+static i8x_err_e
+i8x_type_list_skip_to (struct i8x_ctx *ctx, const char *ptr,
+		       const char *limit, struct i8x_note *src_note,
+		       char stop_char, const char **stop_char_ptr);
+
+static i8x_err_e
+i8x_functype_get_bounds (struct i8x_ctx *ctx, const char *ptr,
+			 const char *limit, struct i8x_note *src_note,
+			 const char **ptypes_start,
+			 const char **ptypes_limit,
+			 const char **rtypes_start,
+			 const char **rtypes_limit)
+{
+  i8x_err_e err;
+
+  /* Return types start straight after the 'F'.  */
+  *rtypes_start = ++ptr;
+  err = i8x_type_list_skip_to (ctx, ptr, limit, src_note,
+				 '(', rtypes_limit);
+  if (err != I8X_OK)
+    return err;
+
+  /* Parameter types start straight after the '('.  */
+  *ptypes_start = ptr = *rtypes_limit + 1;
+  err = i8x_type_list_skip_to (ctx, ptr, limit, src_note,
+				 ')', ptypes_limit);
+  if (err != I8X_OK)
+    return err;
+
+  return I8X_OK;
+}
+
+static i8x_err_e
+i8x_tld_helper (struct i8x_ctx *ctx,
+		struct i8x_note *src_note,
+		const char *ptr, const char *limit,
+		struct i8x_list *result,
+		char stop_char, const char **stop_char_ptr)
+{
+  i8x_assert ((result == NULL)
+	      ^ (stop_char == 0 && stop_char_ptr == NULL));
+
+  while (ptr < limit)
+    {
+      struct i8x_type *type;
+      char c = *ptr;
+
+      switch (c)
+	{
+	case I8_TYPE_INTEGER:
+	  if (result != NULL)
+	    type = i8x_ctx_get_integer_type (ctx);
+
+	  ptr++;
+	  break;
+
+	case I8_TYPE_POINTER:
+	  if (result != NULL)
+	    type = i8x_ctx_get_pointer_type (ctx);
+
+	  ptr++;
+	  break;
+
+	case I8_TYPE_OPAQUE:
+	  if (result != NULL)
+	    type = i8x_ctx_get_opaque_type (ctx);
+
+	  ptr++;
+	  break;
+
+	case I8_TYPE_FUNCTION:
+	  {
+	    const char *ptypes_start, *ptypes_limit;
+	    const char *rtypes_start, *rtypes_limit;
+	    i8x_err_e err;
+
+	    err = i8x_functype_get_bounds (ctx, ptr, limit,
+					   src_note, &ptypes_start,
+					   &ptypes_limit, &rtypes_start,
+					   &rtypes_limit);
+	    if (err != I8X_OK)
+	      return err;
+
+	    if (result != NULL)
+	      {
+		err = i8x_ctx_get_functype (ctx, ptypes_start,
+					    ptypes_limit, rtypes_start,
+					    rtypes_limit, src_note,
+					    &type);
+		if (err != I8X_OK)
+		  return err;
+	      }
+
+	    ptr = ptypes_limit + 1;
+	  }
+	  break;
+
+	case '(':
+	case ')':
+	  if (*ptr != stop_char)
+	    return i8x_tld_error (ctx, I8X_NOTE_CORRUPT, src_note, ptr);
+
+	  *stop_char_ptr = ptr;
+	  return I8X_OK;
+
+	default:
+	  return i8x_tld_error (ctx, I8X_NOTE_UNHANDLED, src_note, ptr);
+	}
+
+      if (result != NULL)
+	{
+	  i8x_err_e err;
+
+	  err = i8x_list_append_type (result, type);
+	  i8x_type_unref (type);
+	  if (err != I8X_OK)
+	    return err;
+	}
+    }
+
+  if (stop_char != 0)
+    return i8x_tld_error (ctx, I8X_NOTE_CORRUPT, src_note, ptr);
+
+  return I8X_OK;
+}
+
+static i8x_err_e
+i8x_type_list_skip_to (struct i8x_ctx *ctx, const char *ptr,
+		       const char *limit, struct i8x_note *src_note,
+		       char stop_char, const char **stop_char_ptr)
+{
+  return i8x_tld_helper (ctx, src_note, ptr, limit,
+			 NULL, stop_char, stop_char_ptr);
+}
+
+static i8x_err_e
+i8x_type_list_decode (struct i8x_ctx *ctx, struct i8x_note *src_note,
+		      const char *ptr, const char *limit,
+		      struct i8x_list *result)
+{
+  return i8x_tld_helper (ctx, src_note, ptr, limit,
+			 result, 0, NULL);
+}
+
+static i8x_err_e
 i8x_type_init (struct i8x_type *type, const char *encoded,
 	       const char *ptypes_start, const char *ptypes_limit,
 	       const char *rtypes_start, const char *rtypes_limit,
 	       struct i8x_note *src_note)
 {
+  struct i8x_ctx *ctx = i8x_type_get_ctx (type);
+
+  if (encoded[0] == I8_TYPE_FUNCTION)
+    {
+      i8x_err_e err;
+
+      err = i8x_list_new (ctx, true, &type->ptypes);
+      if (err != I8X_OK)
+	return err;
+
+      err = i8x_type_list_decode (ctx, src_note,
+				  ptypes_start, ptypes_limit,
+				  type->ptypes);
+      if (err != I8X_OK)
+	return err;
+
+      err = i8x_list_new (ctx, true, &type->rtypes);
+      if (err != I8X_OK)
+	return err;
+
+      err = i8x_type_list_decode (ctx, src_note,
+				  rtypes_start, rtypes_limit,
+				  type->rtypes);
+      if (err != I8X_OK)
+	return err;
+    }
+
+  /* Do this last so i8x_type_is_functype returns false while
+     parameter and return types lists are being decoded.  This
+     stops i8x_type_unlink calling i8x_ctx_forget_functype if
+     i8x_type_list_decode encounters an error.  */
   type->encoded = strdup (encoded);
   if (type->encoded == NULL)
-    return i8x_out_of_memory (i8x_type_get_ctx (type));
-
-  if (!i8x_type_is_functype (type))
-    return I8X_OK;
+    return i8x_out_of_memory (ctx);
 
   return I8X_OK;
 }
@@ -56,6 +241,9 @@ i8x_type_unlink (struct i8x_object *ob)
 
   if (i8x_type_is_functype (type))
     i8x_ctx_forget_functype (type);
+
+  type->ptypes = i8x_list_unref (type->ptypes);
+  type->rtypes = i8x_list_unref (type->rtypes);
 }
 
 static void

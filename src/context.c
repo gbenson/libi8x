@@ -320,6 +320,9 @@ error_message_for (i8x_err_e code)
     case I8X_ENOMEM:
       return _("out of memory");
 
+    case I8X_EINVAL:
+      return _("invalid argument");
+
     default:
       return NULL;
     }
