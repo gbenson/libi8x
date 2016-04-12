@@ -19,29 +19,6 @@
 
 /* NB this file is included directly by code.c.  */
 
-typedef enum
-{
-  I8X_OPR_NONE = 0,
-  I8X_OPR_ADDRESS,
-  I8X_OPR_INT8,
-  I8X_OPR_UINT8,
-  I8X_OPR_INT16,
-  I8X_OPR_UINT16,
-  I8X_OPR_INT32,
-  I8X_OPR_UINT32,
-  I8X_OPR_INT64,
-  I8X_OPR_UINT64,
-  I8X_OPR_SLEB128,
-  I8X_OPR_ULEB128,
-}
-i8x_operand_type_e;
-
-struct i8x_opdesc
-{
-  const char *name;		/* Name, for tracing.  */
-  i8x_operand_type_e op1, op2;	/* Operand types.  */
-};
-
 static struct i8x_opdesc optable[] =
 {
   {NULL},

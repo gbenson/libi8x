@@ -17,42 +17,18 @@
    License along with the Infinity Note Execution Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include "opcodes.h"
 #include "libi8x-private.h"
+#include "interp-private.h"
 #include "optable.c"
 
-typedef uint_fast16_t i8x_opcode_t;
-
-struct i8x_instr
-{
-  const char *location;		/* Pointer into the note, for errors.  */
-  i8x_opcode_t code;		/* The opcode.  */
-
-  const struct i8x_opdesc *desc;/* Description (name, operand types).  */
-
-  union i8x_value op1, op2;	/* Operands.  */
-};
-
-struct i8x_code
-{
-  I8X_OBJECT_FIELDS;
-
-  i8x_byte_order_e byte_order;	/* The byte order of the code chunk.  */
-
-  size_t code_size;		/* Size of bytecode, in bytes.  */
-  struct i8x_instr **itable;	/* Sparse table of instructions.  */
-
-  size_t max_stack;		/* The maximum stack this function uses.  */
-};
-
-static struct i8x_func *
+struct i8x_func *
 i8x_code_get_func (struct i8x_code *code)
 {
   return (struct i8x_func *)
     i8x_ob_get_parent ((struct i8x_object *) code);
 }
 
-static struct i8x_note *
+struct i8x_note *
 i8x_code_get_note (struct i8x_code *code)
 {
   return i8x_func_get_note (i8x_code_get_func (code));
