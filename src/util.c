@@ -43,3 +43,9 @@ i8x_note_error (struct i8x_note *note, i8x_err_e code, const char *ptr)
 {
   return i8x_ctx_set_error (i8x_note_get_ctx (note), code, note, ptr);
 }
+
+i8x_err_e
+i8x_rb_error (struct i8x_readbuf *rb, i8x_err_e code, const char *ptr)
+{
+  return i8x_note_error (i8x_rb_get_note (rb), code, ptr);
+}

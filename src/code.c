@@ -101,8 +101,7 @@ i8x_code_read_opcode (struct i8x_readbuf *rb, i8x_opcode_t *opcode)
   /* Check for overflow.  */
   result = tmp;
   if (result != tmp)
-    return i8x_note_error (i8x_rb_get_note(rb),
-			   I8X_NOTE_UNHANDLED, location);
+    return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
 
   *opcode = result;
 
@@ -164,8 +163,7 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
       break;
 
     default:
-      return i8x_note_error (i8x_rb_get_note (rb),
-			     I8X_NOTE_UNHANDLED, location);
+      return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
     }
 
   if (err != I8X_OK)
@@ -176,15 +174,13 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
     {
       result.i = signed_result;
       if (result.i != signed_result)
-	return i8x_note_error (i8x_rb_get_note(rb),
-			       I8X_NOTE_UNHANDLED, location);
+	return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
     }
   else
     {
       result.u = unsigned_result;
       if (result.u != unsigned_result)
-	return i8x_note_error (i8x_rb_get_note(rb),
-			       I8X_NOTE_UNHANDLED, location);
+	return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
     }
 
   *operand = result;

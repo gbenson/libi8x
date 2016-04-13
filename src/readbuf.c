@@ -99,14 +99,6 @@ i8x_rb_get_ptr (struct i8x_readbuf *rb)
   return rb->ptr;
 }
 
-static i8x_err_e
-i8x_rb_error (i8x_err_e code, struct i8x_readbuf *rb)
-{
-  struct i8x_note *note = i8x_rb_get_note (rb);
-
-  return i8x_note_error (note, code, rb->ptr);
-}
-
 I8X_EXPORT size_t
 i8x_rb_bytes_left (struct i8x_readbuf *rb)
 {
@@ -129,19 +121,23 @@ i8x_rb_read_byte_order_mark (struct i8x_readbuf *rb)
 
   if (new_order != I8X_BYTE_ORDER_STANDARD
       && new_order != I8X_BYTE_ORDER_REVERSED)
-    return i8x_note_error (i8x_rb_get_note (rb),
-			   I8X_NOTE_INVALID, saved_ptr);
+    return i8x_rb_error (rb, I8X_NOTE_INVALID, saved_ptr);
 
   rb->byte_order = new_order;
 
   return I8X_OK;
 }
 
+#define CHECK_HAS_BYTES(rb, n)					\
+  do {								\
+    if (i8x_rb_bytes_left (rb) < (n))				\
+      return i8x_rb_error (rb, I8X_NOTE_CORRUPT, (rb)->ptr);	\
+  } while (0)
+
 I8X_EXPORT i8x_err_e
 i8x_rb_read_int8_t (struct i8x_readbuf *rb, int8_t *result)
 {
-  if (i8x_rb_bytes_left (rb) < sizeof (int8_t))
-    return i8x_rb_error (I8X_NOTE_CORRUPT, rb);
+  CHECK_HAS_BYTES (rb, sizeof (int8_t));
 
   *result = *(uint8_t *) rb->ptr;
   rb->ptr += sizeof (int8_t);
@@ -152,8 +148,7 @@ i8x_rb_read_int8_t (struct i8x_readbuf *rb, int8_t *result)
 I8X_EXPORT i8x_err_e
 i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result)
 {
-  if (i8x_rb_bytes_left (rb) < sizeof (uint8_t))
-    return i8x_rb_error (I8X_NOTE_CORRUPT, rb);
+  CHECK_HAS_BYTES (rb, sizeof (uint8_t));
 
   *result = *(uint8_t *) rb->ptr;
   rb->ptr += sizeof (uint8_t);
@@ -167,8 +162,7 @@ i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result)
   {									\
     TYPE tmp;								\
 									\
-    if (i8x_rb_bytes_left (rb) < sizeof (TYPE))				\
-      return i8x_rb_error (I8X_NOTE_CORRUPT, rb);			\
+    CHECK_HAS_BYTES (rb, sizeof (TYPE));				\
 									\
     tmp = *(TYPE *) rb->ptr;						\
     rb->ptr += sizeof (TYPE);						\
@@ -229,8 +223,7 @@ I8X_EXPORT i8x_err_e
 i8x_rb_read_bytes (struct i8x_readbuf *rb, size_t nbytes,
 		   const char **result)
 {
-  if (i8x_rb_bytes_left (rb) < nbytes)
-    return i8x_rb_error (I8X_NOTE_CORRUPT, rb);
+  CHECK_HAS_BYTES (rb, nbytes);
 
   *result = rb->ptr;
   rb->ptr += nbytes;
