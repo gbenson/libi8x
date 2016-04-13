@@ -95,6 +95,9 @@ struct i8x_code
   struct i8x_instr *itable_limit;	/* The end of the above.  */
   struct i8x_instr *entry_point;	/* Function entry point.  */
 
+  struct i8x_list *ptypes;	/* List of parameter types.  */
+  struct i8x_list *rtypes;	/* List of return types.  */
+
   size_t max_stack;		/* Maximum stack this function uses.  */
 };
 

@@ -388,7 +388,26 @@ i8x_code_setup_flow (struct i8x_code *code)
 static i8x_err_e
 i8x_code_init (struct i8x_code *code)
 {
+  struct i8x_func *func = i8x_code_get_func (code);
+  struct i8x_funcref *funcref = i8x_func_get_funcref (func);
+  struct i8x_ctx *ctx = i8x_funcref_get_ctx (funcref);
+  struct i8x_type *functype;
   i8x_err_e err;
+
+  funcref = i8x_func_get_funcref (func);
+  if (i8x_ctx_get_log_priority (ctx) >= LOG_INFO)
+    {
+      struct i8x_note *note = i8x_func_get_note (func);
+
+      info (ctx, "%s[0x%lx]: %s\n",
+	    i8x_note_get_src_name (note),
+	    i8x_note_get_src_offset (note),
+	    i8x_funcref_get_fullname (funcref));
+    }
+
+  functype = i8x_funcref_get_type (funcref);
+  code->ptypes = i8x_list_ref (i8x_type_get_ptypes (functype));
+  code->rtypes = i8x_list_ref (i8x_type_get_rtypes (functype));
 
   err = i8x_code_unpack_info (code);
   if (err != I8X_OK)
@@ -406,6 +425,15 @@ i8x_code_init (struct i8x_code *code)
 }
 
 static void
+i8x_code_unlink (struct i8x_object *ob)
+{
+  struct i8x_code *code = (struct i8x_code *) ob;
+
+  code->ptypes = i8x_list_unref (code->ptypes);
+  code->rtypes = i8x_list_unref (code->rtypes);
+}
+
+static void
 i8x_code_free (struct i8x_object *ob)
 {
   struct i8x_code *code = (struct i8x_code *) ob;
@@ -418,7 +446,7 @@ const struct i8x_object_ops i8x_code_ops =
   {
     "code",			/* Object name.  */
     sizeof (struct i8x_code),	/* Object size.  */
-    NULL,			/* Unlink function.  */
+    i8x_code_unlink,		/* Unlink function.  */
     i8x_code_free,		/* Free function.  */
   };
 
