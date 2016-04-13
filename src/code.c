@@ -17,6 +17,8 @@
    License along with the Infinity Note Execution Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+#include <stdio.h>
+#include <string.h>
 #include "libi8x-private.h"
 #include "interp-private.h"
 #include "optable.c"
@@ -284,6 +286,9 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 
   rb = i8x_rb_unref (rb);
 
+  if (err == I8X_OK)
+    i8x_code_dump_itable (code, __FUNCTION__);
+
   return err;
 }
 
@@ -382,6 +387,8 @@ i8x_code_setup_flow (struct i8x_code *code)
     if (op->code == DW_OP_skip)
       op->code = IT_EMPTY_SLOT;
 
+  i8x_code_dump_itable (code, __FUNCTION__);
+
   return I8X_OK;
 }
 
@@ -471,4 +478,66 @@ i8x_code_new_from_func (struct i8x_func *func, struct i8x_code **code)
   *code = c;
 
   return I8X_OK;
+}
+
+/* Convert an instruction pointer to a note source offset.  */
+
+size_t
+ip_to_so (struct i8x_code *code, struct i8x_instr *ip)
+{
+  if (ip == NULL)
+    return 0;
+
+  struct i8x_note *note = i8x_code_get_note (code);
+  const char *mem_base = i8x_note_get_encoded (note);
+  ssize_t src_base = i8x_note_get_src_offset (note);
+
+  if (src_base < 0)
+    src_base = 0;
+
+  return ip_to_bcp (code, ip) - mem_base + src_base;
+}
+
+void
+i8x_code_dump_itable (struct i8x_code *code, const char *where)
+{
+  struct i8x_ctx *ctx = i8x_code_get_ctx (code);
+  struct i8x_instr *op;
+
+  if (i8x_ctx_get_log_priority (ctx) < LOG_INFO)
+    return;
+
+  info (ctx, "%s:\n", where);
+  for (op = code->itable; op < code->itable_limit; op++)
+    {
+      char arg1[32] = "";  /* Operand 1.  */
+      char arg2[32] = "";  /* Operand 2.  */
+      char bnext[32] = "";  /* branch_next  */
+      char insn[128];
+
+      if (op->code == IT_EMPTY_SLOT)
+	continue;
+
+      if (op->desc->arg1 != I8X_OPR_NONE)
+	snprintf (arg1, sizeof (arg1), " %ld", op->arg1.u);
+
+      if (op->desc->arg2 != I8X_OPR_NONE)
+	snprintf (arg2, sizeof (arg2), ", %ld", op->arg2.u);
+
+      snprintf (insn, sizeof (insn),
+		"%s%s%s", op->desc->name, arg1, arg2);
+
+      if (op->code == DW_OP_bra)
+	snprintf (bnext, sizeof (bnext), ", 0x%lx",
+		  ip_to_so (code, op->branch_next));
+
+      info (ctx, "  0x%lx: %-24s => 0x%lx%s\n",
+	    ip_to_so (code, op), insn,
+	    ip_to_so (code, op->fall_through), bnext);
+    }
+
+  if (strcmp (where, "i8x_code_unpack_bytecode") == 0)
+    info (ctx, "  0x%lx: (end)\n", ip_to_so (code, code->itable_limit));
+
+  info (ctx, "\n");
 }
