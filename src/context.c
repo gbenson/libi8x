@@ -416,7 +416,7 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
   struct i8x_type *functype;
   size_t fullname_size;
   char *fullname;
-  i8x_err_e err;
+  i8x_err_e err = I8X_OK;
 
   /* Build the full name.  */
   fullname_size = (strlen (provider)
@@ -427,7 +427,10 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
 		   + 1   /* ')'  */
 		   + strlen (rtypes)
 		   + 1); /* '\0'  */
-  fullname = alloca (fullname_size);
+  fullname = malloc (fullname_size);
+  if (fullname == NULL)
+    return i8x_out_of_memory (ctx);
+
   snprintf (fullname, fullname_size,
 	    "%s::%s(%s)%s", provider, name, ptypes, rtypes);
 
@@ -440,7 +443,7 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
 	{
 	  *refp = i8x_funcref_ref (ref);
 
-	  return I8X_OK;
+	  goto cleanup;
 	}
     }
 
@@ -450,24 +453,27 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
 			      rtypes, rtypes + strlen (rtypes),
 			      src_note, &functype);
   if (err != I8X_OK)
-    return err;
+    goto cleanup;
 
   err = i8x_funcref_new (ctx, fullname, functype, &ref);
   i8x_type_unref (functype);
   if (err != I8X_OK)
-    return err;
+    goto cleanup;
 
   err = i8x_list_append_funcref (ctx->funcrefs, ref);
   if (err != I8X_OK)
     {
       ref = i8x_funcref_unref (ref);
 
-      return err;
+      goto cleanup;
     }
 
   *refp = ref;
 
-  return I8X_OK;
+ cleanup:
+  free (fullname);
+
+  return err;
 }
 
 I8X_EXPORT i8x_err_e
@@ -549,7 +555,7 @@ i8x_ctx_get_functype (struct i8x_ctx *ctx,
   size_t rtypes_size = rtypes_limit - rtypes_start;
   size_t encoded_size;
   char *encoded, *ptr;
-  i8x_err_e err;
+  i8x_err_e err = I8X_OK;
 
   /* Build the encoded form.  */
   encoded_size = (1	/* I8_TYPE_FUNCTION  */
@@ -558,7 +564,10 @@ i8x_ctx_get_functype (struct i8x_ctx *ctx,
 		  + ptypes_size
 		  + 1   /* ')'  */
 		  + 1); /* '\0'  */
-  ptr = encoded = alloca (encoded_size);
+  ptr = encoded = malloc (encoded_size);
+  if (encoded == NULL)
+    return i8x_out_of_memory (ctx);
+
   *(ptr++) = I8_TYPE_FUNCTION;
   memcpy (ptr, rtypes_start, rtypes_size);
   ptr += rtypes_size;
@@ -577,7 +586,7 @@ i8x_ctx_get_functype (struct i8x_ctx *ctx,
 	{
 	  *typep = i8x_type_ref (type);
 
-	  return I8X_OK;
+	  goto cleanup;
 	}
     }
 
@@ -587,13 +596,16 @@ i8x_ctx_get_functype (struct i8x_ctx *ctx,
 			       rtypes_start, rtypes_limit,
 			       src_note, &type);
   if (err != I8X_OK)
-    return err;
+    goto cleanup;
 
   i8x_list_append_type (ctx->functypes, type);
 
   *typep = type;
 
-  return I8X_OK;
+ cleanup:
+  free (encoded);
+
+  return err;
 }
 
 void
