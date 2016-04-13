@@ -209,10 +209,9 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
      to because they're part of other instructions.  */
   i8x_assert (optable[0].name == NULL);
 
-  // XXX doesn't need to exist!
   err = i8x_note_get_unique_chunk (note, I8_CHUNK_BYTECODE,
-				   true, &chunk);
-  if (err != I8X_OK)
+				   false, &chunk);
+  if (err != I8X_OK || chunk == NULL)
     return err;
 
   if (i8x_chunk_get_version (chunk) != 2)
@@ -225,6 +224,8 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   if (code->itable == NULL)
     return i8x_out_of_memory (i8x_note_get_ctx (note));
 
+  code->itable_limit = code->itable + code->code_size;
+
   err = i8x_rb_new_from_chunk (chunk, &rb);
   if (err != I8X_OK)
     return err;
@@ -235,6 +236,7 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
     {
       struct i8x_instr *op = bcp_to_ip (code, i8x_rb_get_ptr (rb));
 
+      /* Read the opcode and operands.  */
       err = i8x_code_read_opcode (rb, &op->code);
       if (err != I8X_OK)
 	break;
@@ -257,6 +259,14 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
       err = i8x_code_read_operand (rb, op->desc->arg2, &op->arg2);
       if (err != I8X_OK)
 	break;
+
+      /* Set up the next instruction pointers.  */
+      op->fall_through = bcp_to_ip (code, i8x_rb_get_ptr (rb));
+
+      if (op->code == DW_OP_skip)
+	op->fall_through += op->arg1.i;
+      else if (op->code == DW_OP_bra)
+	op->branch_next = op->fall_through + op->arg1.i;
     }
 
   rb = i8x_rb_unref (rb);

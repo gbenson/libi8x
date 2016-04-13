@@ -62,9 +62,14 @@ struct i8x_idesc
 
 struct i8x_instr
 {
-  i8x_opcode_t code;		/* Opcode.  */
-  const struct i8x_idesc *desc;	/* Description.  */
-  union i8x_value arg1, arg2;	/* Operands.  */
+  i8x_opcode_t code;			/* Opcode.  */
+  const struct i8x_idesc *desc;		/* Description.  */
+  union i8x_value arg1, arg2;		/* Operands.  */
+
+  /* Pointers to the next instruction for branch and non-branch
+     cases.  NULL in either pointer is a return from this function.  */
+  struct i8x_instr *branch_next;
+  struct i8x_instr *fall_through;
 };
 
 /* Unpacked bytecode of one note.  */
@@ -77,7 +82,8 @@ struct i8x_code
   size_t code_size;		/* Size of undecoded bytecode, in bytes.  */
   const char *code_start;	/* First byte of undecoded bytecode.  */
 
-  struct i8x_instr *itable;	/* Decoded bytecode.  */
+  struct i8x_instr *itable;		/* Decoded bytecode.  */
+  struct i8x_instr *itable_limit;	/* The end of the above.  */
 
   size_t max_stack;		/* Maximum stack this function uses.  */
 };
