@@ -36,6 +36,22 @@ i8x_type_is_functype (struct i8x_type *type)
   return type->encoded != NULL && type->encoded[0] == I8_TYPE_FUNCTION;
 }
 
+struct i8x_list *
+i8x_type_get_ptypes (struct i8x_type *type)
+{
+  i8x_assert (i8x_type_is_functype (type));
+
+  return type->ptypes;
+}
+
+struct i8x_list *
+i8x_type_get_rtypes (struct i8x_type *type)
+{
+  i8x_assert (i8x_type_is_functype (type));
+
+  return type->rtypes;
+}
+
 static i8x_err_e
 i8x_tld_error (struct i8x_ctx *ctx, i8x_err_e code,
 	       struct i8x_note *cause_note, const char *cause_ptr)

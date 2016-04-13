@@ -216,6 +216,8 @@ i8x_err_e i8x_type_new_functype (struct i8x_ctx *ctx,
 				 struct i8x_note *src_note,
 				 struct i8x_type **type);
 const char *i8x_type_get_encoded (struct i8x_type *type);
+struct i8x_list *i8x_type_get_ptypes (struct i8x_type *type);
+struct i8x_list *i8x_type_get_rtypes (struct i8x_type *type);
 
 /* i8x_chunk private functions.  */
 
