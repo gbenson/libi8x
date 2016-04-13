@@ -50,44 +50,62 @@ typedef enum
 }
 i8x_operand_type_e;
 
-/* Operator descriptions.  */
+/* Instruction description.  */
 
-struct i8x_opdesc
+struct i8x_idesc
 {
-  const char *name;		/* Name, for tracing.  */
-  i8x_operand_type_e op1, op2;	/* Operand types.  */
+  const char *name;			/* Name, for tracing etc.  */
+  i8x_operand_type_e arg1, arg2;	/* Operand types.  */
 };
 
-/* An unpacked instruction.  */
+/* Instruction.  */
 
 struct i8x_instr
 {
-  i8x_opcode_t code;		/* The opcode.  */
-
-  const struct i8x_opdesc *desc;/* Description (name, operand types).  */
-
-  union i8x_value op1, op2;	/* Operands.  */
+  i8x_opcode_t code;		/* Opcode.  */
+  const struct i8x_idesc *desc;	/* Description.  */
+  union i8x_value arg1, arg2;	/* Operands.  */
 };
 
-/* The unpacked bytecode of one note.  */
+/* Unpacked bytecode of one note.  */
 
 struct i8x_code
 {
   I8X_OBJECT_FIELDS;
 
   i8x_byte_order_e byte_order;	/* The byte order of the code chunk.  */
-
+  size_t code_size;		/* Size of undecoded bytecode, in bytes.  */
   const char *code_start;	/* First byte of undecoded bytecode.  */
-  size_t code_size;		/* Size of bytecode, in bytes.  */
-  struct i8x_instr *itable;	/* Sparse table of instructions.  */
 
-  size_t max_stack;		/* The maximum stack this bytecode uses.  */
+  struct i8x_instr *itable;	/* Decoded bytecode.  */
+
+  size_t max_stack;		/* Maximum stack this function uses.  */
 };
 
-/* Private functions.  */
+/* Interpreter private functions.  */
 
-struct i8x_func *i8x_code_get_func (struct i8x_code *code);
-struct i8x_note *i8x_code_get_note (struct i8x_code *code);
+i8x_err_e i8x_code_error (struct i8x_code *code, i8x_err_e err,
+			  struct i8x_instr *ip);
+
+/* Convert a bytecode pointer to an instruction pointer.  */
+
+static inline struct i8x_instr * __attribute__ ((always_inline))
+bcp_to_ip (struct i8x_code *code, const char *bcp)
+{
+  size_t bci = bcp - code->code_start;
+
+  return code->itable + bci;
+}
+
+/* Convert an instruction pointer to a bytecode pointer.  */
+
+static inline const char * __attribute__ ((always_inline))
+ip_to_bcp (struct i8x_code *code, struct i8x_instr *ip)
+{
+  size_t bci = ip - code->itable;
+
+  return code->code_start + bci;
+}
 
 #ifdef __cplusplus
 } /* extern "C" */

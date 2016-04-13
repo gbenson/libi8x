@@ -21,17 +21,25 @@
 #include "interp-private.h"
 #include "optable.c"
 
-struct i8x_func *
+static struct i8x_func *
 i8x_code_get_func (struct i8x_code *code)
 {
   return (struct i8x_func *)
     i8x_ob_get_parent ((struct i8x_object *) code);
 }
 
-struct i8x_note *
+static struct i8x_note *
 i8x_code_get_note (struct i8x_code *code)
 {
   return i8x_func_get_note (i8x_code_get_func (code));
+}
+
+i8x_err_e
+i8x_code_error (struct i8x_code *code, i8x_err_e err,
+		struct i8x_instr *ip)
+{
+  return i8x_note_error (i8x_code_get_note (code),
+			 err, ip_to_bcp (code, ip));
 }
 
 static i8x_err_e
@@ -225,9 +233,7 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 
   while (i8x_rb_bytes_left (rb) > 0)
     {
-      const char *ptr = i8x_rb_get_ptr (rb);
-      size_t bcp = ptr - code->code_start;
-      struct i8x_instr *op = &code->itable[bcp];
+      struct i8x_instr *op = bcp_to_ip (code, i8x_rb_get_ptr (rb));
 
       err = i8x_code_read_opcode (rb, &op->code);
       if (err != I8X_OK)
@@ -240,15 +246,15 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 	{
 	  notice (i8x_note_get_ctx (note),
 		  "opcode 0x%lx not in optable\n", op->code);
-	  err = i8x_note_error (note, I8X_NOTE_UNHANDLED, ptr);
+	  err = i8x_code_error (code, I8X_NOTE_UNHANDLED, op);
 	  break;
 	}
 
-      err = i8x_code_read_operand (rb, op->desc->op1, &op->op1);
+      err = i8x_code_read_operand (rb, op->desc->arg1, &op->arg1);
       if (err != I8X_OK)
 	break;
 
-      err = i8x_code_read_operand (rb, op->desc->op2, &op->op2);
+      err = i8x_code_read_operand (rb, op->desc->arg2, &op->arg2);
       if (err != I8X_OK)
 	break;
     }

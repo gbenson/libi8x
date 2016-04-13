@@ -19,7 +19,7 @@
 
 /* NB this file is included directly by code.c.  */
 
-static struct i8x_opdesc optable[] =
+static struct i8x_idesc optable[] =
 {
   {NULL},
   {NULL},
@@ -166,4 +166,4 @@ static struct i8x_opdesc optable[] =
   {"I8_OP_deref_int", I8X_OPR_INT8},
 };
 
-#define MAX_OPCODE ((sizeof (optable) / sizeof (struct i8x_opdesc)) - 1)
+#define MAX_OPCODE ((sizeof (optable) / sizeof (struct i8x_idesc)) - 1)
