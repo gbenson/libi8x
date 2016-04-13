@@ -196,7 +196,7 @@ i8x_ctx_new (struct i8x_ctx **ctx)
   if (env != NULL)
     i8x_ctx_set_log_priority (c, log_priority (env));
 
-  info (c, "ctx %p created\n", c);
+  dbg (c, "ctx %p created\n", c);
   dbg (c, "log_priority=%d\n", c->log_priority);
 
   err = i8x_ctx_init (c);

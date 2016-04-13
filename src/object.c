@@ -61,7 +61,7 @@ i8x_ob_unref_1 (struct i8x_object *ob, enum ref_sense_e sense)
   if (ob->refcount[RS_BACK] > 0)
     warn (ctx, "%s %p released with references\n", ob->ops->name, ob);
   else
-    info (ctx, "%s %p released\n", ob->ops->name, ob);
+    dbg (ctx, "%s %p released\n", ob->ops->name, ob);
 
   ctx = i8x_ctx_unref (ctx);
 
@@ -123,7 +123,7 @@ i8x_ob_new (void *pp, const struct i8x_object_ops *ops, void *ob)
     return i8x_out_of_memory (ctx);
 
   if (ctx != NULL)
-    info (ctx, "%s %p created\n", ops->name, o);
+    dbg (ctx, "%s %p created\n", ops->name, o);
 
   o->ops = ops;
   o->parent = i8x_ob_ref_parent (parent);
