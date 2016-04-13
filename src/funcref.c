@@ -161,3 +161,9 @@ i8x_funcref_is_resolved (struct i8x_funcref *ref)
 {
   return ref->ext_resolved != NULL;
 }
+
+struct i8x_type *
+i8x_funcref_get_type (struct i8x_funcref *ref)
+{
+  return ref->type;
+}
