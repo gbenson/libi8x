@@ -598,7 +598,13 @@ i8x_ctx_get_functype (struct i8x_ctx *ctx,
   if (err != I8X_OK)
     goto cleanup;
 
-  i8x_list_append_type (ctx->functypes, type);
+  err = i8x_list_append_type (ctx->functypes, type);
+  if (err != I8X_OK)
+    {
+      type = i8x_type_unref (type);
+
+      goto cleanup;
+    }
 
   *typep = type;
 
