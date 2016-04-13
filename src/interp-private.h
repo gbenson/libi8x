@@ -58,11 +58,17 @@ struct i8x_idesc
   i8x_operand_type_e arg1, arg2;	/* Operand types.  */
 };
 
+/* Special opcode denoting slots in the instruction table that
+   cannot be executed or jumped to, either because that location
+   in the bytecode is mid-instruction or because an instruction
+   has been eliminated.  */
+#define IT_EMPTY_SLOT 0
+
 /* Instruction.  */
 
 struct i8x_instr
 {
-  i8x_opcode_t code;			/* Opcode.  */
+  i8x_opcode_t code;			/* Opcode or IT_EMPTY_SLOT.  */
   const struct i8x_idesc *desc;		/* Description.  */
   union i8x_value arg1, arg2;		/* Operands.  */
 

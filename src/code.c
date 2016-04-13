@@ -204,10 +204,14 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   struct i8x_readbuf *rb;
   i8x_err_e err;
 
-  /* Make sure there's no operation defined as opcode 0, as we
-     use it to denote slots in the itable that cannot be jumped
-     to because they're part of other instructions.  */
-  i8x_assert (optable[0].name == NULL);
+  /* Make sure IT_EMPTY_SLOT does not clash with any defined
+     operation.  */
+  i8x_assert (optable[IT_EMPTY_SLOT].name == NULL);
+
+  /* Allocating the itable with calloc ensures every entry is
+     initialized to IT_EMPTY_SLOT.  If this gets redefined then
+     we need to initialize each entrit.  */
+  i8x_assert (IT_EMPTY_SLOT == 0);
 
   err = i8x_note_get_unique_chunk (note, I8_CHUNK_BYTECODE,
 				   false, &chunk);
