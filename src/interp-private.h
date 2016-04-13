@@ -76,6 +76,9 @@ struct i8x_instr
      cases.  NULL in either pointer is a return from this function.  */
   struct i8x_instr *branch_next;
   struct i8x_instr *fall_through;
+
+  /* Used by i8x_code_setup_flow to avoid loops.  */
+  bool is_visited;
 };
 
 /* Unpacked bytecode of one note.  */
@@ -90,6 +93,7 @@ struct i8x_code
 
   struct i8x_instr *itable;		/* Decoded bytecode.  */
   struct i8x_instr *itable_limit;	/* The end of the above.  */
+  struct i8x_instr *entry_point;	/* Function entry point.  */
 
   size_t max_stack;		/* Maximum stack this function uses.  */
 };
@@ -98,6 +102,7 @@ struct i8x_code
 
 i8x_err_e i8x_code_error (struct i8x_code *code, i8x_err_e err,
 			  struct i8x_instr *ip);
+void i8x_code_reset_is_visited (struct i8x_code *code);
 
 /* Convert a bytecode pointer to an instruction pointer.  */
 

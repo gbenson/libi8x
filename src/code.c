@@ -42,6 +42,15 @@ i8x_code_error (struct i8x_code *code, i8x_err_e err,
 			 err, ip_to_bcp (code, ip));
 }
 
+void
+i8x_code_reset_is_visited (struct i8x_code *code)
+{
+  struct i8x_instr *op;
+
+  for (op = code->itable; op < code->itable_limit; op++)
+    op->is_visited = false;
+}
+
 static i8x_err_e
 i8x_code_unpack_info (struct i8x_code *code)
 {
@@ -278,6 +287,104 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   return err;
 }
 
+/* Check and optimize one next instruction pointer of one
+   instruction (or the entry point, in which case OP will
+   be NULL). */
+
+static i8x_err_e
+i8x_code_setup_flow_1 (struct i8x_code *code,
+		       struct i8x_instr *op,
+		       struct i8x_instr **result)
+{
+  struct i8x_instr *next_op = *result;
+
+  i8x_code_reset_is_visited (code);
+
+  while (true)
+    {
+      /* Functions return by jumping one instruction past
+	 the end of the bytecode.  Rewrite these to NULL.  */
+      if (next_op == code->itable_limit)
+	next_op = NULL;
+
+      if (next_op == NULL)
+	break;
+
+      /* Validate the branch that got us here.  */
+      if (next_op < code->itable
+	  || next_op >= code->itable_limit
+	  || next_op->code == IT_EMPTY_SLOT)
+	{
+	  i8x_assert (op != NULL);  /* The entry point??  */
+
+	  return i8x_code_error (code, I8X_NOTE_INVALID, op);
+	}
+
+      /* If the next instruction isn't a skip then we're done.  */
+      if (next_op->code != DW_OP_skip)
+	break;
+
+      /* Continue through this skip instruction.  */
+      op = next_op;
+      next_op = op->fall_through;
+
+      /* Avoid trivial infinite loops.  */
+      if (op->is_visited)
+	return i8x_code_error (code, I8X_NOTE_INVALID, op);
+
+      op->is_visited = true;
+    }
+
+  *result = next_op;
+
+  return I8X_OK;
+}
+
+/* Set up the function entry point, then check and optimize the next
+   instruction pointers of all instructions.  A successful result
+   indicates that the entry point and all next instruction pointers
+   either point to a valid location in the instruction table or are
+   NULL to indicate returning from the function, and that all "skip"
+   instructions have been removed.  */
+
+static i8x_err_e
+i8x_code_setup_flow (struct i8x_code *code)
+{
+  struct i8x_instr *op;
+  i8x_err_e err;
+
+  /* Set up the entry point.  */
+  code->entry_point = code->itable;
+  err = i8x_code_setup_flow_1 (code, NULL, &code->entry_point);
+  if (err != I8X_OK)
+    return err;
+
+  /* Set up the instruction table.  */
+  for (op = code->itable; op < code->itable_limit; op++)
+    {
+      if (op->code == IT_EMPTY_SLOT)
+	continue;
+
+      if (op->code == DW_OP_bra)
+	{
+	  err = i8x_code_setup_flow_1 (code, op, &op->branch_next);
+	  if (err != I8X_OK)
+	    return err;
+	}
+
+      err = i8x_code_setup_flow_1 (code, op, &op->fall_through);
+      if (err != I8X_OK)
+	return err;
+    }
+
+  /* Lose all the now-unreachable skip instructions.  */
+  for (op = code->itable; op < code->itable_limit; op++)
+    if (op->code == DW_OP_skip)
+      op->code = IT_EMPTY_SLOT;
+
+  return I8X_OK;
+}
+
 static i8x_err_e
 i8x_code_init (struct i8x_code *code)
 {
@@ -288,6 +395,10 @@ i8x_code_init (struct i8x_code *code)
     return err;
 
   err = i8x_code_unpack_bytecode (code);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_code_setup_flow (code);
   if (err != I8X_OK)
     return err;
 
