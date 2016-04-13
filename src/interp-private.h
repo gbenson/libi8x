@@ -77,8 +77,11 @@ struct i8x_instr
   struct i8x_instr *branch_next;
   struct i8x_instr *fall_through;
 
-  /* Used by i8x_code_setup_flow to avoid loops.  */
+  /* Used by i8x_code_setup_flow and i8x_code_validate to avoid loops.  */
   bool is_visited;
+
+  /* Used by i8x_code_validate.  */
+  struct i8x_type **entry_stack;
 };
 
 /* Unpacked bytecode of one note.  */
@@ -112,6 +115,7 @@ i8x_err_e i8x_code_error (struct i8x_code *code, i8x_err_e err,
 size_t ip_to_so (struct i8x_code *code, struct i8x_instr *ip);
 void i8x_code_dump_itable (struct i8x_code *code, const char *where);
 void i8x_code_reset_is_visited (struct i8x_code *code);
+i8x_err_e i8x_code_validate (struct i8x_code *code);
 
 /* Convert a bytecode pointer to an instruction pointer.  */
 

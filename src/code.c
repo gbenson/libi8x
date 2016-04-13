@@ -430,6 +430,10 @@ i8x_code_init (struct i8x_code *code)
   if (err != I8X_OK)
     return err;
 
+  err = i8x_code_validate (code);
+  if (err != I8X_OK)
+    return err;
+
   return I8X_OK;
 }
 
