@@ -647,7 +647,7 @@ i8x_ctx_resolve_funcrefs (struct i8x_ctx *ctx)
       i8x_list_foreach (ctx->functions, li)
 	{
 	  struct i8x_func *func = i8x_listitem_get_func (li);
-	  struct i8x_funcref *ref = i8x_func_get_signature (func);
+	  struct i8x_funcref *ref = i8x_func_get_funcref (func);
 
 	  if (!i8x_funcref_is_resolved (ref))
 	    continue;
@@ -682,7 +682,7 @@ i8x_ctx_register_func (struct i8x_ctx *ctx, struct i8x_func *func)
   if (err != I8X_OK)
     return err;
 
-  i8x_funcref_register_func (i8x_func_get_signature (func), func);
+  i8x_funcref_register_func (i8x_func_get_funcref (func), func);
   i8x_ctx_resolve_funcrefs (ctx);
 
   return I8X_OK;
@@ -694,7 +694,7 @@ i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
   dbg (ctx, "unregistering func %p\n", func);
   i8x_assert (i8x_func_get_ctx (func) == ctx);
 
-  i8x_funcref_unregister_func (i8x_func_get_signature (func), func);
+  i8x_funcref_unregister_func (i8x_func_get_funcref (func), func);
   i8x_ctx_resolve_funcrefs (ctx);
   i8x_list_remove_func (ctx->functions, func);
 

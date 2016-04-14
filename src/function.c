@@ -23,7 +23,7 @@ struct i8x_func
 {
   I8X_OBJECT_FIELDS;
 
-  struct i8x_funcref *sig;	/* The function's signature.  */
+  struct i8x_funcref *ref;	/* The function's signature.  */
   i8x_impl_fn_t *impl_fn;	/* The function's implementation.  */
 
   struct i8x_note *note;	/* The note, or NULL if native.  */
@@ -53,13 +53,14 @@ i8x_bcf_unpack_signature (struct i8x_func *func)
   if (err != I8X_OK)
     return err;
 
-  err = i8x_rb_read_funcref (rb, &func->sig);
+  err = i8x_rb_read_funcref (rb, &func->ref);
 
   rb = i8x_rb_unref (rb);
 
   if (err == I8X_OK)
     dbg (i8x_func_get_ctx (func),
-	 "func %p is %s\n", func, i8x_funcref_get_fullname (func->sig));
+	 "func %p is %s\n", func,
+	 i8x_funcref_get_fullname (func->ref));
 
   return err;
 }
@@ -181,7 +182,7 @@ i8x_func_unlink (struct i8x_object *ob)
     i8x_ctx_fire_availability_observer (func, false);
 
   func->code = i8x_code_unref (func->code);
-  func->sig = i8x_funcref_unref (func->sig);
+  func->ref = i8x_funcref_unref (func->ref);
   func->externals = i8x_list_unref (func->externals);
   func->note = i8x_note_unref (func->note);
 }
@@ -235,7 +236,7 @@ i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcref *sig,
 
   dbg (ctx, "func %p is %s\n", f, i8x_funcref_get_fullname (sig));
 
-  f->sig = i8x_funcref_ref (sig);
+  f->ref = i8x_funcref_ref (sig);
   f->impl_fn = impl_fn;
 
   *func = f;
@@ -244,9 +245,9 @@ i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcref *sig,
 }
 
 I8X_EXPORT struct i8x_funcref *
-i8x_func_get_signature (struct i8x_func *func)
+i8x_func_get_funcref (struct i8x_func *func)
 {
-  return func->sig;
+  return func->ref;
 }
 
 I8X_EXPORT struct i8x_note *
@@ -275,7 +276,7 @@ i8x_func_all_deps_resolved (struct i8x_func *func)
 void
 i8x_func_fire_availability_observers (struct i8x_func *func)
 {
-  bool is_available = i8x_funcref_is_resolved (func->sig);
+  bool is_available = i8x_funcref_is_resolved (func->ref);
 
   if (is_available == func->observed_available)
     return;

@@ -248,11 +248,11 @@ i8x_err_e i8x_func_new_native (struct i8x_ctx *ctx,
 			       struct i8x_funcref *sig,
 			       i8x_impl_fn_t *impl_fn,
 			       struct i8x_func **func);
-struct i8x_funcref *i8x_func_get_signature (struct i8x_func *func);
+struct i8x_funcref *i8x_func_get_funcref (struct i8x_func *func);
 struct i8x_note *i8x_func_get_note (struct i8x_func *func);
 
 #define i8x_func_get_fullname(func) \
-  i8x_funcref_get_fullname (i8x_func_get_signature (func))
+  i8x_funcref_get_fullname (i8x_func_get_funcref (func))
 
 /*
  * i8x_funcref
