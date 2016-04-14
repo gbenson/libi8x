@@ -489,6 +489,10 @@ i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *provider,
 		     const char *name, const char *ptypes,
 		     const char *rtypes, struct i8x_funcref **refp)
 {
+  /* Do not allow clients to reference private functions.  */
+  if (strncmp (name, "__", 2) == 0)
+    return i8x_invalid_argument (ctx);
+
   return i8x_ctx_get_funcref_with_note (ctx, provider, name,
 					ptypes, rtypes, NULL, refp);
 }
