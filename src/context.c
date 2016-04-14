@@ -273,14 +273,22 @@ void
 i8x_ctx_fire_availability_observer (struct i8x_func *func,
 				    bool is_available)
 {
-  struct i8x_ctx *ctx = i8x_func_get_ctx (func);
-  i8x_func_cb_t *cb =
-    is_available
+  struct i8x_ctx *ctx;
+  i8x_func_cb_t *callback;
+
+  if (i8x_func_is_native (func))
+    return;
+
+  if (i8x_func_is_private (func))
+    return;
+
+  ctx = i8x_func_get_ctx (func);
+  callback = is_available
     ? ctx->func_avail_observer_fn
     : ctx->func_unavail_observer_fn;
 
-  if (cb != NULL)
-    cb (func);
+  if (callback != NULL)
+    callback (func);
 }
 
 i8x_err_e
