@@ -33,11 +33,16 @@ extern "C" {
 
 typedef enum
 {
+  /* No error.  */
   I8X_OK = 0,
-  I8X_OUT_OF_MEMORY = -1,
-  I8X_NOTE_CORRUPT = -2,
-  I8X_NOTE_UNHANDLED = -3,
-  I8X_NOTE_INVALID = -4,
+
+  /* Note rejection reasons.  */
+  I8X_NOTE_CORRUPT = -99,
+  I8X_NOTE_UNHANDLED,
+  I8X_NOTE_INVALID,
+
+  /* Other errors.  */
+  I8X_ENOMEM = -999,
 }
 i8x_err_e;
 

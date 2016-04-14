@@ -308,9 +308,6 @@ error_message_for (i8x_err_e code)
     case I8X_OK:
       return _("no error");
 
-    case I8X_OUT_OF_MEMORY:
-      return _("out of memory");
-
     case I8X_NOTE_CORRUPT:
       return _("corrupt note");
 
@@ -319,6 +316,9 @@ error_message_for (i8x_err_e code)
 
     case I8X_NOTE_INVALID:
       return _("invalid note");
+
+    case I8X_ENOMEM:
+      return _("out of memory");
 
     default:
       return NULL;
