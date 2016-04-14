@@ -415,6 +415,8 @@ i8x_code_init (struct i8x_code *code)
   functype = i8x_funcref_get_type (funcref);
   code->ptypes = i8x_list_ref (i8x_type_get_ptypes (functype));
   code->rtypes = i8x_list_ref (i8x_type_get_rtypes (functype));
+  code->num_args = i8x_list_size (code->ptypes);
+  code->num_rets = i8x_list_size (code->rtypes);
 
   err = i8x_code_unpack_info (code);
   if (err != I8X_OK)
