@@ -180,6 +180,21 @@ i8x_list_remove (struct i8x_list *list, struct i8x_object *ob)
   item = i8x_listitem_unref (item);
 }
 
+I8X_EXPORT int
+i8x_list_size (struct i8x_list *list)
+{
+  struct i8x_listitem *li;
+  int count = 0;
+
+  i8x_list_foreach (list, li)
+    {
+      count++;
+      i8x_assert (count > 0);
+    }
+
+  return count;
+}
+
 I8X_EXPORT struct i8x_listitem *
 i8x_list_get_first (struct i8x_list *list)
 {

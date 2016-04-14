@@ -276,6 +276,7 @@ bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
  */
 I8X_COMMON_OBJECT_FUNCTIONS (list);
 
+int i8x_list_size (struct i8x_list *list);
 struct i8x_listitem *i8x_list_get_first (struct i8x_list *list);
 struct i8x_listitem *i8x_list_get_next (struct i8x_list *list,
 					struct i8x_listitem *curr);
