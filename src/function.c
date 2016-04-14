@@ -24,7 +24,6 @@ struct i8x_func
   I8X_OBJECT_FIELDS;
 
   struct i8x_funcref *ref;	/* The function's signature.  */
-  i8x_impl_fn_t *impl_fn;	/* The function's implementation.  */
 
   struct i8x_note *note;	/* The note, or NULL if native.  */
   struct i8x_list *externals;	/* List of external references.  */
@@ -32,6 +31,12 @@ struct i8x_func
 
   bool observed_available;	/* The last observer we called.  */
 };
+
+I8X_EXPORT bool
+i8x_func_is_native (struct i8x_func *func)
+{
+  return func->note == NULL;
+}
 
 static i8x_err_e
 i8x_bcf_unpack_signature (struct i8x_func *func)
@@ -216,8 +221,6 @@ i8x_func_new_from_note (struct i8x_note *note, struct i8x_func **func)
       return err;
     }
 
-  f->impl_fn = NULL; // XXX!
-
   *func = f;
 
   return I8X_OK;
@@ -237,7 +240,6 @@ i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcref *sig,
   dbg (ctx, "func %p is %s\n", f, i8x_funcref_get_fullname (sig));
 
   f->ref = i8x_funcref_ref (sig);
-  f->impl_fn = impl_fn;
 
   *func = f;
 
