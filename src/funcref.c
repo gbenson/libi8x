@@ -25,6 +25,7 @@ struct i8x_funcref
   I8X_OBJECT_FIELDS;
 
   char *fullname;	/* Fully qualified name.  */
+  bool is_private;	/* Is this function API-private?  */
   struct i8x_type *type;	/* The function's type.  */
 
   int regcount;		/* Number of functions registered in this
@@ -47,6 +48,9 @@ i8x_funcref_init (struct i8x_funcref *ref, const char *fullname,
   ref->fullname = strdup (fullname);
   if (ref->fullname == NULL)
     return i8x_out_of_memory (i8x_funcref_get_ctx (ref));
+
+  if (strstr (fullname, "::__") != NULL)
+    ref->is_private = true;
 
   ref->type = i8x_type_ref (type);
 
@@ -116,6 +120,12 @@ I8X_EXPORT const char *
 i8x_funcref_get_fullname (struct i8x_funcref *ref)
 {
   return ref->fullname;
+}
+
+I8X_EXPORT bool
+i8x_funcref_is_private (struct i8x_funcref *ref)
+{
+  return ref->is_private;
 }
 
 void

@@ -255,6 +255,9 @@ struct i8x_note *i8x_func_get_note (struct i8x_func *func);
 #define i8x_func_get_fullname(func) \
   i8x_funcref_get_fullname (i8x_func_get_funcref (func))
 
+#define i8x_func_is_private(func) \
+  i8x_funcref_is_private (i8x_func_get_funcref (func))
+
 /*
  * i8x_funcref
  *
@@ -263,6 +266,7 @@ struct i8x_note *i8x_func_get_note (struct i8x_func *func);
 I8X_COMMON_OBJECT_FUNCTIONS (funcref);
 
 const char *i8x_funcref_get_fullname (struct i8x_funcref *ref);
+bool i8x_funcref_is_private (struct i8x_funcref *ref);
 bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
 
 /*

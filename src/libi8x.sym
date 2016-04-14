@@ -26,6 +26,7 @@ global:
 	i8x_func_is_native;
 
 	i8x_funcref_get_fullname;
+	i8x_funcref_is_private;
 	i8x_funcref_is_resolved;
 
 	i8x_list_get_first;
