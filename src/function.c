@@ -40,6 +40,17 @@ i8x_func_is_native (struct i8x_func *func)
   return func->note == NULL;
 }
 
+struct i8x_code *
+i8x_func_get_interp_impl (struct i8x_func *func)
+{
+  return func->code;
+}
+
+i8x_nat_fn_t *i8x_func_get_native_impl (struct i8x_func *func)
+{
+  return func->native_impl;
+}
+
 static i8x_err_e
 i8x_bcf_unpack_signature (struct i8x_func *func)
 {

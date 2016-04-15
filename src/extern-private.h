@@ -55,6 +55,12 @@ struct i8x_funcref
      function that function references in its externals table
      must also be resolved.  */
   struct i8x_func *resolved;
+
+  /* Interpreted and native implementations of the function
+     this reference resolves to, or NULL if this reference
+     is not resolved.  */
+  struct i8x_code *interp_impl;
+  i8x_nat_fn_t *native_impl;
 };
 
 /* Symbol references.  */

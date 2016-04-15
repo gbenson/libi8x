@@ -137,13 +137,30 @@ i8x_funcref_unregister_func (struct i8x_funcref *ref,
 void
 i8x_funcref_reset_is_resolved (struct i8x_funcref *ref)
 {
-  ref->resolved = ref->unique;
+  struct i8x_func *resolved = ref->unique;
+  struct i8x_code *interp_impl = NULL;
+  i8x_nat_fn_t *native_impl = NULL;
+
+  if (resolved != NULL)
+    {
+      interp_impl = i8x_func_get_interp_impl (resolved);
+      native_impl = i8x_func_get_native_impl (resolved);
+
+      i8x_assert ((interp_impl != NULL) ^ (native_impl != NULL));
+    }
+
+  ref->resolved = resolved;
+  ref->interp_impl = interp_impl;
+  ref->native_impl = native_impl;
+
 }
 
 void
 i8x_funcref_mark_unresolved (struct i8x_funcref *ref)
 {
   ref->resolved = NULL;
+  ref->interp_impl = NULL;
+  ref->native_impl = NULL;
 }
 
 I8X_EXPORT bool
