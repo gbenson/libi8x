@@ -754,7 +754,7 @@ I8X_EXPORT i8x_err_e
 i8x_ctx_register_native_func (struct i8x_ctx *ctx,
 			      const char *provider, const char *name,
 			      const char *ptypes, const char *rtypes,
-			      i8x_impl_fn_t *impl_fn)
+			      i8x_nat_fn_t *impl_fn)
 {
   struct i8x_funcref *sig;
   struct i8x_func *func;

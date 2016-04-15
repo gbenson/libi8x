@@ -240,13 +240,15 @@ read_mappings (struct i8x_ctx *ctx)
 }
 
 static i8x_err_e
-ps_getpid (struct i8x_func *func)
+ps_getpid (struct i8x_xctx *xctx, struct i8x_inferior *inf,
+	   union i8x_value *args, union i8x_value *rets)
 {
   error ("%s:%d: Not implemented.", __FILE__, __LINE__);
 }
 
 static i8x_err_e
-ps_get_thread_area (struct i8x_func *func)
+ps_get_thread_area (struct i8x_xctx *xctx, struct i8x_inferior *inf,
+		    union i8x_value *args, union i8x_value *rets)
 {
   error ("%s:%d: Not implemented.", __FILE__, __LINE__);
 }

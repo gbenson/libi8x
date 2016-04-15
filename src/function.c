@@ -25,6 +25,8 @@ struct i8x_func
 
   struct i8x_funcref *ref;	/* The function's signature.  */
 
+  i8x_nat_fn_t *native_impl;	/* Implementation, or NULL if bytecode.  */
+
   struct i8x_note *note;	/* The note, or NULL if native.  */
   struct i8x_list *externals;	/* List of external references.  */
   struct i8x_code *code;	/* Compiled bytecode.  */
@@ -228,10 +230,13 @@ i8x_func_new_from_note (struct i8x_note *note, struct i8x_func **func)
 
 I8X_EXPORT i8x_err_e
 i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcref *sig,
-		     i8x_impl_fn_t *impl_fn, struct i8x_func **func)
+		     i8x_nat_fn_t *impl_fn, struct i8x_func **func)
 {
   struct i8x_func *f;
   i8x_err_e err;
+
+  if (impl_fn == NULL)
+    return i8x_invalid_argument (ctx);
 
   err = i8x_ob_new (ctx, &i8x_func_ops, &f);
   if (err != I8X_OK)
@@ -240,6 +245,7 @@ i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcref *sig,
   dbg (ctx, "func %p is %s\n", f, i8x_funcref_get_fullname (sig));
 
   f->ref = i8x_funcref_ref (sig);
+  f->native_impl = impl_fn;
 
   *func = f;
 
