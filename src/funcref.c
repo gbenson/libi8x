@@ -19,27 +19,7 @@
 
 #include <string.h>
 #include "libi8x-private.h"
-
-struct i8x_funcref
-{
-  I8X_OBJECT_FIELDS;
-
-  char *fullname;	/* Fully qualified name.  */
-  bool is_private;	/* Is this function API-private?  */
-  struct i8x_type *type;	/* The function's type.  */
-
-  int regcount;		/* Number of functions registered in this
-			   context with this signature.  */
-
-  /* Pointers to the exactly one function registered in the
-     context with this signature, or NULL if there is not
-     exactly one function registered with this signature.
-     The internal version ignores dependencies; the external
-     version will be the same as the internal version if
-     all dependent functions are also resolved, NULL otherwise.  */
-  struct i8x_func *int_resolved;
-  struct i8x_func *ext_resolved;
-};
+#include "extern-private.h"
 
 static i8x_err_e
 i8x_funcref_init (struct i8x_funcref *ref, const char *fullname,

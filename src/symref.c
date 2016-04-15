@@ -19,13 +19,7 @@
 
 #include <string.h>
 #include "libi8x-private.h"
-
-struct i8x_symref
-{
-  I8X_OBJECT_FIELDS;
-
-  char *name;	/* The symbol's name.  */
-};
+#include "extern-private.h"
 
 static i8x_err_e
 i8x_symref_init (struct i8x_symref *ref, const char *name)

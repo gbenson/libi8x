@@ -56,6 +56,7 @@ pkginclude_HEADERS = src/i8x/libi8x.h
 lib_LTLIBRARIES = src/libi8x.la
 
 src_libi8x_la_SOURCES =\
+	src/extern-private.h \
 	src/interp-private.h \
 	src/libi8x-private.h \
 	src/opcodes.h \
