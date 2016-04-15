@@ -43,14 +43,18 @@ struct i8x_funcref
   int regcount;		/* Number of functions registered in this
 			   context with this signature.  */
 
-  /* Pointers to the exactly one function registered in the
+  /* Pointer to the exactly one function registered in the
      context with this signature, or NULL if there is not
-     exactly one function registered with this signature.
-     The internal version ignores dependencies; the external
-     version will be the same as the internal version if
-     all dependent functions are also resolved, NULL otherwise.  */
-  struct i8x_func *int_resolved;
-  struct i8x_func *ext_resolved;
+     exactly one function registered with this signature.  */
+  struct i8x_func *unique;
+
+  /* Pointer to the function this reference resolves to, or
+     NULL if this reference is not resolved.  For a reference
+     to be resolved there needs to be exactly one function
+     registered in the context with this signature, and every
+     function that function references in its externals table
+     must also be resolved.  */
+  struct i8x_func *resolved;
 };
 
 /* Symbol references.  */

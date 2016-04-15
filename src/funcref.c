@@ -117,7 +117,7 @@ i8x_funcref_register_func (struct i8x_funcref *ref,
   if (ref->regcount != 1)
     func = NULL;
 
-  ref->int_resolved = func;
+  ref->unique = func;
 }
 
 void
@@ -131,25 +131,25 @@ i8x_funcref_unregister_func (struct i8x_funcref *ref,
   else
     func = NULL;
 
-  ref->int_resolved = func;
+  ref->unique = func;
 }
 
 void
 i8x_funcref_reset_is_resolved (struct i8x_funcref *ref)
 {
-  ref->ext_resolved = ref->int_resolved;
+  ref->resolved = ref->unique;
 }
 
 void
 i8x_funcref_mark_unresolved (struct i8x_funcref *ref)
 {
-  ref->ext_resolved = NULL;
+  ref->resolved = NULL;
 }
 
 I8X_EXPORT bool
 i8x_funcref_is_resolved (struct i8x_funcref *ref)
 {
-  return ref->ext_resolved != NULL;
+  return ref->resolved != NULL;
 }
 
 struct i8x_type *
