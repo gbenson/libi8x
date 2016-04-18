@@ -164,6 +164,24 @@ static struct i8x_idesc optable[] =
   {"I8_OP_call"},
   {"I8_OP_load_external", I8X_OPR_ULEB128},
   {"I8_OP_deref_int", I8X_OPR_INT8},
+  {NULL},
+  {NULL}, {NULL}, {NULL}, {NULL},
+  {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL},
+
+  /* 0x110..0x11f */
+  {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL},
+  {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL},
+
+  /* 0x120..0x12f */
+  {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL},
+  {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL},
+
+  /* 0x130..0x13f */
+  {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL},
+  {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL},
+
+  /* 0x140..0x14f */
+  {"I8X_OP_return"},
 };
 
 #define MAX_OPCODE ((sizeof (optable) / sizeof (struct i8x_idesc)) - 1)

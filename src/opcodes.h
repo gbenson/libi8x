@@ -184,4 +184,7 @@
 #define I8_OP_load_external		0x101
 #define I8_OP_deref_int			0x102
 
+/* libi8x internal operations.  */
+#define I8X_OP_return			0x140
+
 #endif /* _LIBI8X_OPCODES_H_ */

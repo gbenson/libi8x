@@ -213,6 +213,8 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   struct i8x_note *note = i8x_code_get_note (code);
   struct i8x_chunk *chunk;
   struct i8x_readbuf *rb;
+  size_t itable_size;
+  struct i8x_instr *op;
   i8x_err_e err;
 
   /* Make sure IT_EMPTY_SLOT does not clash with any defined
@@ -226,20 +228,35 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 
   err = i8x_note_get_unique_chunk (note, I8_CHUNK_BYTECODE,
 				   false, &chunk);
-  if (err != I8X_OK || chunk == NULL)
+  if (err != I8X_OK)
     return err;
 
-  if (i8x_chunk_get_version (chunk) != 2)
-    return i8x_chunk_version_error (chunk);
+  if (chunk != NULL)
+    {
+      if (i8x_chunk_get_version (chunk) != 2)
+	return i8x_chunk_version_error (chunk);
 
-  code->code_size = i8x_chunk_get_encoded_size (chunk);
-  code->code_start = i8x_chunk_get_encoded (chunk);
+      code->code_size = i8x_chunk_get_encoded_size (chunk);
+      code->code_start = i8x_chunk_get_encoded (chunk);
+    }
 
-  code->itable = calloc (code->code_size, sizeof (struct i8x_instr));
+  itable_size = code->code_size + 1;  /* For I8X_OP_return.  */
+  code->itable = calloc (itable_size, sizeof (struct i8x_instr));
   if (code->itable == NULL)
     return i8x_out_of_memory (i8x_note_get_ctx (note));
 
-  code->itable_limit = code->itable + code->code_size;
+  code->itable_limit = code->itable + itable_size;
+
+  /* Functions return by jumping one instruction past the end of the
+     bytecode.  Create a real instruction at that location for jumps
+     to land at.  */
+  op = code->itable + code->code_size;
+  op->code = I8X_OP_return;
+  op->desc = &optable[op->code];
+  i8x_assert (op->desc != NULL && op->desc->name != NULL);
+
+  if (chunk == NULL)
+    return I8X_OK;
 
   err = i8x_rb_new_from_chunk (chunk, &rb);
   if (err != I8X_OK)
@@ -249,7 +266,7 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 
   while (i8x_rb_bytes_left (rb) > 0)
     {
-      struct i8x_instr *op = bcp_to_ip (code, i8x_rb_get_ptr (rb));
+      op = bcp_to_ip (code, i8x_rb_get_ptr (rb));
 
       /* Read the opcode and operands.  */
       err = i8x_code_read_opcode (rb, &op->code);
@@ -307,23 +324,14 @@ i8x_code_setup_flow_1 (struct i8x_code *code,
 
   while (true)
     {
-      /* Functions return by jumping one instruction past
-	 the end of the bytecode.  Rewrite these to NULL.  */
-      if (next_op == code->itable_limit)
-	next_op = NULL;
-
-      if (next_op == NULL)
+      if (next_op->code == I8X_OP_return)
 	break;
 
       /* Validate the branch that got us here.  */
       if (next_op < code->itable
 	  || next_op >= code->itable_limit
 	  || next_op->code == IT_EMPTY_SLOT)
-	{
-	  i8x_assert (op != NULL);  /* The entry point??  */
-
-	  return i8x_code_error (code, I8X_NOTE_INVALID, op);
-	}
+	return i8x_code_error (code, I8X_NOTE_INVALID, op);
 
       /* If the next instruction isn't a skip then we're done.  */
       if (next_op->code != DW_OP_skip)
@@ -348,9 +356,8 @@ i8x_code_setup_flow_1 (struct i8x_code *code,
 /* Set up the function entry point, then check and optimize the next
    instruction pointers of all instructions.  A successful result
    indicates that the entry point and all next instruction pointers
-   either point to a valid location in the instruction table or are
-   NULL to indicate returning from the function, and that all "skip"
-   instructions have been removed.  */
+   except I8X_OP_return  point to a valid location in the instruction
+   table, and that all "skip" instructions have been removed.  */
 
 static i8x_err_e
 i8x_code_setup_flow (struct i8x_code *code)
@@ -367,7 +374,7 @@ i8x_code_setup_flow (struct i8x_code *code)
   /* Set up the instruction table.  */
   for (op = code->itable; op < code->itable_limit; op++)
     {
-      if (op->code == IT_EMPTY_SLOT)
+      if (op->code == IT_EMPTY_SLOT || op->code == I8X_OP_return)
 	continue;
 
       if (op->code == DW_OP_bra)
@@ -518,7 +525,8 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
     {
       char arg1[32] = "";  /* Operand 1.  */
       char arg2[32] = "";  /* Operand 2.  */
-      char bnext[32] = "";  /* branch_next  */
+      char fnext[32] = ""; /* Fall through next.  */
+      char bnext[32] = ""; /* Branch next.  */
       char insn[128];
 
       if (op->code == IT_EMPTY_SLOT)
@@ -533,17 +541,16 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
       snprintf (insn, sizeof (insn),
 		"%s%s%s", op->desc->name, arg1, arg2);
 
+      if (op->code != I8X_OP_return)
+	snprintf (fnext, sizeof (fnext), "=> 0x%lx",
+		  ip_to_so (code, op->fall_through));
+
       if (op->code == DW_OP_bra)
 	snprintf (bnext, sizeof (bnext), ", 0x%lx",
 		  ip_to_so (code, op->branch_next));
 
-      info (ctx, "  0x%lx: %-24s => 0x%lx%s\n",
-	    ip_to_so (code, op), insn,
-	    ip_to_so (code, op->fall_through), bnext);
+      info (ctx, "  0x%lx: %-24s %s%s\n",
+	    ip_to_so (code, op), insn, fnext, bnext);
     }
-
-  if (strcmp (where, "i8x_code_unpack_bytecode") == 0)
-    info (ctx, "  0x%lx: (end)\n", ip_to_so (code, code->itable_limit));
-
   info (ctx, "\n");
 }

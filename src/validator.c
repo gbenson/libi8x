@@ -82,7 +82,7 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_instr *op,
 
   while (true)
     {
-      if (op == NULL)
+      if (op->code == I8X_OP_return)
 	{
 	  /* Function is returning.  */
 
@@ -95,6 +95,8 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_instr *op,
 	      ENSURE_TYPE (slot, i8x_listitem_get_type (li));
 	      slot++;
 	    }
+
+	  op->is_visited = true;
 
 	  return I8X_OK;
 	}
