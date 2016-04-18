@@ -41,6 +41,7 @@ struct i8x_ctx
 
   i8x_log_fn_t *log_fn;
   int log_priority;
+  bool logging_started;
 
   struct i8x_note *error_note;	/* Note that caused the last error.  */
   const char *error_ptr;	/* Pointer into error_note.  */
@@ -70,6 +71,17 @@ i8x_ctx_log (struct i8x_ctx *ctx,
 	     const char *format, ...)
 {
   va_list args;
+
+  if (!ctx->logging_started)
+    {
+      ctx->logging_started = true;
+
+      /* These messages are deferred from i8x_ctx_new to allow the
+	 caller to install a custom logger and set the priority if
+	 they require it.  */
+      dbg (ctx, "ctx %p created\n", ctx);
+      dbg (ctx, "log_priority=%d\n", ctx->log_priority);
+    }
 
   va_start (args, format);
   ctx->log_fn (ctx, priority, file, line, fn, format, args);
@@ -196,9 +208,6 @@ i8x_ctx_new (struct i8x_ctx **ctx)
   if (env != NULL)
     i8x_ctx_set_log_priority (c, log_priority (env));
 
-  dbg (c, "ctx %p created\n", c);
-  dbg (c, "log_priority=%d\n", c->log_priority);
-
   err = i8x_ctx_init (c);
   if (err != I8X_OK)
     {
@@ -226,7 +235,6 @@ I8X_EXPORT void
 i8x_ctx_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn)
 {
   ctx->log_fn = log_fn;
-  info (ctx, "custom logging function %p registered\n", log_fn);
 }
 
 /**
