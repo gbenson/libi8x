@@ -19,7 +19,7 @@
 
 #include <string.h>
 #include "libi8x-private.h"
-#include "extern-private.h"
+#include "funcref-private.h"
 
 static i8x_err_e
 i8x_funcref_init (struct i8x_funcref *ref, const char *fullname,

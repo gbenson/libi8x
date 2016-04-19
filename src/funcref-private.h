@@ -17,18 +17,10 @@
    License along with the Infinity Note Execution Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#ifndef _EXTERN_PRIVATE_H_
-#define _EXTERN_PRIVATE_H_
-
-/* i8x_funcref and i8x_symref are exposed so the bytecode interpreter
-   can access what it needs without making function calls.  All other
-   access to these structures should be made via accessors.  */
+#ifndef _FUNCREF_PRIVATE_H_
+#define _FUNCREF_PRIVATE_H_
 
 #include "libi8x-private.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Function references.  */
 
@@ -63,17 +55,4 @@ struct i8x_funcref
   i8x_nat_fn_t *native_impl;
 };
 
-/* Symbol references.  */
-
-struct i8x_symref
-{
-  I8X_OBJECT_FIELDS;
-
-  char *name;	/* The symbol's name.  */
-};
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
-
-#endif /* _EXTERN_PRIVATE_H_ */
+#endif /* _FUNCREF_PRIVATE_H_ */
