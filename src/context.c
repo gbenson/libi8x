@@ -349,22 +349,25 @@ error_message_for (i8x_err_e code)
   switch (code)
     {
     case I8X_OK:
-      return _("no error");
-
-    case I8X_NOTE_CORRUPT:
-      return _("corrupt note");
-
-    case I8X_NOTE_UNHANDLED:
-      return _("unhandled note");
-
-    case I8X_NOTE_INVALID:
-      return _("invalid note");
+      return _("No error");
 
     case I8X_ENOMEM:
-      return _("out of memory");
+      return _("Out of memory");
 
     case I8X_EINVAL:
-      return _("invalid argument");
+      return _("Invalid argument");
+
+    case I8X_NOTE_CORRUPT:
+      return _("Corrupt note");
+
+    case I8X_NOTE_UNHANDLED:
+      return _("Unhandled note");
+
+    case I8X_NOTE_INVALID:
+      return _("Invalid note");
+
+    case I8X_STACK_OVERFLOW:
+      return _("Stack overflow");
 
     default:
       return NULL;

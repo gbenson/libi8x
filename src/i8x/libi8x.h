@@ -32,14 +32,17 @@ typedef enum
   /* No error.  */
   I8X_OK = 0,
 
+  /* Errors analogous to errno values.  */
+  I8X_ENOMEM = -99,
+  I8X_EINVAL,
+
   /* Note rejection reasons.  */
-  I8X_NOTE_CORRUPT = -99,
+  I8X_NOTE_CORRUPT = -199,
   I8X_NOTE_UNHANDLED,
   I8X_NOTE_INVALID,
 
-  /* Other errors.  */
-  I8X_ENOMEM = -999,
-  I8X_EINVAL,
+  /* Runtime errors.  */
+  I8X_STACK_OVERFLOW = -299,
 }
 i8x_err_e;
 
