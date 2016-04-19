@@ -31,6 +31,11 @@ struct i8x_xctx
   /* If true, use the interpreter with assertions etc.  */
   bool use_debug_interpreter;
 
+  /* Magic fields used by i8x_ctx_init_dispatch_table to get the
+     interpreters to emit their dispatch tables.  */
+  void **dispatch_table_to_init;
+  size_t dispatch_table_size;
+
   /* Execution stack.  Actually two stacks in one: the value stack
      grows upwards from stack_base, and the call stack grows down
      from stack_limit.  */

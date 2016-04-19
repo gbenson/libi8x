@@ -184,4 +184,11 @@ static struct i8x_idesc optable[] =
   {"I8X_OP_return"},
 };
 
-#define MAX_OPCODE ((sizeof (optable) / sizeof (struct i8x_idesc)) - 1)
+#define NUM_OPCODES (sizeof (optable) / sizeof (struct i8x_idesc))
+#define MAX_OPCODE  (NUM_OPCODES - 1)
+
+size_t
+i8x_ctx_get_dispatch_table_size (struct i8x_ctx *ctx)
+{
+  return NUM_OPCODES;
+}

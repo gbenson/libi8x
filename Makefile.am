@@ -63,8 +63,10 @@ src_libi8x_la_SOURCES =\
 	src/chunk.c \
 	src/code.c \
 	src/context.c \
+	src/dbg-interp.c \
 	src/function.c \
 	src/funcref.c \
+	src/interp.c \
 	src/list.c \
 	src/object.c \
 	src/note.c \

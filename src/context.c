@@ -65,6 +65,10 @@ struct i8x_ctx
   struct i8x_type *integer_type;
   struct i8x_type *pointer_type;
   struct i8x_type *opaque_type;
+
+  /* The interpreters' dispatch tables.  */
+  void **dispatch_std;
+  void **dispatch_dbg;
 };
 
 void
@@ -187,12 +191,24 @@ i8x_ctx_unlink (struct i8x_object *ob)
   ctx->opaque_type = i8x_type_unref (ctx->opaque_type);
 }
 
+static void
+i8x_ctx_free (struct i8x_object *ob)
+{
+  struct i8x_ctx *ctx = (struct i8x_ctx *) ob;
+
+  if (ctx->dispatch_std != NULL)
+    free (ctx->dispatch_std);
+
+  if (ctx->dispatch_dbg != NULL)
+    free (ctx->dispatch_dbg);
+}
+
 const struct i8x_object_ops i8x_ctx_ops =
   {
     "ctx",			/* Object name.  */
     sizeof (struct i8x_ctx),	/* Object size.  */
     i8x_ctx_unlink,		/* Unlink function.  */
-    NULL,			/* Free function.  */
+    i8x_ctx_free,		/* Free function.  */
   };
 
 /**
@@ -802,4 +818,54 @@ i8x_ctx_register_native_funcs (struct i8x_ctx *ctx,
     }
 
   return err;
+}
+
+static i8x_err_e
+i8x_ctx_make_dispatch_table (struct i8x_ctx *ctx, size_t table_size,
+			     bool is_debug, void ***tablep)
+{
+  void **table;
+  i8x_err_e err;
+
+  table = calloc (table_size, sizeof (void *));
+  if (table == NULL)
+    return i8x_out_of_memory (ctx);
+
+  err = i8x_ctx_init_dispatch_table (ctx, table, table_size, is_debug);
+  if (err != I8X_OK)
+    return err;
+
+  *tablep = table;
+
+  return I8X_OK;
+}
+
+i8x_err_e
+i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
+			     void ***dispatch_std,
+			     void ***dispatch_dbg)
+{
+  size_t table_size = i8x_ctx_get_dispatch_table_size (ctx);
+  i8x_err_e err;
+
+  if (ctx->dispatch_std == NULL)
+    {
+      err = i8x_ctx_make_dispatch_table (ctx, table_size, false,
+					 &ctx->dispatch_std);
+      if (err != I8X_OK)
+	return err;
+    }
+
+  if (ctx->dispatch_dbg == NULL)
+    {
+      err = i8x_ctx_make_dispatch_table (ctx, table_size, true,
+					 &ctx->dispatch_dbg);
+      if (err != I8X_OK)
+	return err;
+    }
+
+  *dispatch_std = ctx->dispatch_std;
+  *dispatch_dbg = ctx->dispatch_dbg;
+
+  return I8X_OK;
 }

@@ -78,6 +78,9 @@ struct i8x_instr
 
   /* Used by i8x_code_validate.  */
   struct i8x_type **entry_stack;
+
+  /* Implementation pointers.  */
+  void *impl_std, *impl_dbg;
 };
 
 /* Unpacked bytecode of one note.  */
@@ -116,6 +119,11 @@ size_t ip_to_so (struct i8x_code *code, struct i8x_instr *ip);
 void i8x_code_dump_itable (struct i8x_code *code, const char *where);
 void i8x_code_reset_is_visited (struct i8x_code *code);
 i8x_err_e i8x_code_validate (struct i8x_code *code);
+i8x_err_e i8x_xctx_call_dbg (struct i8x_xctx *xctx,
+			     struct i8x_funcref *ref,
+			     struct i8x_inferior *inf,
+			     union i8x_value *args,
+			     union i8x_value *rets);
 
 /* Convert a bytecode pointer to an instruction pointer.  */
 

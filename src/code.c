@@ -212,8 +212,8 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 {
   struct i8x_note *note = i8x_code_get_note (code);
   struct i8x_chunk *chunk;
-  struct i8x_readbuf *rb;
   size_t itable_size;
+  struct i8x_readbuf *rb;
   struct i8x_instr *op;
   i8x_err_e err;
 
@@ -222,8 +222,8 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   i8x_assert (optable[IT_EMPTY_SLOT].name == NULL);
 
   /* Allocating the itable with calloc ensures every entry is
-     initialized to IT_EMPTY_SLOT.  If this gets redefined then
-     we need to initialize each entrit.  */
+     initialized to IT_EMPTY_SLOT iff IT_EMPTY_SLOT == 0.  If
+     this gets redefined then we need to initialize things.  */
   i8x_assert (IT_EMPTY_SLOT == 0);
 
   err = i8x_note_get_unique_chunk (note, I8_CHUNK_BYTECODE,
@@ -400,6 +400,45 @@ i8x_code_setup_flow (struct i8x_code *code)
 }
 
 static i8x_err_e
+i8x_code_setup_dispatch (struct i8x_code *code)
+{
+  struct i8x_ctx *ctx = i8x_code_get_ctx (code);
+  void **dispatch_std, **dispatch_dbg;
+  void *std_unhandled;
+  struct i8x_instr *op;
+  i8x_err_e err;
+
+  /* Get the dispatch tables.  */
+  err = i8x_ctx_get_dispatch_tables (ctx, &dispatch_std, &dispatch_dbg);
+  if (err != I8X_OK)
+    return err;
+  std_unhandled = dispatch_std[IT_EMPTY_SLOT];
+
+  for (op = code->itable; op < code->itable_limit; op++)
+    {
+      i8x_assert (op->code <= MAX_OPCODE);
+
+      op->impl_std = dispatch_std[op->code];
+      op->impl_dbg = dispatch_dbg[op->code];
+
+      /* op->is_visited was set by the validator.  */
+      if (op->is_visited)
+	{
+	  if (op->impl_std == std_unhandled)
+	    {
+	      notice (ctx, "%s not implemented in interpreter\n",
+		      op->desc->name);
+	      return i8x_code_error (code, I8X_NOTE_UNHANDLED, op);
+	    }
+	}
+      else
+	i8x_assert (op->impl_std == std_unhandled);
+    }
+
+  return I8X_OK;
+}
+
+static i8x_err_e
 i8x_code_init (struct i8x_code *code)
 {
   struct i8x_func *func = i8x_code_get_func (code);
@@ -438,6 +477,10 @@ i8x_code_init (struct i8x_code *code)
     return err;
 
   err = i8x_code_validate (code);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_code_setup_dispatch (code);
   if (err != I8X_OK)
     return err;
 
