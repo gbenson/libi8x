@@ -71,7 +71,8 @@ src_libi8x_la_SOURCES =\
 	src/symref.c \
 	src/type.c \
 	src/util.c \
-	src/validator.c
+	src/validator.c \
+	src/xctx.c
 
 EXTRA_DIST += src/libi8x.sym src/optable.c
 

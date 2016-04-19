@@ -68,6 +68,11 @@ global:
 	i8x_rb_read_uleb128;
 	i8x_rb_read_bytes;
 	i8x_rb_read_offset_string;
+
+	i8x_xctx_new;
+	i8x_xctx_get_use_debug_interpreter;
+	i8x_xctx_set_use_debug_interpreter;
+	i8x_xctx_call;
 local:
 	*;
 };

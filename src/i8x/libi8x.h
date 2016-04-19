@@ -73,11 +73,13 @@ struct i8x_chunk;
 struct i8x_ctx;
 struct i8x_func;
 struct i8x_funcref;
+struct i8x_inferior;
 struct i8x_list;
 struct i8x_listitem;
 struct i8x_note;
 struct i8x_object;
 struct i8x_readbuf;
+struct i8x_xctx;
 
 /* Values.  */
 
@@ -337,6 +339,24 @@ i8x_err_e i8x_rb_read_bytes (struct i8x_readbuf *rb, size_t nbytes,
 			     const char **result);
 i8x_err_e i8x_rb_read_offset_string (struct i8x_readbuf *rb,
 				     const char **result);
+
+/*
+ * i8x_xctx
+ *
+ * access to xctxs of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (xctx);
+
+i8x_err_e i8x_xctx_new (struct i8x_ctx *ctx, size_t stack_slots,
+			struct i8x_xctx **xctx);
+bool i8x_xctx_get_use_debug_interpreter (struct i8x_xctx *xctx);
+void i8x_xctx_set_use_debug_interpreter (struct i8x_xctx *xctx,
+					 bool use_debug_interpreter);
+i8x_err_e i8x_xctx_call (struct i8x_xctx *xctx,
+			 struct i8x_funcref *ref,
+			 struct i8x_inferior *inf,
+			 union i8x_value *args,
+			 union i8x_value *rets);
 
 #ifdef __cplusplus
 } /* extern "C" */

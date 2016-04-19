@@ -43,6 +43,8 @@ struct i8x_ctx
   int log_priority;
   bool logging_started;
 
+  bool use_debug_interpreter_default;
+
   struct i8x_note *error_note;	/* Note that caused the last error.  */
   const char *error_ptr;	/* Pointer into error_note.  */
 
@@ -98,22 +100,37 @@ log_stderr (struct i8x_ctx *ctx,
 }
 
 static int
-log_priority (const char *priority)
+log_priority (const char *str)
 {
   char *endptr;
-  int prio;
+  int priority;
 
-  prio = strtol (priority, &endptr, 10);
+  priority = strtol (str, &endptr, 10);
   if (endptr[0] == '\0' || isspace (endptr[0]))
-    return prio;
-  if (strncmp (priority, "err", 3) == 0)
+    return priority;
+  if (strncmp (str, "err", 3) == 0)
     return LOG_ERR;
-  if (strncmp (priority, "info", 4) == 0)
+  if (strncmp (str, "info", 4) == 0)
     return LOG_INFO;
-  if (strncmp (priority, "debug", 5) == 0)
+  if (strncmp (str, "debug", 5) == 0)
     return LOG_DEBUG;
 
   return 0;
+}
+
+static bool
+strtobool (const char *str)
+{
+  if (str[0] == '\0' || str[0] == '0')
+    return false;
+  if (isdigit (str[0]))
+    return true;
+  if (strncasecmp (str, "yes", 3) == 0)
+    return true;
+  if (strncasecmp (str, "true", 4) == 0)
+    return true;
+
+  return false;
 }
 
 static i8x_err_e
@@ -203,10 +220,13 @@ i8x_ctx_new (struct i8x_ctx **ctx)
   c->log_fn = log_stderr;
   c->log_priority = LOG_ERR;
 
-  /* environment overwrites config */
   env = secure_getenv ("I8X_LOG");
   if (env != NULL)
     i8x_ctx_set_log_priority (c, log_priority (env));
+
+  env = secure_getenv ("I8X_DEBUG");
+  if (env != NULL)
+    c->use_debug_interpreter_default = strtobool (env);
 
   err = i8x_ctx_init (c);
   if (err != I8X_OK)
@@ -262,6 +282,13 @@ i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority)
 {
   ctx->log_priority = priority;
 }
+
+bool
+i8x_ctx_get_use_debug_interpreter_default (struct i8x_ctx *ctx)
+{
+  return ctx->use_debug_interpreter_default;
+}
+
 
 I8X_EXPORT void
 i8x_ctx_set_func_available_cb (struct i8x_ctx *ctx,

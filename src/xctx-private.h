@@ -1,0 +1,49 @@
+/* Copyright (C) 2016 Red Hat, Inc.
+   This file is part of the Infinity Note Execution Library.
+
+   The Infinity Note Execution Library is free software; you can
+   redistribute it and/or modify it under the terms of the GNU Lesser
+   General Public License as published by the Free Software
+   Foundation; either version 2.1 of the License, or (at your option)
+   any later version.
+
+   The Infinity Note Execution Library is distributed in the hope that
+   it will be useful, but WITHOUT ANY WARRANTY; without even the
+   implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+   PURPOSE.  See the GNU Lesser General Public License for more
+   details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with the Infinity Note Execution Library; if not, see
+   <http://www.gnu.org/licenses/>.  */
+
+#ifndef _XCTX_PRIVATE_H_
+#define _XCTX_PRIVATE_H_
+
+#include <i8x/libi8x.h>
+
+/* Execution context.  */
+
+struct i8x_xctx
+{
+  I8X_OBJECT_FIELDS;
+
+  /* If true, use the interpreter with assertions etc.  */
+  bool use_debug_interpreter;
+
+  /* Execution stack.  Actually two stacks in one: the value stack
+     grows upwards from stack_base, and the call stack grows down
+     from stack_limit.  */
+  union i8x_value *stack_base, *stack_limit;
+
+  /* The slot after the last slot in the value stack.
+     Slots in the value stack are stack_base <= SLOT < vsp.
+     The top slot in the value stack is *(vsp - 1).  */
+  union i8x_value *vsp;
+
+  /* The "top" slot in the call stack.
+     Slots in the call stack are csp <= SLOT < stack_limit.  */
+  union i8x_value *csp;
+};
+
+#endif /* _XCTX_PRIVATE_H_ */
