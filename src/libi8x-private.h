@@ -80,10 +80,14 @@ i8x_log_null (struct i8x_ctx *ctx, const char *format, ...) {}
 #    define dbg(ctx, arg...) i8x_log_null (ctx, ## arg)
 #  endif
 #  define info(ctx, arg...) i8x_log_cond (ctx, LOG_INFO, ## arg)
+#  define notice(ctx, arg...) i8x_log_cond (ctx, LOG_NOTICE, ## arg)
+#  define warn(ctx, arg...) i8x_log_cond (ctx, LOG_WARNING, ## arg)
 #  define err(ctx, arg...) i8x_log_cond (ctx, LOG_ERR, ## arg)
 #else
 #  define dbg(ctx, arg...) i8x_log_null (ctx, ## arg)
 #  define info(ctx, arg...) i8x_log_null (ctx, ## arg)
+#  define notice(ctx, arg...) i8x_log_null (ctx, ## arg)
+#  define warn(ctx, arg...) i8x_log_null (ctx, ## arg)
 #  define err(ctx, arg...) i8x_log_null (ctx, ## arg)
 #endif
 
