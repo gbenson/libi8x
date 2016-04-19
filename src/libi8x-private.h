@@ -21,12 +21,7 @@
 #define _LIBI8X_PRIVATE_H_
 
 #include <syslog.h>
-
 #include <i8x/libi8x.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Encoded types.  */
 
@@ -42,15 +37,15 @@ struct i8x_type;
 
 /* Errors.  */
 
-i8x_err_e i8x_ctx_set_error (struct i8x_ctx *ctx, i8x_err_e code,
-			     struct i8x_note *cause_note,
-			     const char *cause_ptr);
-
 #define i8x_out_of_memory(ctx) \
   i8x_ctx_set_error (ctx, I8X_ENOMEM, NULL, NULL)
 
 #define i8x_invalid_argument(ctx) \
   i8x_ctx_set_error (ctx, I8X_EINVAL, NULL, NULL)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 i8x_err_e i8x_note_error (struct i8x_note *note, i8x_err_e code,
 			  const char *cause_ptr);
@@ -234,6 +229,9 @@ struct i8x_type *i8x_ctx_get_integer_type (struct i8x_ctx *ctx);
 struct i8x_type *i8x_ctx_get_pointer_type (struct i8x_ctx *ctx);
 struct i8x_type *i8x_ctx_get_opaque_type (struct i8x_ctx *ctx);
 bool i8x_ctx_get_use_debug_interpreter_default (struct i8x_ctx *ctx);
+i8x_err_e i8x_ctx_set_error (struct i8x_ctx *ctx, i8x_err_e code,
+			     struct i8x_note *cause_note,
+			     const char *cause_ptr);
 i8x_err_e i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
 					 const char *provider,
 					 const char *name,

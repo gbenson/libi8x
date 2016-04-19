@@ -25,10 +25,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Error codes.  */
 
 typedef enum
@@ -119,6 +115,10 @@ struct i8x_native_fn
  * I8X_COMMON_OBJECT_FUNCTIONS et al.
  */
 typedef void i8x_userdata_cleanup_fn (void *userdata);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct i8x_object *i8x_ob_ref (struct i8x_object *ob);
 struct i8x_object *i8x_ob_unref (struct i8x_object *ob);
