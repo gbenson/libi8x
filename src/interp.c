@@ -17,6 +17,14 @@
    License along with the Infinity Note Execution Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+/* Note that this file is compiled twice: once directly, and once
+   #include'd from dbg-interp.c with #define DEBUG_INTERPRETER.  The
+   direct compile builds the standard interpreter i8x_xctx_call, and
+   the indirect one builds the debug interpreter i8x_xctx_call_dbg.
+   Both interpreters rely on the validator having checked the code
+   but the debug interpreter has assertions and tracing code that are
+   compiled out of the standard interpreter.  */
+
 #include <string.h>
 #include "libi8x-private.h"
 #include "interp-private.h"
