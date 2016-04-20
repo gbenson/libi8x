@@ -278,6 +278,7 @@ tlsdump_process (pid_t pid)
       printf ("%d! = %d\n", i, rets[0].i);
     }
 
+  i8x_xctx_unref (xctx);
   i8x_funcref_unref (fr);
 
   /* XXX free stuff in userdata e.g. the list of ELF files  */
