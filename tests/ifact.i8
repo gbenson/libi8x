@@ -1,0 +1,23 @@
+// Iterative test::factorial
+// (the SOURCE_BASIC test from i8c's test_loops.py)
+
+define test::factorial returns int
+    argument int x
+
+    load 1
+    swap
+    goto check
+
+loop:
+    dup
+    rot
+    mul
+    swap
+    load 1
+    sub
+
+check:
+    dup
+    load 1
+    bgt loop
+    drop
