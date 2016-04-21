@@ -408,6 +408,8 @@ i8x_code_setup_dispatch (struct i8x_code *code)
   struct i8x_instr *op;
   i8x_err_e err;
 
+  i8x_code_dump_itable (code, __FUNCTION__);
+
   /* Get the dispatch tables.  */
   err = i8x_ctx_get_dispatch_tables (ctx, &dispatch_std, &dispatch_dbg);
   if (err != I8X_OK)
