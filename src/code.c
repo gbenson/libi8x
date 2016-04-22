@@ -61,12 +61,18 @@ i8x_code_unpack_info (struct i8x_code *code)
   struct i8x_readbuf *rb;
   i8x_err_e err;
 
-  // XXX maybe doesn't need to exist?
-  // (can infer max_stack from params list)
   err = i8x_note_get_unique_chunk (note, I8_CHUNK_CODEINFO,
-				   true, &chunk);
+				   false, &chunk);
   if (err != I8X_OK)
     return err;
+
+  if (chunk == NULL)
+    {
+      i8x_assert (code->byte_order == I8X_BYTE_ORDER_UNKNOWN);
+      code->max_stack = code->num_args;
+
+      return I8X_OK;
+    }
 
   if (i8x_chunk_get_version (chunk) != 1)
     return i8x_chunk_version_error (chunk);
