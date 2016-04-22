@@ -214,6 +214,26 @@ i8x_list_get_next (struct i8x_list *list, struct i8x_listitem *li)
   return li;
 }
 
+I8X_EXPORT struct i8x_listitem *
+i8x_list_get_item_by_index (struct i8x_list *list, int index)
+{
+  if (index >= 0)
+    {
+      struct i8x_listitem *li;
+      int count = 0;
+
+      i8x_list_foreach (list, li)
+	{
+	  if (count == index)
+	    return li;
+
+	  count++;
+	}
+    }
+
+  return NULL;
+}
+
 I8X_EXPORT struct i8x_object *
 i8x_listitem_get_object (struct i8x_listitem *li)
 {

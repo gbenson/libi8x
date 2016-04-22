@@ -33,6 +33,7 @@ global:
 	i8x_list_size;
 	i8x_list_get_first;
 	i8x_list_get_next;
+	i8x_list_get_item_by_index;
 
 	i8x_listitem_get_object;
 

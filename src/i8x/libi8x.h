@@ -291,6 +291,8 @@ int i8x_list_size (struct i8x_list *list);
 struct i8x_listitem *i8x_list_get_first (struct i8x_list *list);
 struct i8x_listitem *i8x_list_get_next (struct i8x_list *list,
 					struct i8x_listitem *curr);
+struct i8x_listitem *i8x_list_get_item_by_index (struct i8x_list *list,
+						 int index);
 
 #define i8x_list_foreach(list, item)		\
   for (item = i8x_list_get_first (list);	\
