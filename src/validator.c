@@ -78,6 +78,8 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_instr *op,
   struct i8x_type *inttype = i8x_ctx_get_integer_type (ctx);
   struct i8x_type *ptrtype = i8x_ctx_get_pointer_type (ctx);
   struct i8x_type **saved_sp, *tmp;
+  struct i8x_list *types;
+  struct i8x_listitem *li;
   i8x_err_e err;
 
   while (true)
@@ -86,7 +88,6 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_instr *op,
 	{
 	  /* Function is returning.  */
 
-	  struct i8x_listitem *li;
 	  int slot = 0;
 
 	  ENSURE_DEPTH ((size_t) code->num_rets);
@@ -248,6 +249,29 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_instr *op,
 	case DW_OP_lit31:
 	  ADJUST_STACK (1);
 	  STACK(0) = inttype;
+	  break;
+
+	case I8_OP_call:
+	  ENSURE_DEPTH (1);
+	  tmp = STACK(0);
+	  if (!i8x_type_is_functype (tmp))
+	    NOTE_NOT_VALID ();
+	  ADJUST_STACK (-1);
+
+	  types = i8x_type_get_ptypes (tmp);
+	  i8x_list_foreach_reversed (types, li)
+	    {
+	      ENSURE_DEPTH (1);
+	      ENSURE_TYPE (0, i8x_listitem_get_type (li));
+	      ADJUST_STACK (-1);
+	    }
+
+	  types = i8x_type_get_rtypes (tmp);
+	  i8x_list_foreach_reversed (types, li)
+	    {
+	      ADJUST_STACK (1);
+	      STACK(0) = i8x_listitem_get_type (li);
+	    }
 	  break;
 
 	case I8X_OP_loadext_func:
