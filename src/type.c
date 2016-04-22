@@ -30,7 +30,7 @@ struct i8x_type
   struct i8x_list *ptypes, *rtypes;
 };
 
-static bool
+bool
 i8x_type_is_functype (struct i8x_type *type)
 {
   return type->encoded != NULL && type->encoded[0] == I8_TYPE_FUNCTION;
