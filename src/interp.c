@@ -152,6 +152,7 @@
     DTABLE_ADD (DW_OP_lit30);		\
     DTABLE_ADD (DW_OP_lit31);		\
     DTABLE_ADD (I8X_OP_return);		\
+    DTABLE_ADD (I8X_OP_loadext_func);	\
   } while (0)
 
 /* Call into the interpreter with the magic sequence to make
@@ -365,6 +366,11 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   OPERATION (I8X_OP_return):
     ENSURE_DEPTH (code->num_rets);
     goto unwind_and_return_values;
+
+  OPERATION (I8X_OP_loadext_func):
+    ADJUST_STACK (1);
+    STACK(0).f = (struct i8x_funcref *) op->ext1;
+    CONTINUE;
 
  unhandled_operation:
   i8x_internal_error (__FILE__, __LINE__, __FUNCTION__,
