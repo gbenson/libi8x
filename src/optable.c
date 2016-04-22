@@ -182,6 +182,8 @@ static struct i8x_idesc optable[] =
 
   /* 0x140..0x14f */
   {"I8X_OP_return"},
+  {"I8X_OP_loadext_func"},
+  {"I8X_OP_loadext_sym"},
 };
 
 #define NUM_OPCODES (sizeof (optable) / sizeof (struct i8x_idesc))
