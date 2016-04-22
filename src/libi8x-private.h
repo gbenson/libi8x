@@ -305,6 +305,14 @@ struct i8x_type *i8x_funcref_get_type (struct i8x_funcref *ref);
 i8x_err_e i8x_list_new (struct i8x_ctx *ctx,
 			bool manage_references,
 			struct i8x_list **list);
+struct i8x_listitem *i8x_list_get_last (struct i8x_list *list);
+struct i8x_listitem *i8x_list_get_prev (struct i8x_list *list,
+					struct i8x_listitem *curr);
+
+#define i8x_list_foreach_reversed(list, item)	\
+  for (item = i8x_list_get_last (list);		\
+       item != NULL;				\
+       item = i8x_list_get_prev (list, item))
 
 /* i8x_object private functions.  */
 

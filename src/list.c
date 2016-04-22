@@ -204,10 +204,29 @@ i8x_list_get_first (struct i8x_list *list)
   return i8x_list_get_next (list, list->head);
 }
 
+struct i8x_listitem *
+i8x_list_get_last (struct i8x_list *list)
+{
+  if (list == NULL)
+    return NULL;
+
+  return i8x_list_get_prev (list, list->head);
+}
+
 I8X_EXPORT struct i8x_listitem *
 i8x_list_get_next (struct i8x_list *list, struct i8x_listitem *li)
 {
   li = li->next;
+  if (li == list->head)
+    return NULL;
+
+  return li;
+}
+
+struct i8x_listitem *
+i8x_list_get_prev (struct i8x_list *list, struct i8x_listitem *li)
+{
+  li = li->prev;
   if (li == list->head)
     return NULL;
 
