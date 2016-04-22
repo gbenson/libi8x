@@ -250,6 +250,16 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_instr *op,
 	  STACK(0) = inttype;
 	  break;
 
+	case I8X_OP_loadext_func:
+	  ADJUST_STACK (1);
+	  STACK(0) = i8x_funcref_get_type ((struct i8x_funcref *) op->ext1);
+	  break;
+
+	case I8X_OP_loadext_sym:
+	  ADJUST_STACK (1);
+	  STACK(0) = ptrtype;
+	  break;
+
 	default:
 	  notice (ctx, "%s not implemented in validator\n",
 		  op->desc->name);
