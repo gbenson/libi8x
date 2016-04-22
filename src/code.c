@@ -49,7 +49,7 @@ i8x_code_reset_is_visited (struct i8x_code *code)
 {
   struct i8x_instr *op;
 
-  for (op = code->itable; op < code->itable_limit; op++)
+  i8x_code_foreach_op (code, op)
     op->is_visited = false;
 }
 
@@ -378,7 +378,7 @@ i8x_code_setup_flow (struct i8x_code *code)
     return err;
 
   /* Set up the instruction table.  */
-  for (op = code->itable; op < code->itable_limit; op++)
+  i8x_code_foreach_op (code, op)
     {
       if (op->code == IT_EMPTY_SLOT || op->code == I8X_OP_return)
 	continue;
@@ -396,7 +396,7 @@ i8x_code_setup_flow (struct i8x_code *code)
     }
 
   /* Lose all the now-unreachable skip instructions.  */
-  for (op = code->itable; op < code->itable_limit; op++)
+  i8x_code_foreach_op (code, op)
     if (op->code == DW_OP_skip)
       op->code = IT_EMPTY_SLOT;
 
@@ -422,7 +422,7 @@ i8x_code_setup_dispatch (struct i8x_code *code)
     return err;
   std_unhandled = dispatch_std[IT_EMPTY_SLOT];
 
-  for (op = code->itable; op < code->itable_limit; op++)
+  i8x_code_foreach_op (code, op)
     {
       i8x_assert (op->code <= MAX_OPCODE);
 
@@ -572,7 +572,7 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
     return;
 
   info (ctx, "%s:\n", where);
-  for (op = code->itable; op < code->itable_limit; op++)
+  i8x_code_foreach_op (code, op)
     {
       char arg1[32] = "";  /* Operand 1.  */
       char arg2[32] = "";  /* Operand 2.  */

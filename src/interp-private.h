@@ -127,6 +127,9 @@ i8x_err_e i8x_xctx_call_dbg (struct i8x_xctx *xctx,
 			     union i8x_value *args,
 			     union i8x_value *rets);
 
+#define i8x_code_foreach_op(code, op) \
+  for (op = code->itable; op < code->itable_limit; op++)
+
 /* Convert a bytecode pointer to an instruction pointer.  */
 
 static inline struct i8x_instr * __attribute__ ((always_inline))

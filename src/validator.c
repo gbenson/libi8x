@@ -291,7 +291,7 @@ i8x_code_validate (struct i8x_code *code)
   if (stack != NULL)
     free (stack);
 
-  for (op = code->itable; op < code->itable_limit; op++)
+  i8x_code_foreach_op (code, op)
     if (op->entry_stack != NULL)
       free (op->entry_stack);
 
@@ -299,7 +299,7 @@ i8x_code_validate (struct i8x_code *code)
     return err;
 
   /* Remove any unreachable (unvalidated) code.  */
-  for (op = code->itable; op < code->itable_limit; op++)
+  i8x_code_foreach_op (code, op)
     if (!op->is_visited)
       op->code = IT_EMPTY_SLOT;
 
