@@ -142,7 +142,7 @@ i8x_ob_get_parent (struct i8x_object *ob)
 struct i8x_object *
 i8x_ob_cast (struct i8x_object *ob, const struct i8x_object_ops *ops)
 {
-  if (ob->ops == ops)
+  if (ob != NULL && ob->ops == ops)
     return ob;
   else
     return NULL;
