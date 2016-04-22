@@ -73,14 +73,16 @@ struct i8x_instr
   struct i8x_instr *branch_next;
   struct i8x_instr *fall_through;
 
-  /* Used by i8x_code_setup_flow and i8x_code_validate to avoid loops.  */
+  /* Pointers to the instruction's implementations in the
+     standard and debug interpreters respectively.  */
+  void *impl_std, *impl_dbg;
+
+  /* Temporary variable used to avoid loops during i8x_code
+     initialization.  */
   bool is_visited;
 
-  /* Used by i8x_code_validate.  */
+  /* Temporary variable used by the validator.  */
   struct i8x_type **entry_stack;
-
-  /* Implementation pointers.  */
-  void *impl_std, *impl_dbg;
 };
 
 /* Unpacked bytecode of one note.  */
