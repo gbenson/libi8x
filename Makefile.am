@@ -30,7 +30,8 @@ AM_CPPFLAGS = \
 AM_CFLAGS = ${my_CFLAGS} \
 	-fvisibility=hidden \
 	-ffunction-sections \
-	-fdata-sections
+	-fdata-sections \
+	-fno-gcse
 
 AM_LDFLAGS = \
 	-Wl,--gc-sections \
