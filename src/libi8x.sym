@@ -24,6 +24,7 @@ global:
 	i8x_func_get_funcref;
 	i8x_func_get_note;
 	i8x_func_is_native;
+	i8x_func_get_externals;
 
 	i8x_funcref_get_fullname;
 	i8x_funcref_is_private;

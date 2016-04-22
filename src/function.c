@@ -275,6 +275,12 @@ i8x_func_get_note (struct i8x_func *func)
   return func->note;
 }
 
+I8X_EXPORT struct i8x_list *
+i8x_func_get_externals (struct i8x_func *func)
+{
+  return func->externals;
+}
+
 bool
 i8x_func_all_deps_resolved (struct i8x_func *func)
 {
