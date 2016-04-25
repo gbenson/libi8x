@@ -59,6 +59,7 @@ i8x_code_unpack_info (struct i8x_code *code)
   struct i8x_note *note = i8x_code_get_note (code);
   struct i8x_chunk *chunk;
   struct i8x_readbuf *rb;
+  const char *location;
   i8x_err_e err;
 
   err = i8x_note_get_unique_chunk (note, I8_CHUNK_CODEINFO,
@@ -87,9 +88,13 @@ i8x_code_unpack_info (struct i8x_code *code)
 
   code->byte_order = i8x_rb_get_byte_order (rb);
 
+  location = i8x_rb_get_ptr (rb);
   err = i8x_rb_read_uleb128 (rb, &code->max_stack);
   if (err != I8X_OK)
     goto cleanup;
+
+  if (code->max_stack < code->num_args)
+    return i8x_rb_error (rb, I8X_NOTE_INVALID, location);
 
  cleanup:
   rb = i8x_rb_unref (rb);
