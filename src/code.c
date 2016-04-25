@@ -54,9 +54,10 @@ i8x_code_reset_is_visited (struct i8x_code *code)
 }
 
 static i8x_err_e
-i8x_code_unpack_info (struct i8x_code *code)
+i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
 {
   struct i8x_note *note = i8x_code_get_note (code);
+  size_t num_params = i8x_funcref_get_num_params (ref);
   struct i8x_chunk *chunk;
   struct i8x_readbuf *rb;
   const char *location;
@@ -70,7 +71,7 @@ i8x_code_unpack_info (struct i8x_code *code)
   if (chunk == NULL)
     {
       i8x_assert (code->byte_order == I8X_BYTE_ORDER_UNKNOWN);
-      code->max_stack = code->num_args;
+      code->max_stack = num_params;
 
       return I8X_OK;
     }
@@ -93,7 +94,7 @@ i8x_code_unpack_info (struct i8x_code *code)
   if (err != I8X_OK)
     goto cleanup;
 
-  if (code->max_stack < code->num_args)
+  if (code->max_stack < num_params)
     return i8x_rb_error (rb, I8X_NOTE_INVALID, location);
 
  cleanup:
@@ -497,12 +498,10 @@ static i8x_err_e
 i8x_code_init (struct i8x_code *code)
 {
   struct i8x_func *func = i8x_code_get_func (code);
-  struct i8x_funcref *funcref = i8x_func_get_funcref (func);
-  struct i8x_ctx *ctx = i8x_funcref_get_ctx (funcref);
-  struct i8x_type *functype;
+  struct i8x_funcref *ref = i8x_func_get_funcref (func);
+  struct i8x_ctx *ctx = i8x_funcref_get_ctx (ref);
   i8x_err_e err;
 
-  funcref = i8x_func_get_funcref (func);
   if (i8x_ctx_get_log_priority (ctx) >= LOG_INFO)
     {
       struct i8x_note *note = i8x_func_get_note (func);
@@ -510,16 +509,10 @@ i8x_code_init (struct i8x_code *code)
       info (ctx, "%s[0x%lx]: %s\n",
 	    i8x_note_get_src_name (note),
 	    i8x_note_get_src_offset (note),
-	    i8x_funcref_get_fullname (funcref));
+	    i8x_funcref_get_fullname (ref));
     }
 
-  functype = i8x_funcref_get_type (funcref);
-  code->ptypes = i8x_list_ref (i8x_type_get_ptypes (functype));
-  code->rtypes = i8x_list_ref (i8x_type_get_rtypes (functype));
-  code->num_args = i8x_list_size (code->ptypes);
-  code->num_rets = i8x_list_size (code->rtypes);
-
-  err = i8x_code_unpack_info (code);
+  err = i8x_code_unpack_info (code, ref);
   if (err != I8X_OK)
     return err;
 
@@ -535,7 +528,7 @@ i8x_code_init (struct i8x_code *code)
   if (err != I8X_OK)
     return err;
 
-  err = i8x_code_validate (code);
+  err = i8x_code_validate (code, ref);
   if (err != I8X_OK)
     return err;
 
@@ -551,9 +544,6 @@ i8x_code_unlink (struct i8x_object *ob)
 {
   struct i8x_code *code = (struct i8x_code *) ob;
   struct i8x_instr *op;
-
-  code->ptypes = i8x_list_unref (code->ptypes);
-  code->rtypes = i8x_list_unref (code->rtypes);
 
   if (code->itable != NULL)
     i8x_code_foreach_op (code, op)

@@ -299,6 +299,14 @@ void i8x_funcref_unregister_func (struct i8x_funcref *ref,
 void i8x_funcref_reset_is_resolved (struct i8x_funcref *ref);
 void i8x_funcref_mark_unresolved (struct i8x_funcref *ref);
 struct i8x_type *i8x_funcref_get_type (struct i8x_funcref *ref);
+size_t i8x_funcref_get_num_params (struct i8x_funcref *ref);
+size_t i8x_funcref_get_num_returns (struct i8x_funcref *ref);
+
+#define i8x_funcref_get_ptypes(ref) \
+  i8x_type_get_ptypes (i8x_funcref_get_type (ref))
+
+#define i8x_funcref_get_rtypes(ref) \
+  i8x_type_get_rtypes (i8x_funcref_get_type (ref))
 
 /* i8x_list private functions.  */
 

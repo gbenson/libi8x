@@ -34,6 +34,9 @@ i8x_funcref_init (struct i8x_funcref *ref, const char *fullname,
 
   ref->type = i8x_type_ref (type);
 
+  ref->num_args = i8x_list_size (i8x_type_get_ptypes (type));
+  ref->num_rets = i8x_list_size (i8x_type_get_rtypes (type));
+
   return I8X_OK;
 }
 
@@ -106,6 +109,17 @@ I8X_EXPORT bool
 i8x_funcref_is_private (struct i8x_funcref *ref)
 {
   return ref->is_private;
+}
+
+size_t
+i8x_funcref_get_num_params (struct i8x_funcref *ref)
+{
+  return ref->num_args;
+}
+
+size_t i8x_funcref_get_num_returns (struct i8x_funcref *ref)
+{
+  return ref->num_rets;
 }
 
 void

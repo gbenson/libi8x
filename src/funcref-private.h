@@ -30,7 +30,10 @@ struct i8x_funcref
 
   char *fullname;	/* Fully qualified name.  */
   bool is_private;	/* Is this function API-private?  */
+
   struct i8x_type *type;	/* The function's type.  */
+  size_t num_args;		/* Number of arguments.  */
+  size_t num_rets;		/* Number of returns.  */
 
   int regcount;		/* Number of functions registered in this
 			   context with this signature.  */

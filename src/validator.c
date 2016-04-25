@@ -69,8 +69,8 @@
   } while (0)
 
 static i8x_err_e
-i8x_code_validate_1 (struct i8x_code *code, struct i8x_instr *op,
-		     struct i8x_type **stack,
+i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
+		     struct i8x_instr *op, struct i8x_type **stack,
 		     struct i8x_type **stack_limit,
 		     struct i8x_type **stack_ptr)
 {
@@ -90,8 +90,10 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_instr *op,
 
 	  int slot = 0;
 
-	  ENSURE_DEPTH (code->num_rets);
-	  i8x_list_foreach (code->rtypes, li)
+	  ENSURE_DEPTH (i8x_funcref_get_num_returns (ref));
+
+	  types = i8x_funcref_get_rtypes (ref);
+	  i8x_list_foreach (types, li)
 	    {
 	      ENSURE_TYPE (slot, i8x_listitem_get_type (li));
 	      slot++;
@@ -193,8 +195,8 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_instr *op,
 	  ENSURE_TYPE (0, inttype);
 	  ADJUST_STACK (-1);
 	  saved_sp = stack_ptr;
-	  err = i8x_code_validate_1 (code, op->branch_next, stack,
-				     stack_limit, stack_ptr);
+	  err = i8x_code_validate_1 (code, ref, op->branch_next,
+				     stack, stack_limit, stack_ptr);
 	  if (err != I8X_OK)
 	    return err;
 	  stack_ptr = saved_sp;
@@ -295,11 +297,12 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_instr *op,
 }
 
 i8x_err_e
-i8x_code_validate (struct i8x_code *code)
+i8x_code_validate (struct i8x_code *code, struct i8x_funcref *ref)
 {
   struct i8x_type **stack = NULL;
   struct i8x_type **stack_limit;
   struct i8x_type **stack_ptr;
+  struct i8x_list *types;
   struct i8x_listitem *li;
   struct i8x_instr *op = code->entry_point;
   i8x_err_e err;
@@ -311,7 +314,8 @@ i8x_code_validate (struct i8x_code *code)
   stack_limit = stack + code->max_stack;
 
   /* Push the arguments.  */
-  i8x_list_foreach (code->ptypes, li)
+  types = i8x_funcref_get_ptypes (ref);
+  i8x_list_foreach (types, li)
     {
       ADJUST_STACK (1);
       STACK(0) = i8x_listitem_get_type (li);
@@ -319,7 +323,7 @@ i8x_code_validate (struct i8x_code *code)
 
   /* Walk the code.  */
   i8x_code_reset_is_visited (code);
-  err = i8x_code_validate_1 (code, op, stack, stack_limit, stack_ptr);
+  err = i8x_code_validate_1 (code, ref, op, stack, stack_limit, stack_ptr);
 
   /* Free everything we allocated.  */
   if (stack != NULL)

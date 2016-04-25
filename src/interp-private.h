@@ -103,12 +103,7 @@ struct i8x_code
   struct i8x_instr *itable_limit;	/* The end of the above.  */
   struct i8x_instr *entry_point;	/* Function entry point.  */
 
-  struct i8x_list *ptypes;	/* List of parameter types.  */
-  struct i8x_list *rtypes;	/* List of return types.  */
-
   size_t max_stack;		/* Maximum stack this function uses.  */
-  size_t num_args;		/* Number of arguments.  */
-  size_t num_rets;		/* Number of returns.  */
 };
 
 /* Interpreter private functions.  */
@@ -122,7 +117,8 @@ i8x_err_e i8x_code_error (struct i8x_code *code, i8x_err_e err,
 size_t ip_to_so (struct i8x_code *code, struct i8x_instr *ip);
 void i8x_code_dump_itable (struct i8x_code *code, const char *where);
 void i8x_code_reset_is_visited (struct i8x_code *code);
-i8x_err_e i8x_code_validate (struct i8x_code *code);
+i8x_err_e i8x_code_validate (struct i8x_code *code,
+			     struct i8x_funcref *ref);
 i8x_err_e i8x_xctx_call_dbg (struct i8x_xctx *xctx,
 			     struct i8x_funcref *ref,
 			     struct i8x_inferior *inf,

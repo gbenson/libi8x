@@ -244,10 +244,10 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
     }
 
   /* Copy the arguments into the value stack.  */
-  i8x_assert (code->max_stack >= code->num_args);
+  i8x_assert (code->max_stack >= ref->num_args);
   STORE_VSP_LIMITS ();
-  ADJUST_STACK (code->num_args);
-  memcpy (saved_vsp, args, sizeof (union i8x_value) * code->num_args);
+  ADJUST_STACK (ref->num_args);
+  memcpy (saved_vsp, args, sizeof (union i8x_value) * ref->num_args);
 
   /* Start executing.  */
   DISPATCH (code->entry_point);
@@ -364,7 +364,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 #undef DO_DW_OP_lit
 
   OPERATION (I8X_OP_return):
-    ENSURE_DEPTH (code->num_rets);
+    ENSURE_DEPTH (ref->num_rets);
     goto unwind_and_return_values;
 
   OPERATION (I8X_OP_loadext_func):
@@ -378,8 +378,8 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 		      op->desc->name);
 
  unwind_and_return_values:
-  memcpy (rets, vsp - code->num_rets,
-	  sizeof (union i8x_value) * code->num_rets);
+  memcpy (rets, vsp - ref->num_rets,
+	  sizeof (union i8x_value) * ref->num_rets);
 
  unwind_and_return:
   xctx->vsp = saved_vsp;
