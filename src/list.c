@@ -180,11 +180,11 @@ i8x_list_remove (struct i8x_list *list, struct i8x_object *ob)
   item = i8x_listitem_unref (item);
 }
 
-I8X_EXPORT int
+I8X_EXPORT size_t
 i8x_list_size (struct i8x_list *list)
 {
   struct i8x_listitem *li;
-  int count = 0;
+  size_t count = 0;
 
   i8x_list_foreach (list, li)
     {
@@ -234,20 +234,17 @@ i8x_list_get_prev (struct i8x_list *list, struct i8x_listitem *li)
 }
 
 I8X_EXPORT struct i8x_listitem *
-i8x_list_get_item_by_index (struct i8x_list *list, int index)
+i8x_list_get_item_by_index (struct i8x_list *list, size_t index)
 {
-  if (index >= 0)
+  struct i8x_listitem *li;
+  size_t count = 0;
+
+  i8x_list_foreach (list, li)
     {
-      struct i8x_listitem *li;
-      int count = 0;
+      if (count == index)
+	return li;
 
-      i8x_list_foreach (list, li)
-	{
-	  if (count == index)
-	    return li;
-
-	  count++;
-	}
+      count++;
     }
 
   return NULL;
