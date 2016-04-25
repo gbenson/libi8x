@@ -196,7 +196,6 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   union i8x_value *vsp, *saved_vsp;
   union i8x_value *csp, *saved_csp;
   struct i8x_instr *op;
-  union i8x_value tmp;
   i8x_err_e err = I8X_OK;
 
   /* If this function is native then we're in the wrong place.  */
@@ -264,19 +263,27 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
     CONTINUE;
 
   OPERATION (DW_OP_swap):
-    ENSURE_DEPTH (2);
-    tmp = STACK(0);
-    STACK(0) = STACK(1);
-    STACK(1) = tmp;
-    CONTINUE;
+    {
+      union i8x_value tmp;
+
+      ENSURE_DEPTH (2);
+      tmp = STACK(0);
+      STACK(0) = STACK(1);
+      STACK(1) = tmp;
+      CONTINUE;
+    }
 
   OPERATION (DW_OP_rot):
-    ENSURE_DEPTH (3);
-    tmp = STACK(0);
-    STACK(0) = STACK(1);
-    STACK(1) = STACK(2);
-    STACK(2) = tmp;
-    CONTINUE;
+    {
+      union i8x_value tmp;
+
+      ENSURE_DEPTH (3);
+      tmp = STACK(0);
+      STACK(0) = STACK(1);
+      STACK(1) = STACK(2);
+      STACK(2) = tmp;
+      CONTINUE;
+    }
 
 #define OPERATION_DW_binary_op(name, operator)		\
   OPERATION (DW_OP_ ## name):				\
