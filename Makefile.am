@@ -80,7 +80,7 @@ src_libi8x_la_SOURCES =\
 	src/validator.c \
 	src/xctx.c
 
-EXTRA_DIST += src/libi8x.sym src/optable.c
+EXTRA_DIST += src/libi8x.sym src/optable.c tests/corpus/i8c
 
 src_libi8x_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIBI8X_CURRENT):$(LIBI8X_REVISION):$(LIBI8X_AGE) \
