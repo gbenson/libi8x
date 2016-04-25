@@ -62,6 +62,86 @@
 
 #define STACK(slot) vsp[-1 - (slot)]
 
+/* Layout of call stack frames.  */
+
+enum
+  {
+    CS_CALLER,		/* Caller funcref (NULL for entry frames).  */
+    CS_CALLSITE,	/* Instruction in caller that caused this call.  */
+    CS_VSPFLOOR,	/* Caller's vsp_floor.  */
+    CS_FRAME_SIZE	/* Number of slots in a call stack frame.  */
+  };
+
+/* Call stack macros.  */
+
+#define SETUP_CALL(caller_ref, caller_op, callee_ref, _callee_vspfloor) \
+  do {									\
+    union i8x_value *callee_vspfloor = (_callee_vspfloor);		\
+    struct i8x_code *callee_code;					\
+									\
+    /* Get the bytecode for the function we're calling.  */		\
+    callee_code = (callee_ref)->interp_impl;				\
+    i8x_assert (callee_code != NULL);					\
+									\
+    /* Make space for the call frame.  */				\
+    csp -= CS_FRAME_SIZE;						\
+									\
+    /* Check we have enough stack.  */					\
+    if (__i8x_unlikely (callee_vspfloor + callee_code->max_stack > csp))\
+      {									\
+	err = i8x_code_error (callee_code, I8X_STACK_OVERFLOW,		\
+			      callee_code->entry_point);		\
+	goto unwind_and_return;						\
+      }									\
+									\
+    /* Fill in the call frame.  */					\
+    csp[CS_CALLER].f = (caller_ref);					\
+    csp[CS_CALLSITE].p = (caller_op);				\
+    csp[CS_VSPFLOOR].p = vsp_floor;					\
+									\
+    /* Switch to the new function.  */					\
+    ref = (callee_ref);							\
+    code = callee_code;							\
+    vsp_floor = callee_vspfloor;					\
+  } while (0)
+
+#define RETURN_FROM_CALL()						\
+  do {									\
+    struct i8x_funcref *caller_ref;					\
+									\
+    /* Check enough stuff was returned.  */				\
+    ENSURE_DEPTH (ref->num_rets);					\
+									\
+    /* If this an entry frame we can unwind immediately.  */		\
+    i8x_assert (xctx->stack_limit - csp >= CS_FRAME_SIZE);		\
+    caller_ref = csp[CS_CALLER].f;	\
+    if (caller_ref == NULL)						\
+      goto unwind_and_return_values;					\
+									\
+    /* Remove any extra stuff on the value stack.  */			\
+    size_t want_slots = ref->num_rets;					\
+    size_t have_slots = STACK_DEPTH ();					\
+									\
+    i8x_assert (have_slots >= want_slots);				\
+    if (have_slots != want_slots)					\
+      {									\
+	memmove (vsp - have_slots, vsp - want_slots,			\
+		 sizeof (union i8x_value) * want_slots);		\
+									\
+	ADJUST_STACK (want_slots - have_slots);				\
+      }									\
+									\
+    /* Switch back to the caller.  */					\
+    ref = caller_ref;							\
+    code = ref->interp_impl;						\
+    i8x_assert (code != NULL);						\
+    op = (struct i8x_instr *) csp[CS_CALLSITE].p;			\
+    vsp_floor = (union i8x_value *) csp[CS_VSPFLOOR].p;			\
+									\
+    /* Drop the call frame.  */						\
+    csp += CS_FRAME_SIZE;						\
+  } while (0)
+
 /* Dispatch macros.  */
 
 #ifdef DEBUG_INTERPRETER
@@ -142,6 +222,7 @@
     DTABLE_ADD (DW_OP_lit29);		\
     DTABLE_ADD (DW_OP_lit30);		\
     DTABLE_ADD (DW_OP_lit31);		\
+    DTABLE_ADD (I8_OP_call);		\
     DTABLE_ADD (I8X_OP_return);		\
     DTABLE_ADD (I8X_OP_loadext_func);	\
   } while (0)
@@ -183,10 +264,6 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 	     struct i8x_inferior *inf, union i8x_value *args,
 	     union i8x_value *rets)
 {
-  struct i8x_code *code;
-  struct i8x_instr *op;
-  i8x_err_e err = I8X_OK;
-
   /* If this function is native then we're in the wrong place.  */
   if (ref->native_impl != NULL)
     return ref->native_impl (xctx, inf, args, rets);
@@ -211,10 +288,6 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       return I8X_OK;
     }
 
-  /* Get the code.  */
-  code = ref->interp_impl;
-  i8x_assert (code != NULL);
-
   /* Pull the stack pointers into local variables.  */
   union i8x_value *vsp = xctx->vsp;
   union i8x_value *csp = xctx->csp;
@@ -227,22 +300,21 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   union i8x_value *const saved_vsp = vsp;
   union i8x_value *const saved_csp = csp;
 
-  /* XXX push the dummy frame  */
+  /* Push an entry frame (CS_CALLER = NULL) onto the call stack,
+     then set code and vsp_floor for the function we're entering.  */
+  union i8x_value *vsp_floor = NULL;
+  struct i8x_code *code;
+  i8x_err_e err = I8X_OK;
 
-  /* Check we have enough stack for this function.  */
-  if (__i8x_unlikely (vsp + code->max_stack > csp))
-    {
-      err = i8x_code_error (code, I8X_STACK_OVERFLOW, code->entry_point);
-      goto unwind_and_return;
-    }
+  SETUP_CALL (NULL, NULL, ref, vsp);
 
   /* Copy the arguments into the value stack.  */
   i8x_assert (code->max_stack >= ref->num_args);
-  union i8x_value *vsp_floor = vsp;
   ADJUST_STACK (ref->num_args);
-  memcpy (saved_vsp, args, sizeof (union i8x_value) * ref->num_args);
+  memcpy (vsp_floor, args, sizeof (union i8x_value) * ref->num_args);
 
   /* Start executing.  */
+  struct i8x_instr *op;
   DISPATCH (code->entry_point);
 
   OPERATION (DW_OP_dup):
@@ -364,9 +436,31 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 
 #undef DO_DW_OP_lit
 
+  OPERATION (I8_OP_call):
+    {
+      struct i8x_funcref *callee;
+
+      ENSURE_DEPTH (1);
+      callee = STACK(0).f;
+      ADJUST_STACK (-1);
+
+      if (callee->native_impl == NULL)
+	{
+	  /* We don't recurse to call an interpreted function.
+	     Instead, we push our current setup onto the call
+	     stack, update ref, code and vsp_floor for the new
+	     function, and continue, now in the callee.  */
+	  SETUP_CALL (ref, op, callee, vsp - callee->num_args);
+	  DISPATCH (code->entry_point);
+	}
+
+      i8x_not_implemented ();
+      CONTINUE;
+    }
+
   OPERATION (I8X_OP_return):
-    ENSURE_DEPTH (ref->num_rets);
-    goto unwind_and_return_values;
+    RETURN_FROM_CALL ();
+    CONTINUE;
 
   OPERATION (I8X_OP_loadext_func):
     ADJUST_STACK (1);
