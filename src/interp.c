@@ -56,7 +56,7 @@
 # define STORE_VSP_LIMITS()
 #endif
 
-#define STACK_DEPTH() (vsp - vsp_floor)
+#define STACK_DEPTH() ((size_t) (vsp - vsp_floor))
 
 #define ENSURE_DEPTH(nslots) \
   i8x_assert (STACK_DEPTH() >= nslots)
@@ -244,7 +244,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
     }
 
   /* Copy the arguments into the value stack.  */
-  i8x_assert (code->max_stack >= (size_t) code->num_args);
+  i8x_assert (code->max_stack >= code->num_args);
   STORE_VSP_LIMITS ();
   ADJUST_STACK (code->num_args);
   memcpy (saved_vsp, args, sizeof (union i8x_value) * code->num_args);
@@ -378,8 +378,8 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 		      op->desc->name);
 
  unwind_and_return_values:
-  for (int i = 0; i < code->num_rets; i++)
-    rets[i] = STACK(i);
+  memcpy (rets, vsp - code->num_rets,
+	  sizeof (union i8x_value) * code->num_rets);
 
  unwind_and_return:
   xctx->vsp = saved_vsp;

@@ -107,10 +107,8 @@ struct i8x_code
   struct i8x_list *rtypes;	/* List of return types.  */
 
   size_t max_stack;		/* Maximum stack this function uses.  */
-  int num_args;			/* Number of arguments.  */
-  int num_rets;			/* Number of returns.  */
-  /* Note that num_args and num_rets are int and not size_t so
-     that "for (int i = 0; i < num_{args,rets}; i++)" is fast.  */
+  size_t num_args;		/* Number of arguments.  */
+  size_t num_rets;		/* Number of returns.  */
 };
 
 /* Interpreter private functions.  */

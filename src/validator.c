@@ -90,7 +90,7 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_instr *op,
 
 	  int slot = 0;
 
-	  ENSURE_DEPTH ((size_t) code->num_rets);
+	  ENSURE_DEPTH (code->num_rets);
 	  i8x_list_foreach (code->rtypes, li)
 	    {
 	      ENSURE_TYPE (slot, i8x_listitem_get_type (li));
