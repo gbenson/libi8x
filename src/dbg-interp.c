@@ -26,7 +26,6 @@ static void i8x_xctx_trace (struct i8x_xctx *xctx,
 			    struct i8x_instr *op,
 			    union i8x_value *vsp,
 			    union i8x_value *vsp_floor,
-			    union i8x_value *vsp_limit,
 			    union i8x_value *csp);
 
 #define DEBUG_INTERPRETER
@@ -47,7 +46,7 @@ static void
 i8x_xctx_trace (struct i8x_xctx *xctx,  struct i8x_funcref *ref,
 		struct i8x_code *code, struct i8x_instr *op,
 		union i8x_value *vsp, union i8x_value *vsp_floor,
-		union i8x_value *vsp_limit, union i8x_value *csp)
+		union i8x_value *csp)
 {
   struct i8x_ctx *ctx = i8x_xctx_get_ctx (xctx);
 

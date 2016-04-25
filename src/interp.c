@@ -48,24 +48,16 @@
 
 /* Value stack macros.  */
 
-#ifdef DEBUG_INTERPRETER
-# define STORE_VSP_LIMITS()					\
-  union i8x_value *vsp_floor = saved_vsp;			\
-  union i8x_value *vsp_limit = saved_vsp + code->max_stack
-#else
-# define STORE_VSP_LIMITS()
-#endif
-
 #define STACK_DEPTH() ((size_t) (vsp - vsp_floor))
 
 #define ENSURE_DEPTH(nslots) \
   i8x_assert (STACK_DEPTH() >= nslots)
 
-#define ADJUST_STACK(nslots)		\
-  do {					\
-    vsp += (nslots);			\
-    i8x_assert (vsp >= vsp_floor);	\
-    i8x_assert (vsp <= vsp_limit);	\
+#define ADJUST_STACK(nslots)				\
+  do {							\
+    vsp += (nslots);					\
+    i8x_assert (vsp >= vsp_floor);			\
+    i8x_assert (vsp <= vsp_floor + code->max_stack);	\
   } while (0)
 
 #define STACK(slot) vsp[-1 - (slot)]
@@ -84,8 +76,7 @@
     i8x_assert (op != NULL);			\
     i8x_assert (op->IMPL_FIELD != NULL);	\
     i8x_xctx_trace (xctx, ref, code, op,	\
-		    vsp, vsp_floor, vsp_limit,	\
-		    csp);			\
+		    vsp, vsp_floor, csp);	\
     goto *op->IMPL_FIELD;			\
   } while (0)
 
@@ -193,8 +184,6 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 	     union i8x_value *rets)
 {
   struct i8x_code *code;
-  union i8x_value *vsp, *saved_vsp;
-  union i8x_value *csp, *saved_csp;
   struct i8x_instr *op;
   i8x_err_e err = I8X_OK;
 
@@ -227,11 +216,16 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   i8x_assert (code != NULL);
 
   /* Pull the stack pointers into local variables.  */
-  vsp = saved_vsp = xctx->vsp;
-  csp = saved_csp = xctx->csp;
+  union i8x_value *vsp = xctx->vsp;
+  union i8x_value *csp = xctx->csp;
+
   i8x_assert (xctx->stack_base <= vsp);
   i8x_assert (vsp <= csp);
   i8x_assert (csp <= xctx->stack_limit);
+
+  /* Keep our original stack pointers so we can reset them.  */
+  union i8x_value *const saved_vsp = vsp;
+  union i8x_value *const saved_csp = csp;
 
   /* XXX push the dummy frame  */
 
@@ -244,7 +238,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 
   /* Copy the arguments into the value stack.  */
   i8x_assert (code->max_stack >= ref->num_args);
-  STORE_VSP_LIMITS ();
+  union i8x_value *vsp_floor = vsp;
   ADJUST_STACK (ref->num_args);
   memcpy (saved_vsp, args, sizeof (union i8x_value) * ref->num_args);
 
