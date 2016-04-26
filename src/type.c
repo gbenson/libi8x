@@ -113,21 +113,21 @@ i8x_tld_helper (struct i8x_ctx *ctx,
 	{
 	case I8_TYPE_INTEGER:
 	  if (result != NULL)
-	    type = i8x_ctx_get_integer_type (ctx);
+	    type = i8x_type_ref (i8x_ctx_get_integer_type (ctx));
 
 	  ptr++;
 	  break;
 
 	case I8_TYPE_POINTER:
 	  if (result != NULL)
-	    type = i8x_ctx_get_pointer_type (ctx);
+	    type = i8x_type_ref (i8x_ctx_get_pointer_type (ctx));
 
 	  ptr++;
 	  break;
 
 	case I8_TYPE_OPAQUE:
 	  if (result != NULL)
-	    type = i8x_ctx_get_opaque_type (ctx);
+	    type = i8x_type_ref (i8x_ctx_get_opaque_type (ctx));
 
 	  ptr++;
 	  break;
