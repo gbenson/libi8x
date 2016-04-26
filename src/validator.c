@@ -197,7 +197,9 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 
 	case DW_OP_bra:
 	  ENSURE_DEPTH (1);
-	  ENSURE_TYPE (0, inttype);
+	  tmp = STACK(0);
+	  if (tmp != inttype && tmp != ptrtype)
+	    NOTE_NOT_VALID ();
 	  ADJUST_STACK (-1);
 	  saved_sp = stack_ptr;
 	  err = i8x_code_validate_1 (code, ref, op->branch_next,
