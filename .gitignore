@@ -7,6 +7,9 @@
 *.rej
 
 *.o
+*.lo
+*.la
+.dirstamp
 .deps/
 .libs/
 Makefile

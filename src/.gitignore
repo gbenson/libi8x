@@ -1,6 +1,1 @@
-.dirstamp
-.deps/
-.libs/
-*.la
-*.lo
 libi8x.pc
