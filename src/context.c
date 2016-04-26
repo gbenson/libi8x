@@ -66,6 +66,9 @@ struct i8x_ctx
   struct i8x_type *pointer_type;
   struct i8x_type *opaque_type;
 
+  /* Special type internal to the validator.  */
+  struct i8x_type *int_or_ptr_type;
+
   /* The interpreters' dispatch tables.  */
   void **dispatch_std;
   void **dispatch_dbg;
@@ -172,6 +175,10 @@ i8x_ctx_init (struct i8x_ctx *ctx)
   if (err != I8X_OK)
     return err;
 
+  err = i8x_type_new_coretype (ctx, I8X_TYPE_INTPTR, &ctx->int_or_ptr_type);
+  if (err != I8X_OK)
+    return err;
+
   return err;
 }
 
@@ -191,6 +198,8 @@ i8x_ctx_unlink (struct i8x_object *ob)
   ctx->integer_type = i8x_type_unref (ctx->integer_type);
   ctx->pointer_type = i8x_type_unref (ctx->pointer_type);
   ctx->opaque_type = i8x_type_unref (ctx->opaque_type);
+
+  ctx->int_or_ptr_type = i8x_type_unref (ctx->int_or_ptr_type);
 }
 
 static void
@@ -454,6 +463,12 @@ struct i8x_type *
 i8x_ctx_get_opaque_type (struct i8x_ctx *ctx)
 {
   return ctx->opaque_type;
+}
+
+struct i8x_type *
+i8x_ctx_get_int_or_ptr_type (struct i8x_ctx *ctx)
+{
+  return ctx->int_or_ptr_type;
 }
 
 /* Internal version of i8x_ctx_get_funcref with an extra source note

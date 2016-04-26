@@ -62,15 +62,21 @@
 
 #define STACK(slot) stack_ptr[- 1 - (slot)]
 
+#define TYPES_MATCH(a, b)					\
+  (((a) == (b))							\
+   || ((a) == int_or_ptr && ((b) == inttype || (b) == ptrtype))	\
+   || ((b) == int_or_ptr && ((a) == inttype || (a) == ptrtype)))
+
 #define ENSURE_TYPE(slot, type)						\
   do {									\
-    struct i8x_type *et_tmp = STACK(slot);				\
+    struct i8x_type *et_tmp1 = STACK(slot);				\
+    struct i8x_type *et_tmp2 = (type);					\
 									\
-    if (et_tmp != type)							\
+    if (!TYPES_MATCH (et_tmp1, et_tmp2))				\
       {									\
 	notice (ctx, "stack[%d]: %s != %s\n", (slot),			\
-		i8x_type_get_encoded (et_tmp),				\
-		i8x_type_get_encoded (type));				\
+		i8x_type_get_encoded (et_tmp1),				\
+		i8x_type_get_encoded (et_tmp2));			\
 	NOTE_NOT_VALID ();						\
       }									\
   } while (0)
@@ -89,6 +95,7 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
   struct i8x_ctx *ctx = i8x_code_get_ctx (code);
   struct i8x_type *inttype = i8x_ctx_get_integer_type (ctx);
   struct i8x_type *ptrtype = i8x_ctx_get_pointer_type (ctx);
+  struct i8x_type *int_or_ptr = i8x_ctx_get_int_or_ptr_type (ctx);
   const char *trace_prefix = NULL;
   struct i8x_type **saved_sp, *tmp;
   struct i8x_list *types;
@@ -169,6 +176,7 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	case DW_OP_deref:
 	  ENSURE_DEPTH (1);
 	  ENSURE_TYPE (0, ptrtype);
+	  STACK(0) = ptrtype;
 	  break;
 
 	case DW_OP_dup:
@@ -210,22 +218,21 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	  ENSURE_TYPE (0, inttype);
 	  ENSURE_TYPE (1, inttype);
 	  ADJUST_STACK (-1);
+	  STACK(0) = inttype;
 	  break;
 
 	case DW_OP_minus:
 	  ENSURE_DEPTH (2);
 	  ENSURE_TYPE (0, inttype);
-	  tmp = STACK(1);
-	  if (tmp != inttype && tmp != ptrtype)
-	    NOTE_NOT_VALID ();
+	  ENSURE_TYPE (1, int_or_ptr);
 	  ADJUST_STACK (-1);
+	  if (STACK(0) != ptrtype)
+	    STACK(0) = inttype;
 	  break;
 
 	case DW_OP_bra:
 	  ENSURE_DEPTH (1);
-	  tmp = STACK(0);
-	  if (tmp != inttype && tmp != ptrtype)
-	    NOTE_NOT_VALID ();
+	  ENSURE_TYPE (0, int_or_ptr);
 	  ADJUST_STACK (-1);
 	  saved_sp = stack_ptr;
 	  err = i8x_code_validate_1 (code, ref, op->branch_next,
@@ -243,14 +250,17 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	case DW_OP_lt:
 	case DW_OP_ne:
 	  ENSURE_DEPTH (2);
-	  tmp = STACK(0);
-	  if (tmp != STACK(1) || (tmp != inttype && tmp != ptrtype))
-	    NOTE_NOT_VALID ();
+	  ENSURE_TYPE (0, int_or_ptr);
+	  ENSURE_TYPE (1, STACK(0));
 	  ADJUST_STACK (-1);
 	  STACK(0) = inttype;
 	  break;
 
 	case DW_OP_lit0:
+	  ADJUST_STACK (1);
+	  STACK(0) = int_or_ptr;
+	  break;
+
 	case DW_OP_lit1:
 	case DW_OP_lit2:
 	case DW_OP_lit3:
