@@ -74,34 +74,39 @@ enum
 
 /* Call stack macros.  */
 
+#define SETUP_BYTECODE_UNCHECKED(callee_ref)	\
+  do {						\
+    code = (callee_ref)->interp_impl;		\
+  } while (0)
+
+#define SETUP_BYTECODE(callee_ref)		\
+  do {						\
+    SETUP_BYTECODE_UNCHECKED (callee_ref);	\
+    i8x_assert (code != NULL);			\
+  } while (0)
+
 #define SETUP_CALL(caller_ref, caller_op, callee_ref, _callee_vspfloor) \
   do {									\
     union i8x_value *callee_vspfloor = (_callee_vspfloor);		\
-    struct i8x_code *callee_code;					\
-									\
-    /* Get the bytecode for the function we're calling.  */		\
-    callee_code = (callee_ref)->interp_impl;				\
-    i8x_assert (callee_code != NULL);					\
 									\
     /* Make space for the call frame.  */				\
     csp -= CS_FRAME_SIZE;						\
 									\
     /* Check we have enough stack.  */					\
-    if (__i8x_unlikely (callee_vspfloor + callee_code->max_stack > csp))\
+    if (__i8x_unlikely (callee_vspfloor + code->max_stack > csp))	\
       {									\
-	err = i8x_code_error (callee_code, I8X_STACK_OVERFLOW,		\
-			      callee_code->entry_point);		\
+	err = i8x_code_error (code, I8X_STACK_OVERFLOW,			\
+			      code->entry_point);			\
 	goto unwind_and_return;						\
       }									\
 									\
     /* Fill in the call frame.  */					\
     csp[CS_CALLER].f = (caller_ref);					\
-    csp[CS_CALLSITE].p = (caller_op);				\
+    csp[CS_CALLSITE].p = (caller_op);					\
     csp[CS_VSPFLOOR].p = vsp_floor;					\
 									\
     /* Switch to the new function.  */					\
     ref = (callee_ref);							\
-    code = callee_code;							\
     vsp_floor = callee_vspfloor;					\
   } while (0)
 
@@ -133,8 +138,6 @@ enum
 									\
     /* Switch back to the caller.  */					\
     ref = caller_ref;							\
-    code = ref->interp_impl;						\
-    i8x_assert (code != NULL);						\
     op = (struct i8x_instr *) csp[CS_CALLSITE].p;			\
     vsp_floor = (union i8x_value *) csp[CS_VSPFLOOR].p;			\
 									\
@@ -288,6 +291,13 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       return I8X_OK;
     }
 
+  /* Get the bytecode.  */
+  struct i8x_code *code;
+
+  SETUP_BYTECODE_UNCHECKED (ref);
+  if (__i8x_unlikely (code == NULL))
+    return i8x_invalid_argument (i8x_xctx_get_ctx (xctx));
+
   /* Pull the stack pointers into local variables.  */
   union i8x_value *vsp = xctx->vsp;
   union i8x_value *csp = xctx->csp;
@@ -300,10 +310,9 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   union i8x_value *const saved_vsp = vsp;
   union i8x_value *const saved_csp = csp;
 
-  /* Push an entry frame (CS_CALLER = NULL) onto the call stack,
-     then set code and vsp_floor for the function we're entering.  */
+  /* Push an entry frame (with CS_CALLER = NULL) onto the call
+     stack, then set vsp_floor for the function we're entering.  */
   union i8x_value *vsp_floor = NULL;
-  struct i8x_code *code;
   i8x_err_e err = I8X_OK;
 
   SETUP_CALL (NULL, NULL, ref, vsp);
@@ -450,6 +459,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 	     Instead, we push our current setup onto the call
 	     stack, update ref, code and vsp_floor for the new
 	     function, and continue, now in the callee.  */
+	  SETUP_BYTECODE (callee);
 	  SETUP_CALL (ref, op, callee, vsp - callee->num_args);
 	  DISPATCH (code->entry_point);
 	}
@@ -460,6 +470,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 
   OPERATION (I8X_OP_return):
     RETURN_FROM_CALL ();
+    SETUP_BYTECODE (ref);
     CONTINUE;
 
   OPERATION (I8X_OP_loadext_func):
