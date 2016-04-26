@@ -17,6 +17,18 @@
 # License along with the Infinity Note Execution Library; if not,
 # see <http://www.gnu.org/licenses/>.
 
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-AM_MAKEFLAGS = --no-print-directory
-SUBDIRS = src examples tests
+SUBDIRS = corpus
+
+AM_CPPFLAGS = \
+	-include $(top_builddir)/config.h \
+	-I${top_srcdir}/src
+
+AM_CFLAGS = ${my_CFLAGS}
+
+AM_LDFLAGS = \
+	$(top_builddir)/src/libi8x.la
+
+check_PROGRAMS = \
+	exec/test-factorial
+
+TESTS = $(check_PROGRAMS)

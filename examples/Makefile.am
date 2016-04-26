@@ -17,6 +17,19 @@
 # License along with the Infinity Note Execution Library; if not,
 # see <http://www.gnu.org/licenses/>.
 
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-AM_MAKEFLAGS = --no-print-directory
-SUBDIRS = src examples tests
+EXTRA_DIST =
+CLEANFILES =
+noinst_PROGRAMS =
+
+AM_CPPFLAGS = \
+	-include $(top_builddir)/config.h \
+	-I${top_srcdir}/src
+
+AM_CFLAGS = ${my_CFLAGS}
+
+if HAVE_LIBELF
+noinst_PROGRAMS += tlsdump
+tlsdump_SOURCES = tlsdump.c
+tlsdump_CFLAGS = $(LIBELF_CFLAGS)
+tlsdump_LDADD = $(top_builddir)/src/libi8x.la $(LIBELF_LIBS)
+endif
