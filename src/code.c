@@ -624,6 +624,7 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
       char arg2[32] = "";  /* Operand 2.  */
       char fnext[32] = ""; /* Fall through next.  */
       char bnext[32] = ""; /* Branch next.  */
+      const char *fname;   /* Function name.  */
       char insn[128];
 
       if (op->code == IT_EMPTY_SLOT)
@@ -646,8 +647,16 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
 	snprintf (bnext, sizeof (bnext), ", 0x%lx",
 		  ip_to_so (code, op->branch_next));
 
-      info (ctx, "  0x%lx: %-24s %s%s\n",
-	    ip_to_so (code, op), insn, fnext, bnext);
+      if (op->code == I8X_OP_loadext_func)
+	{
+	  fname = i8x_funcref_get_fullname ((struct i8x_funcref *) op->ext1);
+	  strncpy (bnext, " / ", sizeof (bnext));
+	}
+      else
+	fname = "";
+
+      info (ctx, "  0x%lx: %-24s %s%s%s\n",
+	    ip_to_so (code, op), insn, fnext, bnext, fname);
     }
   info (ctx, "\n");
 }

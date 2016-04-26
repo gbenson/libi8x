@@ -64,9 +64,21 @@
 
 #define ENSURE_TYPE(slot, type)						\
   do {									\
-    if (STACK(slot) != type)						\
-      NOTE_NOT_VALID ();						\
+    struct i8x_type *et_tmp = STACK(slot);				\
+									\
+    if (et_tmp != type)							\
+      {									\
+	notice (ctx, "stack[%d]: %s != %s\n", (slot),			\
+		i8x_type_get_encoded (et_tmp),				\
+		i8x_type_get_encoded (type));				\
+	NOTE_NOT_VALID ();						\
+      }									\
   } while (0)
+
+#define SLOT_TO_STR(slot)			\
+  ((STACK_DEPTH () > (slot))			\
+   ? i8x_type_get_encoded (STACK(slot))		\
+   : "-")
 
 static i8x_err_e
 i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
@@ -77,13 +89,24 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
   struct i8x_ctx *ctx = i8x_code_get_ctx (code);
   struct i8x_type *inttype = i8x_ctx_get_integer_type (ctx);
   struct i8x_type *ptrtype = i8x_ctx_get_pointer_type (ctx);
+  const char *trace_prefix = NULL;
   struct i8x_type **saved_sp, *tmp;
   struct i8x_list *types;
   struct i8x_listitem *li;
   i8x_err_e err;
 
+  if (i8x_ctx_get_log_priority (ctx) >= LOG_DEBUG)
+    trace_prefix = i8x_funcref_get_fullname (ref);
+
   while (true)
     {
+      if (trace_prefix != NULL)
+	{
+	  trace (ctx, "%s\t0x%lx\t%-20s [%ld]\t%-16s%-16s\n",
+		 trace_prefix, ip_to_so (code, op), op->desc->name,
+		 STACK_DEPTH (), SLOT_TO_STR (0), SLOT_TO_STR (1));
+	}
+
       if (op->code == I8X_OP_return)
 	{
 	  /* Function is returning.  */
@@ -100,6 +123,9 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	    }
 
 	  op->is_visited = true;
+
+	  if (trace_prefix != NULL)
+	    dbg (ctx, "\n");
 
 	  return I8X_OK;
 	}
