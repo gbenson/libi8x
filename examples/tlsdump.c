@@ -320,6 +320,9 @@ tlsdump_process (pid_t pid)
   if (err != I8X_OK)
     error_i8x (ctx, err);
 
+  if (!i8x_funcref_is_resolved (fr))
+    error ("%s: function not resolved", i8x_funcref_get_fullname (fr));
+
   err = i8x_xctx_new (ctx, 512, &xctx);
   if (err != I8X_OK)
     error_i8x (ctx, err);
