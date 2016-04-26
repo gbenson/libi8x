@@ -4,8 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: libi8x
-Description: Library for something with i8x
+Description: Infinity note execution library
 Version: @VERSION@
 Libs: -L${libdir} -li8x
-Libs.private:
 Cflags: -I${includedir}
