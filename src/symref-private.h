@@ -20,7 +20,7 @@
 #ifndef _SYMREF_PRIVATE_H_
 #define _SYMREF_PRIVATE_H_
 
-#include <i8x/libi8x.h>
+#include <libi8x.h>
 
 /* Symbol references.  */
 

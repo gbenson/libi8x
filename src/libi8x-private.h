@@ -21,7 +21,7 @@
 #define _LIBI8X_PRIVATE_H_
 
 #include <syslog.h>
-#include <i8x/libi8x.h>
+#include <libi8x.h>
 
 /* Encoded types.  */
 

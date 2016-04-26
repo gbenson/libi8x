@@ -11,7 +11,7 @@
 #include <libelf.h>
 #include <gelf.h>
 
-#include <i8x/libi8x.h>
+#include <libi8x.h>
 
 #ifndef NT_GNU_INFINITY
 #  define NT_GNU_INFINITY 5

@@ -26,7 +26,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include <i8x/libi8x.h>
+#include <libi8x.h>
 
 int
 main (int argc, char *argv[])

@@ -21,8 +21,7 @@ EXTRA_DIST =
 CLEANFILES =
 
 AM_CPPFLAGS = \
-	-include $(top_builddir)/config.h \
-	-I${top_srcdir}/src
+	-include $(top_builddir)/config.h
 
 AM_CFLAGS = ${my_CFLAGS} \
 	-fvisibility=hidden \
@@ -50,7 +49,7 @@ LIBI8X_CURRENT=0
 LIBI8X_REVISION=0
 LIBI8X_AGE=0
 
-pkginclude_HEADERS = i8x/libi8x.h
+include_HEADERS = libi8x.h
 lib_LTLIBRARIES = libi8x.la
 
 libi8x_la_SOURCES = \

@@ -20,7 +20,7 @@
 #ifndef _XCTX_PRIVATE_H_
 #define _XCTX_PRIVATE_H_
 
-#include <i8x/libi8x.h>
+#include <libi8x.h>
 
 /* Execution context.  */
 
