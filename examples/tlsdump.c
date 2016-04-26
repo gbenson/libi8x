@@ -36,10 +36,19 @@ error_i8x (struct i8x_ctx *ctx, i8x_err_e code)
 {
   static char buf[BUFSIZ];
 
-  fprintf (stderr, "%s\n",
+  fprintf (stderr, "error: %s\n",
 	   i8x_ctx_strerror_r (ctx, code, buf, sizeof (buf)));
 
   exit (EXIT_FAILURE);
+}
+
+static void
+warn_i8x (struct i8x_ctx *ctx, i8x_err_e code)
+{
+  static char buf[BUFSIZ];
+
+  fprintf (stderr, "warning: %s\n",
+	   i8x_ctx_strerror_r (ctx, code, buf, sizeof (buf)));
 }
 
 static void *
@@ -120,7 +129,10 @@ process_notes (struct i8x_ctx *ctx,
       err = i8x_func_new_from_note (note, &func);
       i8x_note_unref (note);
       if (err != I8X_OK)
-	error_i8x (ctx, err);
+	{
+	  warn_i8x (ctx, err);
+	  continue;
+	}
 
       /* Register the function.  */
       err = i8x_ctx_register_func (ctx, func);
@@ -240,25 +252,71 @@ read_mappings (struct i8x_ctx *ctx)
 }
 
 static void
+function_available (struct i8x_func *func)
+{
+  printf ("\x1B[32m%s became available\x1B[0m\n",
+	  i8x_func_get_fullname (func));
+}
+
+static void
+function_unavailable (struct i8x_func *func)
+{
+  printf ("\x1B[33m%s became unavailable\x1B[0m\n",
+	  i8x_func_get_fullname (func));
+}
+
+static i8x_err_e
+ps_getpid (struct i8x_xctx *xctx, struct i8x_inferior *inf,
+	   union i8x_value *args, union i8x_value *rets)
+{
+  error ("%s:%d: Not implemented.", __FILE__, __LINE__);
+}
+
+static i8x_err_e
+ps_get_thread_area (struct i8x_xctx *xctx, struct i8x_inferior *inf,
+		    union i8x_value *args, union i8x_value *rets)
+{
+  error ("%s:%d: Not implemented.", __FILE__, __LINE__);
+}
+
+static struct i8x_native_fn native_func_table[] =
+{
+  {"procservice", "getpid",          "",   "i",  ps_getpid},
+  {"procservice", "get_thread_area", "ii", "ip", ps_get_thread_area},
+
+  I8X_END_TABLE
+};
+
+static void
 tlsdump_process (pid_t pid)
 {
   struct i8x_ctx *ctx;
   struct userdata ud;
   struct i8x_funcref *fr;
   struct i8x_xctx *xctx;
+  union i8x_value args[1], rets[2];
   i8x_err_e err;
 
   err = i8x_ctx_new (&ctx);
   if (err != I8X_OK)
     error_i8x (NULL, err);
 
+  i8x_ctx_set_func_available_cb (ctx, function_available);
+  i8x_ctx_set_func_unavailable_cb (ctx, function_unavailable);
+
   ud.pid = pid;
   ud.elfs = NULL;
   i8x_ctx_set_userdata (ctx, &ud, NULL);
 
+  err = i8x_ctx_register_native_funcs (ctx, native_func_table);
+  if (err != I8X_OK)
+    error_i8x (ctx, err);
+
   read_mappings (ctx);
 
-  err = i8x_ctx_get_funcref (ctx, "test", "factorial", "i", "i", &fr);
+  err = i8x_ctx_get_funcref (ctx,
+			     "libpthread", "map_lwp2thr", "i", "ip",
+			     &fr);
   if (err != I8X_OK)
     error_i8x (ctx, err);
 
@@ -266,17 +324,12 @@ tlsdump_process (pid_t pid)
   if (err != I8X_OK)
     error_i8x (ctx, err);
 
-  for (int i = 0; i < 13; i++)
-    {
-      union i8x_value args[1], rets[1];
+  args[0].i = pid;
+  err = i8x_xctx_call (xctx, fr, NULL, args, rets);
+  if (err != I8X_OK)
+    error_i8x (ctx, err);
 
-      args[0].i = i;
-      err = i8x_xctx_call (xctx, fr, NULL, args, rets);
-      if (err != I8X_OK)
-	error_i8x (ctx, err);
-
-      printf ("%d! = %d\n", i, rets[0].i);
-    }
+  printf ("map_lwp2thr(%d) = %d, %p\n", pid, rets[0].i, rets[1].p);
 
   i8x_xctx_unref (xctx);
   i8x_funcref_unref (fr);
