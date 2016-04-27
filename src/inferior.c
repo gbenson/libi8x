@@ -28,11 +28,19 @@ no_resolver (struct i8x_xctx *xctx, struct i8x_inferior *inf,
   return I8X_NO_SYMBOL_RESOLVER;
 }
 
+static void
+i8x_inferior_unlink (struct i8x_object *ob)
+{
+  struct i8x_inferior *inf = (struct i8x_inferior *) ob;
+
+  i8x_ctx_invalidate_symbols (inf);
+}
+
 const struct i8x_object_ops i8x_inferior_ops =
   {
     "inferior",				/* Object name.  */
     sizeof (struct i8x_inferior),	/* Object size.  */
-    NULL,				/* Unlink function.  */
+    i8x_inferior_unlink,		/* Unlink function.  */
     NULL,				/* Free function.  */
   };
 

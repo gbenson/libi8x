@@ -21,12 +21,32 @@
 #include "libi8x-private.h"
 #include "symref-private.h"
 
+void
+i8x_symref_invalidate_for_inferior (struct i8x_symref *ref,
+				    struct i8x_inferior *inf)
+{
+  if (ref->cached_from != inf)
+    return;
+
+  /* Set cached_from to something that definitely isn't an
+     inferior, and poison the cached value too while we're
+     at it.  */
+  ref->cached_from = (struct i8x_inferior *) ref;
+  ref->cached_value = 0xcafebabe;
+
+  dbg (i8x_symref_get_ctx (ref),
+       "invalidated symref %p value for inferior %p\n", ref, inf);
+}
+
 static i8x_err_e
 i8x_symref_init (struct i8x_symref *ref, const char *name)
 {
   ref->name = strdup (name);
   if (ref->name == NULL)
     return i8x_out_of_memory (i8x_symref_get_ctx (ref));
+
+  i8x_symref_invalidate_for_inferior (ref, ref->cached_from);
+  i8x_assert (ref->cached_from == (struct i8x_inferior *) ref);
 
   return I8X_OK;
 }

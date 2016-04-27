@@ -199,6 +199,8 @@ i8x_err_e i8x_symref_new (struct i8x_ctx *ctx, const char *name,
 			  struct i8x_symref **ref);
 struct i8x_symref *i8x_object_as_symref (struct i8x_object *ob);
 const char *i8x_symref_get_name (struct i8x_symref *ref);
+void i8x_symref_invalidate_for_inferior (struct i8x_symref *ref,
+					 struct i8x_inferior *inf);
 
 /*
  * i8x_type
@@ -273,6 +275,7 @@ i8x_err_e i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
 i8x_err_e i8x_ctx_init_dispatch_table (struct i8x_ctx *ctx,
 				       void **table, size_t table_size,
 				       bool is_debug);
+void i8x_ctx_invalidate_symbols (struct i8x_inferior *inf);
 
 /* i8x_func private functions.  */
 

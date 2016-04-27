@@ -923,3 +923,17 @@ i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
 
   return I8X_OK;
 }
+
+void
+i8x_ctx_invalidate_symbols (struct i8x_inferior *inf)
+{
+  struct i8x_ctx *ctx = i8x_inferior_get_ctx (inf);
+  struct i8x_listitem *li;
+
+  i8x_list_foreach (ctx->symrefs, li)
+    {
+      struct i8x_symref *ref = i8x_listitem_get_symref (li);
+
+      i8x_symref_invalidate_for_inferior (ref, inf);
+    }
+}

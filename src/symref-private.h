@@ -29,6 +29,13 @@ struct i8x_symref
   I8X_OBJECT_FIELDS;
 
   char *name;	/* The symbol's name.  */
+
+  /* A very primitive cache, keyed by the inferior that looked up
+     the value.  It's liable to frequently be invalid if you have
+     more than one inferior, and it prevents i8x_xctx_call from
+     being callable simultaneously from multiple threads.  */
+  uintptr_t cached_value;
+  struct i8x_inferior *cached_from;
 };
 
 #endif /* _SYMREF_PRIVATE_H_ */
