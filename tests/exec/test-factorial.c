@@ -114,7 +114,7 @@ load_and_register (struct i8x_ctx *ctx, const char *filename,
   if (err != I8X_OK)
     exit (EXIT_FAILURE);
 
-  *funcp = func;
+  *funcp = i8x_func_ref (func);
 
   return I8X_OK;
 }
