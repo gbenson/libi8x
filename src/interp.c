@@ -29,6 +29,8 @@
 #include "libi8x-private.h"
 #include "interp-private.h"
 #include "funcref-private.h"
+#include "inferior-private.h"
+#include "symref-private.h"
 #include "xctx-private.h"
 
 #ifdef DEBUG_INTERPRETER
@@ -228,6 +230,7 @@ enum
     DTABLE_ADD (I8_OP_call);		\
     DTABLE_ADD (I8X_OP_return);		\
     DTABLE_ADD (I8X_OP_loadext_func);	\
+    DTABLE_ADD (I8X_OP_loadext_sym);	\
   } while (0)
 
 /* Call into the interpreter with the magic sequence to make
@@ -477,6 +480,37 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
     ADJUST_STACK (1);
     STACK(0).f = (struct i8x_funcref *) op->ext1;
     CONTINUE;
+
+  OPERATION (I8X_OP_loadext_sym):
+    {
+      struct i8x_symref *sym = (struct i8x_symref *) op->ext1;
+
+      /* See comments in symref-private.h about the limitations of
+	 this cache.  */
+      if (__i8x_unlikely (sym->cached_from != inf))
+	{
+	  struct i8x_func *func = (struct i8x_func *) code->_ob.parent;
+	  uintptr_t value = 0xbaadf00d;
+
+	  err = inf->resolve_sym_fn (xctx, inf, func, sym->name, &value);
+
+	  if (__i8x_unlikely (err != I8X_OK))
+	    {
+	      /* The resolver is user code and has no access to
+		 i8x_ctx_set_error, so we augment whatever they
+		 returned with a note and location.  */
+	      err = i8x_code_error (code, err, op);
+	      goto unwind_and_return;
+	    }
+
+	  sym->cached_value = value;
+	  sym->cached_from = inf;
+	}
+
+      ADJUST_STACK (1);
+      STACK(0).u = sym->cached_value;
+      CONTINUE;
+    }
 
  unhandled_operation:
   i8x_internal_error (__FILE__, __LINE__, __FUNCTION__,
