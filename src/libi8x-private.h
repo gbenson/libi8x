@@ -144,9 +144,11 @@ struct i8x_object
   const struct i8x_object_ops *ops;
   struct i8x_object *parent;
   int refcount[2];
-  bool is_moribund;
   void *userdata;
   i8x_userdata_cleanup_fn *userdata_cleanup;
+  bool use_debug_allocator : 1;
+  bool is_moribund : 1;
+  bool is_poisoned : 1;
 };
 
 #define I8X_OBJECT_FIELDS struct i8x_object _ob

@@ -19,6 +19,26 @@
 
 #include "libi8x-private.h"
 
+#define i8x_assert_not_poisoned(ob)					\
+  ((void) (ob->is_poisoned ?						\
+	   i8x_internal_error (__FILE__, __LINE__, __FUNCTION__,	\
+			       _("%s %p is poisoned!"),			\
+			       ob->ops->name, ob) : 0))
+
+static void
+i8x_ob_poison (struct i8x_object *ob)
+{
+  const struct i8x_object_ops *saved_ops = ob->ops;
+  uint32_t *ptr = (uint32_t *) ob;
+  uint32_t *limit = (uint32_t *) (((char *) ptr) + saved_ops->size);
+
+  while (ptr < limit)
+    *(ptr)++ = 0xdeadbeef;
+
+  ob->ops = saved_ops;
+  ob->is_poisoned = true;
+}
+
 static struct i8x_object *i8x_ob_unref_parent (struct i8x_object *ob);
 
 enum ref_sense_e
@@ -33,6 +53,16 @@ i8x_ob_ref_1 (struct i8x_object *ob, enum ref_sense_e sense)
   if (ob == NULL)
     return NULL;
 
+  i8x_assert_not_poisoned (ob);
+
+  if (ob->use_debug_allocator)
+    {
+      /* The "ob->parent == NULL" is required to allow
+	 i8x_ob_unref_1 to reference to the dying context.  */
+      i8x_assert (ob->parent == NULL || !ob->is_moribund);
+      i8x_assert (ob->refcount[sense] >= 0);
+    }
+
   ob->refcount[sense]++;
 
   return ob;
@@ -46,6 +76,9 @@ i8x_ob_unref_1 (struct i8x_object *ob, enum ref_sense_e sense)
   if (ob == NULL)
     return NULL;
 
+  i8x_assert_not_poisoned (ob);
+  i8x_assert (!ob->use_debug_allocator || ob->refcount[sense] > 0);
+
   ob->refcount[sense]--;
   if (ob->refcount[RS_FORWARD] > 0 || ob->is_moribund)
     return NULL;
@@ -55,15 +88,17 @@ i8x_ob_unref_1 (struct i8x_object *ob, enum ref_sense_e sense)
   if (ob->ops->unlink_fn != NULL)
     ob->ops->unlink_fn (ob);
 
-  ctx = i8x_ctx_ref (i8x_ob_get_ctx (ob));
+  ctx = i8x_ob_get_ctx (ob);
   ob->parent = i8x_ob_unref_parent (ob->parent);
 
-  if (ob->refcount[RS_BACK] > 0)
+  if (ob->refcount[RS_BACK] == 0)
+    dbg (ctx, "%s %p released\n", ob->ops->name, ob);
+  else if (!ob->use_debug_allocator)
     warn (ctx, "%s %p released with references\n", ob->ops->name, ob);
   else
-    dbg (ctx, "%s %p released\n", ob->ops->name, ob);
-
-  ctx = i8x_ctx_unref (ctx);
+    i8x_internal_error (__FILE__, __LINE__, __FUNCTION__,
+			"%s %p released with references",
+			ob->ops->name, ob);
 
   if (ob->userdata_cleanup != NULL)
     ob->userdata_cleanup (ob->userdata);
@@ -71,7 +106,10 @@ i8x_ob_unref_1 (struct i8x_object *ob, enum ref_sense_e sense)
   if (ob->ops->free_fn != NULL)
     ob->ops->free_fn (ob);
 
-  free (ob);
+  if (ob->use_debug_allocator)
+    i8x_ob_poison (ob);
+  else
+    free (ob);
 
   return NULL;
 }
@@ -131,6 +169,8 @@ i8x_ob_new (void *pp, const struct i8x_object_ops *ops, void *ob)
     dbg (ctx, "%s %p created\n", ops->name, o);
 
   o->ops = ops;
+  o->use_debug_allocator
+    = parent != NULL && parent->use_debug_allocator;
   o->parent = i8x_ob_ref_parent (parent);
 
   *(struct i8x_object **) ob = i8x_ob_ref (o);
@@ -141,13 +181,20 @@ i8x_ob_new (void *pp, const struct i8x_object_ops *ops, void *ob)
 struct i8x_object *
 i8x_ob_get_parent (struct i8x_object *ob)
 {
+  i8x_assert_not_poisoned (ob);
+
   return ob->parent;
 }
 
 struct i8x_object *
 i8x_ob_cast (struct i8x_object *ob, const struct i8x_object_ops *ops)
 {
-  if (ob != NULL && ob->ops == ops)
+  if (ob == NULL)
+    return NULL;
+
+  i8x_assert_not_poisoned (ob);
+
+  if (ob->ops == ops)
     return ob;
   else
     return NULL;
@@ -159,8 +206,13 @@ i8x_ob_get_ctx (struct i8x_object *ob)
   if (ob == NULL)
     return NULL;
 
+  i8x_assert_not_poisoned (ob);
+
   while (ob->parent != NULL)
-    ob = ob->parent;
+    {
+      ob = ob->parent;
+      i8x_assert_not_poisoned (ob);
+    }
 
   return (struct i8x_ctx *) ob;
 }
@@ -176,6 +228,8 @@ i8x_ob_get_ctx (struct i8x_object *ob)
 I8X_EXPORT void *
 i8x_ob_get_userdata (struct i8x_object *ob)
 {
+  i8x_assert_not_poisoned (ob);
+
   return ob->userdata;
 }
 
@@ -190,6 +244,7 @@ I8X_EXPORT void
 i8x_ob_set_userdata (struct i8x_object *ob, void *userdata,
 		     i8x_userdata_cleanup_fn *cleanup)
 {
+  i8x_assert_not_poisoned (ob);
   i8x_assert (userdata != NULL || cleanup == NULL);
 
   ob->userdata = userdata;

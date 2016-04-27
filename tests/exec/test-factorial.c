@@ -177,7 +177,7 @@ main (int argc, char *argv[])
   struct i8x_inferior *inf;
   i8x_err_e err;
 
-  err = i8x_ctx_new (0, NULL, &ctx);
+  err = i8x_ctx_new (I8X_DBG_MEM, NULL, &ctx);
   if (err != I8X_OK)
     exit (EXIT_FAILURE);
 

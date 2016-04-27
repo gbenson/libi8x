@@ -53,6 +53,7 @@ i8x_err_e;
    You can "#include <syslog.h>" for definitions of these values.  */
 
 #define I8X_LOG_TRACE	0x08	/* Log bytecodes as they execute.  */
+#define I8X_DBG_MEM	0x10	/* Debug memory allocation.  */
 
 /* Chunk types.  */
 
