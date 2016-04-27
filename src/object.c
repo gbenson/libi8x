@@ -65,8 +65,12 @@ i8x_ob_unref_1 (struct i8x_object *ob, enum ref_sense_e sense)
 
   ctx = i8x_ctx_unref (ctx);
 
+  if (ob->userdata_cleanup != NULL)
+    ob->userdata_cleanup (ob->userdata);
+
   if (ob->ops->free_fn != NULL)
     ob->ops->free_fn (ob);
+
   free (ob);
 
   return NULL;
