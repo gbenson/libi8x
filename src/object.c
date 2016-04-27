@@ -33,7 +33,7 @@ i8x_ob_poison (struct i8x_object *ob)
   uint32_t *limit = (uint32_t *) (((char *) ptr) + saved_ops->size);
 
   while (ptr < limit)
-    *(ptr)++ = 0xdeadbeef;
+    *(ptr)++ = I8X_POISON_RELEASED_OBJECT;
 
   ob->ops = saved_ops;
   ob->is_poisoned = true;

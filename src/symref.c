@@ -32,7 +32,7 @@ i8x_symref_invalidate_for_inferior (struct i8x_symref *ref,
      inferior, and poison the cached value too while we're
      at it.  */
   ref->cached_from = (struct i8x_inferior *) ref;
-  ref->cached_value = 0xcafebabe;
+  ref->cached_value = I8X_POISON_BAD_CACHED_SYMREF;
 
   dbg (i8x_symref_get_ctx (ref),
        "invalidated symref %p value for inferior %p\n", ref, inf);

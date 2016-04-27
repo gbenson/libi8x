@@ -32,6 +32,12 @@
 
 #define I8X_TYPE_INTPTR	 'x'
 
+/* Poison values.  */
+
+#define I8X_POISON_RELEASED_OBJECT	0xDEADBEEF
+#define I8X_POISON_BAD_CACHED_SYMREF	0xCAFEBABE
+#define I8X_POISON_BAD_SYM_RESOLVER	0xBAADF00D
+
 /* Forward declarations.  */
 
 struct i8x_symref;

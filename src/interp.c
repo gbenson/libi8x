@@ -490,7 +490,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       if (__i8x_unlikely (sym->cached_from != inf))
 	{
 	  struct i8x_func *func = (struct i8x_func *) code->_ob.parent;
-	  uintptr_t value = 0xbaadf00d;
+	  uintptr_t value = I8X_POISON_BAD_SYM_RESOLVER;
 
 	  err = inf->resolve_sym_fn (xctx, inf, func, sym->name, &value);
 
