@@ -106,23 +106,44 @@ log_stderr (struct i8x_ctx *ctx,
   vfprintf (stderr, format, args);
 }
 
-static int
-log_priority (const char *str)
+struct i8x_logprio
 {
-  char *endptr;
+  const char *name;
   int priority;
+};
 
-  priority = strtol (str, &endptr, 10);
+/* Lifted from syslog.h.  */
+struct i8x_logprio prioritynames[] =
+{
+  { "alert", LOG_ALERT },
+  { "crit", LOG_CRIT },
+  { "debug", LOG_DEBUG },
+  { "emerg", LOG_EMERG },
+  { "err", LOG_ERR },
+  { "info", LOG_INFO },
+  { "notice", LOG_NOTICE },
+  { "panic", LOG_EMERG },
+  { "trace", LOG_TRACE },
+  { "warn", LOG_WARNING },
+  { NULL, -1 }
+};
+
+static int
+strtoprio (const char *str)
+{
+  struct i8x_logprio *pn;
+  char *endptr;
+  int numeric;
+
+  numeric = strtol (str, &endptr, 10);
   if (endptr[0] == '\0' || isspace (endptr[0]))
-    return priority;
-  if (strncmp (str, "err", 3) == 0)
-    return LOG_ERR;
-  if (strncmp (str, "info", 4) == 0)
-    return LOG_INFO;
-  if (strncmp (str, "debug", 5) == 0)
-    return LOG_DEBUG;
-  if (strncmp (str, "trace", 5) == 0)
-    return LOG_TRACE;
+    return numeric;
+
+  for (pn = prioritynames; pn->name != NULL; pn++)
+    {
+      if (strncasecmp (str, pn->name, strlen (pn->name)) == 0)
+	return pn->priority;
+    }
 
   return 0;
 }
@@ -130,10 +151,13 @@ log_priority (const char *str)
 static bool
 strtobool (const char *str)
 {
-  if (str[0] == '\0' || str[0] == '0')
-    return false;
-  if (isdigit (str[0]))
-    return true;
+  char *endptr;
+  int numeric;
+
+  numeric = strtol (str, &endptr, 10);
+  if (endptr[0] == '\0' || isspace (endptr[0]))
+    return numeric != 0;
+
   if (strncasecmp (str, "yes", 3) == 0)
     return true;
   if (strncasecmp (str, "true", 4) == 0)
@@ -249,7 +273,7 @@ i8x_ctx_new (struct i8x_ctx **ctx)
 
   env = secure_getenv ("I8X_LOG");
   if (env != NULL)
-    i8x_ctx_set_log_priority (c, log_priority (env));
+    i8x_ctx_set_log_priority (c, strtoprio (env));
 
   env = secure_getenv ("I8X_DEBUG");
   if (env != NULL)
