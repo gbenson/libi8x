@@ -75,32 +75,20 @@ void i8x_internal_error (const char *file, int line,
 
 /* Logging.  */
 
-static inline void __attribute__ ((always_inline, format (printf, 2, 3)))
-i8x_log_null (struct i8x_ctx *ctx, const char *format, ...) {}
-
-#define i8x_log_cond(ctx, prio, arg...) \
-  do { \
-    if (i8x_ctx_get_log_priority (ctx) >= prio) \
-      i8x_ctx_log (ctx, prio, __FILE__, __LINE__, __FUNCTION__, ## arg); \
+#define i8x_log_cond(ctx, prio, arg...)			\
+  do {							\
+    struct i8x_ctx *lc_ctx = (ctx);			\
+							\
+    if (i8x_ctx_get_log_priority (lc_ctx) >= prio)	\
+      i8x_ctx_log (lc_ctx, prio, __FILE__, __LINE__,	\
+		   __FUNCTION__, ## arg);		\
   } while (0)
 
-#ifdef ENABLE_LOGGING
-#  ifdef ENABLE_DEBUG
-#    define dbg(ctx, arg...) i8x_log_cond (ctx, LOG_DEBUG, ## arg)
-#  else
-#    define dbg(ctx, arg...) i8x_log_null (ctx, ## arg)
-#  endif
-#  define info(ctx, arg...) i8x_log_cond (ctx, LOG_INFO, ## arg)
-#  define notice(ctx, arg...) i8x_log_cond (ctx, LOG_NOTICE, ## arg)
-#  define warn(ctx, arg...) i8x_log_cond (ctx, LOG_WARNING, ## arg)
-#  define err(ctx, arg...) i8x_log_cond (ctx, LOG_ERR, ## arg)
-#else
-#  define dbg(ctx, arg...) i8x_log_null (ctx, ## arg)
-#  define info(ctx, arg...) i8x_log_null (ctx, ## arg)
-#  define notice(ctx, arg...) i8x_log_null (ctx, ## arg)
-#  define warn(ctx, arg...) i8x_log_null (ctx, ## arg)
-#  define err(ctx, arg...) i8x_log_null (ctx, ## arg)
-#endif
+#define dbg(ctx, arg...) i8x_log_cond (ctx, LOG_DEBUG, ## arg)
+#define info(ctx, arg...) i8x_log_cond (ctx, LOG_INFO, ## arg)
+#define notice(ctx, arg...) i8x_log_cond (ctx, LOG_NOTICE, ## arg)
+#define warn(ctx, arg...) i8x_log_cond (ctx, LOG_WARNING, ## arg)
+#define error(ctx, arg...) i8x_log_cond (ctx, LOG_ERR, ## arg)
 
 #ifndef HAVE_SECURE_GETENV
 #  ifdef HAVE___SECURE_GETENV
