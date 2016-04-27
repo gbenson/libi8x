@@ -99,7 +99,8 @@ AC_SUBST([my_CFLAGS])
 
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES([
-        Makefile
+	Makefile
+	contrib/Makefile
 	examples/Makefile
 	libi8x/Makefile
 	libi8x-test/Makefile

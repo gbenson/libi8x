@@ -17,6 +17,4 @@
 # License along with the Infinity Note Execution Library; if not,
 # see <http://www.gnu.org/licenses/>.
 
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-AM_MAKEFLAGS = --no-print-directory
-SUBDIRS = contrib libi8x libi8x-test examples tests
+EXTRA_DIST = i82c.py
