@@ -56,6 +56,7 @@ libi8x_la_SOURCES = \
 	libi8x-private.h \
 	interp-private.h \
 	funcref-private.h \
+	inferior-private.h \
 	symref-private.h \
 	xctx-private.h \
 	opcodes.h \
@@ -65,6 +66,7 @@ libi8x_la_SOURCES = \
 	dbg-interp.c \
 	function.c \
 	funcref.c \
+	inferior.c \
 	interp.c \
 	list.c \
 	object.c \

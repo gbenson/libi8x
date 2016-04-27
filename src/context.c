@@ -427,6 +427,12 @@ error_message_for (i8x_err_e code)
     case I8X_STACK_OVERFLOW:
       return _("Stack overflow");
 
+    case I8X_NO_SYMBOL_RESOLVER:
+      return _("No symbol resolver");
+
+    case I8X_NO_SUCH_SYMBOL:
+      return _("Unresolved symbol");
+
     default:
       return NULL;
     }

@@ -293,6 +293,7 @@ tlsdump_process (pid_t pid)
   struct i8x_ctx *ctx;
   struct userdata ud;
   struct i8x_funcref *fr;
+  struct i8x_inferior *inf;
   struct i8x_xctx *xctx;
   union i8x_value args[1], rets[2];
   i8x_err_e err;
@@ -323,18 +324,23 @@ tlsdump_process (pid_t pid)
   if (!i8x_funcref_is_resolved (fr))
     error ("%s: function not resolved", i8x_funcref_get_fullname (fr));
 
+  err = i8x_inferior_new (ctx, &inf);
+  if (err != I8X_OK)
+    error_i8x (ctx, err);
+
   err = i8x_xctx_new (ctx, 512, &xctx);
   if (err != I8X_OK)
     error_i8x (ctx, err);
 
   args[0].i = pid;
-  err = i8x_xctx_call (xctx, fr, NULL, args, rets);
+  err = i8x_xctx_call (xctx, fr, inf, args, rets);
   if (err != I8X_OK)
     error_i8x (ctx, err);
 
   printf ("map_lwp2thr(%d) = %d, %p\n", pid, rets[0].i, rets[1].p);
 
   i8x_xctx_unref (xctx);
+  i8x_inferior_unref (inf);
   i8x_funcref_unref (fr);
 
   /* XXX free stuff in userdata e.g. the list of ELF files  */

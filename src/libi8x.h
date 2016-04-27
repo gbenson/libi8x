@@ -43,6 +43,8 @@ typedef enum
 
   /* Runtime errors.  */
   I8X_STACK_OVERFLOW = -299,
+  I8X_NO_SYMBOL_RESOLVER,
+  I8X_NO_SUCH_SYMBOL,
 }
 i8x_err_e;
 
@@ -289,6 +291,24 @@ I8X_COMMON_OBJECT_FUNCTIONS (funcref);
 const char *i8x_funcref_get_fullname (struct i8x_funcref *ref);
 bool i8x_funcref_is_private (struct i8x_funcref *ref);
 bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
+
+/*
+ * i8x_inferior
+ *
+ * access to inferiors of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (inferior);
+
+typedef i8x_err_e i8x_resolve_sym_fn_t (struct i8x_xctx *xctx,
+					struct i8x_inferior *inf,
+					struct i8x_func *func,
+					const char *name,
+					uintptr_t *result);
+
+i8x_err_e i8x_inferior_new (struct i8x_ctx *ctx,
+			    struct i8x_inferior **inf);
+void i8x_inferior_set_resolve_sym_fn (struct i8x_inferior *inf,
+				      i8x_resolve_sym_fn_t *resolve_sym_fn);
 
 /*
  * i8x_list
