@@ -118,6 +118,8 @@ log_priority (const char *str)
     return LOG_INFO;
   if (strncmp (str, "debug", 5) == 0)
     return LOG_DEBUG;
+  if (strncmp (str, "trace", 5) == 0)
+    return LOG_TRACE;
 
   return 0;
 }

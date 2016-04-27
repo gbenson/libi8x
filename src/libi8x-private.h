@@ -75,6 +75,8 @@ void i8x_internal_error (const char *file, int line,
 
 /* Logging.  */
 
+#define LOG_TRACE (LOG_DEBUG + 1)
+
 #define i8x_log_cond(ctx, prio, arg...)			\
   do {							\
     struct i8x_ctx *lc_ctx = (ctx);			\
@@ -84,6 +86,7 @@ void i8x_internal_error (const char *file, int line,
 		   __FUNCTION__, ## arg);		\
   } while (0)
 
+#define trace(ctx, arg...) i8x_log_cond (ctx, LOG_TRACE, ## arg)
 #define dbg(ctx, arg...) i8x_log_cond (ctx, LOG_DEBUG, ## arg)
 #define info(ctx, arg...) i8x_log_cond (ctx, LOG_INFO, ## arg)
 #define notice(ctx, arg...) i8x_log_cond (ctx, LOG_NOTICE, ## arg)

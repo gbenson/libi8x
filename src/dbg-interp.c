@@ -50,7 +50,7 @@ i8x_xctx_trace (struct i8x_xctx *xctx,  struct i8x_funcref *ref,
 {
   struct i8x_ctx *ctx = i8x_xctx_get_ctx (xctx);
 
-  if (i8x_ctx_get_log_priority (ctx) < LOG_DEBUG)
+  if (i8x_ctx_get_log_priority (ctx) < LOG_TRACE)
     return;
 
   char stack0[32], stack1[32];
@@ -58,7 +58,7 @@ i8x_xctx_trace (struct i8x_xctx *xctx,  struct i8x_funcref *ref,
   SLOT_TO_STR (stack0, 0);
   SLOT_TO_STR (stack1, 1);
 
-  dbg (ctx, "%s\t0x%lx\t%-20s [%ld]\t%-16s%-16s\n",
-       ref->fullname, ip_to_so (code, op), op->desc->name,
-       STACK_DEPTH (), stack0, stack1);
+  trace (ctx, "%s\t0x%lx\t%-20s [%ld]\t%-16s%-16s\n",
+	 ref->fullname, ip_to_so (code, op), op->desc->name,
+	 STACK_DEPTH (), stack0, stack1);
 }
