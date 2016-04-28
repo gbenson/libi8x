@@ -297,7 +297,7 @@ tlsdump_process (pid_t pid)
   union i8x_value args[1], rets[2];
   i8x_err_e err;
 
-  err = i8x_ctx_new (&ctx);
+  err = i8x_ctx_new (0, NULL, &ctx);
   if (err != I8X_OK)
     error_i8x (NULL, err);
 

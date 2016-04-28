@@ -41,7 +41,6 @@ struct i8x_ctx
 
   i8x_log_fn_t *log_fn;
   int log_priority;
-  bool logging_started;
 
   bool use_debug_interpreter_default;
 
@@ -81,16 +80,11 @@ i8x_ctx_log (struct i8x_ctx *ctx,
 {
   va_list args;
 
-  if (!ctx->logging_started)
-    {
-      ctx->logging_started = true;
-
-      /* These messages are deferred from i8x_ctx_new to allow the
-	 caller to install a custom logger and set the priority if
-	 they require it.  */
-      dbg (ctx, "ctx %p created\n", ctx);
-      dbg (ctx, "log_priority=%d\n", ctx->log_priority);
-    }
+  /* We have a super-low internal priority, LOG_TRACE, but
+     user-supplied logging functions are likely to expect
+     the RFC 5424 value 0..7, so we cap what we supply.  */
+  if (priority > LOG_DEBUG)
+    priority = LOG_DEBUG;
 
   va_start (args, format);
   ctx->log_fn (ctx, priority, file, line, fn, format, args);
@@ -258,7 +252,7 @@ const struct i8x_object_ops i8x_ctx_ops =
  * Returns: a new i8x library context
  **/
 I8X_EXPORT i8x_err_e
-i8x_ctx_new (struct i8x_ctx **ctx)
+i8x_ctx_new (int flags, i8x_log_fn_t *log_fn, struct i8x_ctx **ctx)
 {
   const char *env;
   struct i8x_ctx *c;
@@ -268,16 +262,29 @@ i8x_ctx_new (struct i8x_ctx **ctx)
   if (err != I8X_OK)
     return err;
 
-  c->log_fn = log_stderr;
-  c->log_priority = LOG_ERR;
+  /* Set up logging at the earliest opportunity.  */
+  if (log_fn != NULL)
+    c->log_fn = log_fn;
+  else
+    c->log_fn = log_stderr;
+
+  if (flags & I8X_LOG_TRACE)
+    c->log_priority = LOG_TRACE;
+  else
+    c->log_priority = LOG_PRI (flags);
 
   env = secure_getenv ("I8X_LOG");
   if (env != NULL)
     i8x_ctx_set_log_priority (c, strtoprio (env));
 
+  /* Now log the message i8x_ob_new deferred to us.  */
+  dbg (c, "ctx %p created\n", c);
+
   env = secure_getenv ("I8X_DEBUG");
   if (env != NULL)
     c->use_debug_interpreter_default = strtobool (env);
+
+  dbg (c, "log_priority=%d\n", c->log_priority);
 
   err = i8x_ctx_init (c);
   if (err != I8X_OK)

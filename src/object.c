@@ -126,6 +126,7 @@ i8x_ob_new (void *pp, const struct i8x_object_ops *ops, void *ob)
   if (o == NULL)
     return i8x_out_of_memory (ctx);
 
+  /* i8x_ctx_new handles this message for contexts.  */
   if (ctx != NULL)
     dbg (ctx, "%s %p created\n", ops->name, o);
 

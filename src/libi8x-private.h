@@ -77,7 +77,12 @@ void i8x_internal_error (const char *file, int line,
 
 /* Logging.  */
 
-#define LOG_TRACE (LOG_DEBUG + 1)
+#ifndef LOG_TRACE
+# define LOG_TRACE (LOG_DEBUG + 1)
+#endif
+#if I8X_LOG_TRACE != LOG_TRACE
+# error I8X_LOG_TRACE not as expected
+#endif
 
 #define i8x_log_cond(ctx, prio, arg...)			\
   do {							\

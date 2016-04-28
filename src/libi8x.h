@@ -46,6 +46,14 @@ typedef enum
 }
 i8x_err_e;
 
+/* Values for i8x_ctx_new's "flags" argument.  In addition to these,
+   the bottom 3 bits can be used to pass a logging message priority.
+   Priorities have the same values and meaning as the severities
+   defined in section 6.2.1 of RFC 5424 ("The Syslog Protocol").
+   You can "#include <syslog.h>" for definitions of these values.  */
+
+#define I8X_LOG_TRACE	0x08	/* Log bytecodes as they execute.  */
+
 /* Chunk types.  */
 
 #define I8_CHUNK_SIGNATURE 1
@@ -216,7 +224,8 @@ typedef void i8x_func_cb_t (struct i8x_func *func);
 
 I8X_CONTEXT_OBJECT_FUNCTIONS (ctx);
 
-i8x_err_e i8x_ctx_new (struct i8x_ctx **ctx);
+i8x_err_e i8x_ctx_new (int flags, i8x_log_fn_t *log_fn,
+		       struct i8x_ctx **ctx);
 const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 				char *buf, size_t bufsiz);
 void i8x_ctx_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn);
