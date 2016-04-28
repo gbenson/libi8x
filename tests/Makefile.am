@@ -21,12 +21,13 @@ SUBDIRS = corpus
 
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
-	-I${top_srcdir}/src
+	-I${top_srcdir}/src \
+	-I${top_srcdir}/libi8x-test
 
 AM_CFLAGS = ${my_CFLAGS}
 
 AM_LDFLAGS = \
-	$(top_builddir)/src/libi8x.la
+	$(top_builddir)/libi8x-test/libi8x-test.la
 
 check_PROGRAMS = \
 	exec/test-factorial

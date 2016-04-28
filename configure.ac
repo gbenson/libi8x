@@ -102,6 +102,7 @@ AC_CONFIG_FILES([
         Makefile
 	examples/Makefile
 	src/Makefile
+	libi8x-test/Makefile
 	tests/Makefile
 	tests/corpus/Makefile
 ])
