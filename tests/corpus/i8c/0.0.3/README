@@ -1,0 +1,34 @@
+All unique notes built by I8C 0.0.3's testsuite,
+(commit 0d8a56d402037f907f6c1f33d00a51af0ff5d129)
+
+"32be" notes were built on devel1.s390.bos.redhat.com:
+  s390x
+  Red Hat Enterprise Linux Server release 7.1 (Maipo)
+  Python 2.7.5 (default, Feb 11 2014, 07:45:13)
+  [GCC 4.8.2 20140120 (Red Hat 4.8.2-13)] on linux2
+  from python-2.7.5-16.el7.s390x.rpm
+  I8C_CC="gcc -m31" python contrib/libi8x-testnote-export.py
+
+"32el" notes were built on slice.nx:
+  armv6l
+  Fedora remix release 18 (Raspberrypi Fedora Remix)
+  Python 2.7.3 (default, Aug 26 2012, 05:20:34)
+  [GCC 4.7.1 20120720 (Red Hat 4.7.1-5)] on linux2
+  from python-2.7.3-13.fc18.armv5tel.rpm
+  python contrib/libi8x-testnote-export.py
+
+"64be" notes were built on ibm-power7r2-02-be01.lab.eng.brq.redhat.com:
+  ppc64
+  Fedora release 23 (Twenty Three)
+  Python 3.4.3 (default, Jul  8 2015, 03:03:04)
+  [GCC 5.1.1 20150618 (Red Hat 5.1.1-4)] on linux
+  from python3-3.4.3-5.fc23.ppc64.rpm
+  python3 contrib/libi8x-testnote-export.py
+
+"64el" notes were built on blade.nx:
+  x86_64
+  Red Hat Enterprise Linux Workstation release 6.6 (Santiago)
+  Python 2.6.6 (r266:84292, May 22 2015, 08:34:51)
+  [GCC 4.4.7 20120313 (Red Hat 4.4.7-15)] on linux2
+  from python-2.6.6-64.el6.x86_64.rpm
+  python contrib/libi8x-testnote-export.py
