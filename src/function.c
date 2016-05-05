@@ -28,7 +28,7 @@ struct i8x_func
   i8x_nat_fn_t *native_impl;	/* Implementation, or NULL if bytecode.  */
 
   struct i8x_note *note;	/* The note, or NULL if native.  */
-  struct i8x_list *externals;	/* List of external references.  */
+  struct i8x_list *externals;	/* List of external function references.  */
   struct i8x_code *code;	/* Compiled bytecode.  */
 
   bool observed_available;	/* The last observer we called.  */
@@ -83,51 +83,6 @@ i8x_bcf_unpack_signature (struct i8x_func *func)
   return err;
 }
 
-#define I8_EXT_FUNCTION 'f'
-#define I8_EXT_SYMBOL 's'
-
-static i8x_err_e
-i8x_bcf_unpack_one_external (struct i8x_readbuf *rb,
-			     struct i8x_object **ext)
-{
-  struct i8x_note *note = i8x_rb_get_note (rb);
-  struct i8x_object *e;
-  const char *error_ptr;
-  uint8_t type_id;
-  const char *name;
-  i8x_err_e err;
-
-  error_ptr = i8x_rb_get_ptr (rb);
-
-  err = i8x_rb_read_uint8_t (rb, &type_id);
-  if (err != I8X_OK)
-    return err;
-
-  switch (type_id)
-    {
-    case I8_EXT_FUNCTION:
-      err = i8x_rb_read_funcref (rb, (struct i8x_funcref **) &e);
-      break;
-
-    case I8_EXT_SYMBOL:
-      err = i8x_rb_read_offset_string (rb, &name);
-      if (err != I8X_OK)
-	break;
-
-      err = i8x_ctx_get_symref (i8x_note_get_ctx (note), name,
-				(struct i8x_symref **) &e);
-      break;
-
-    default:
-      err = i8x_note_error (note, I8X_NOTE_UNHANDLED, error_ptr);
-    }
-
-  if (err == I8X_OK)
-    *ext = e;
-
-  return err;
-}
-
 static i8x_err_e
 i8x_bcf_unpack_externals (struct i8x_func *func)
 {
@@ -141,7 +96,7 @@ i8x_bcf_unpack_externals (struct i8x_func *func)
   if (err != I8X_OK || chunk == NULL)
     return err;
 
-  if (i8x_chunk_get_version (chunk) != 1)
+  if (i8x_chunk_get_version (chunk) != 2)
     return i8x_chunk_version_error (chunk);
 
   err = i8x_list_new (i8x_func_get_ctx (func), true, &func->externals);
@@ -154,14 +109,14 @@ i8x_bcf_unpack_externals (struct i8x_func *func)
 
   while (i8x_rb_bytes_left (rb) > 0)
     {
-      struct i8x_object *ref;
+      struct i8x_funcref *ref;
 
-      err = i8x_bcf_unpack_one_external (rb, &ref);
+      err = i8x_rb_read_funcref (rb, &ref);
       if (err != I8X_OK)
 	break;
 
-      err = i8x_list_append (func->externals, ref);
-      ref = i8x_ob_unref (ref);
+      err = i8x_list_append_funcref (func->externals, ref);
+      ref = i8x_funcref_unref (ref);
       if (err != I8X_OK)
 	break;
     }
@@ -288,10 +243,9 @@ i8x_func_all_deps_resolved (struct i8x_func *func)
 
   i8x_list_foreach (func->externals, li)
     {
-      struct i8x_funcref *ref
-	= i8x_object_as_funcref (i8x_listitem_get_object (li));
+      struct i8x_funcref *ref = i8x_listitem_get_funcref (li);
 
-      if (ref != NULL && !i8x_funcref_is_resolved (ref))
+      if (!i8x_funcref_is_resolved (ref))
 	return false;
     }
 

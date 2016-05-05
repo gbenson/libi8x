@@ -411,6 +411,7 @@ i8x_code_setup_flow (struct i8x_code *code)
   return I8X_OK;
 }
 
+/* XXX
 static void
 i8x_code_rewrite_op (struct i8x_instr *op, i8x_opcode_t new_opcode)
 {
@@ -419,6 +420,7 @@ i8x_code_rewrite_op (struct i8x_instr *op, i8x_opcode_t new_opcode)
   op->code = new_opcode;
   op->desc = &optable[new_opcode];
 }
+*/
 
 static i8x_err_e
 i8x_code_setup_externals (struct i8x_code *code)
@@ -429,23 +431,21 @@ i8x_code_setup_externals (struct i8x_code *code)
 
   i8x_code_foreach_op (code, op)
     {
-      struct i8x_listitem *li;
-
       if (op->code != I8_OP_load_external)
 	continue;
 
-      li = i8x_list_get_item_by_index (externals, op->arg1.u);
-      if (li == NULL)
-	return i8x_code_error (code, I8X_NOTE_INVALID, op);
-
-      op->ext1 = i8x_ob_ref (i8x_listitem_get_object (li));
-
-      if (i8x_object_as_funcref (op->ext1) != NULL)
-	i8x_code_rewrite_op (op, I8X_OP_loadext_func);
-      else if (i8x_object_as_symref (op->ext1) != NULL)
-	i8x_code_rewrite_op (op, I8X_OP_loadext_sym);
+      if (op->arg1.u == 0)
+	op->ext1 = i8x_funcref_ref (i8x_func_get_funcref (func));
       else
-	i8x_code_error (code, I8X_NOTE_UNHANDLED, op);
+	{
+	  struct i8x_listitem *li;
+
+	  li = i8x_list_get_item_by_index (externals, op->arg1.u - 1);
+	  if (li == NULL)
+	    return i8x_code_error (code, I8X_NOTE_INVALID, op);
+
+	  op->ext1 = i8x_funcref_ref (i8x_listitem_get_funcref (li));
+	}
     }
 
   i8x_code_dump_itable (code, __FUNCTION__);
@@ -547,7 +547,7 @@ i8x_code_unlink (struct i8x_object *ob)
 
   if (code->itable != NULL)
     i8x_code_foreach_op (code, op)
-      op->ext1 = i8x_ob_unref (op->ext1);
+      op->ext1 = i8x_funcref_unref (op->ext1);
 }
 
 static void
@@ -647,9 +647,9 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
 	snprintf (bnext, sizeof (bnext), ", 0x%lx",
 		  ip_to_so (code, op->branch_next));
 
-      if (op->code == I8X_OP_loadext_func)
+      if (op->ext1 != NULL)
 	{
-	  fname = i8x_funcref_get_fullname ((struct i8x_funcref *) op->ext1);
+	  fname = i8x_funcref_get_fullname (op->ext1);
 	  strncpy (bnext, " / ", sizeof (bnext));
 	}
       else

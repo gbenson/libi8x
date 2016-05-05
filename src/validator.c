@@ -319,14 +319,9 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	    }
 	  break;
 
-	case I8X_OP_loadext_func:
+	case I8_OP_load_external:
 	  ADJUST_STACK (1);
-	  STACK(0) = i8x_funcref_get_type ((struct i8x_funcref *) op->ext1);
-	  break;
-
-	case I8X_OP_loadext_sym:
-	  ADJUST_STACK (1);
-	  STACK(0) = ptrtype;
+	  STACK(0) = i8x_funcref_get_type (op->ext1);
 	  break;
 
 	default:

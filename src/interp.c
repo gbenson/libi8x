@@ -228,9 +228,8 @@ enum
     DTABLE_ADD (DW_OP_lit30);		\
     DTABLE_ADD (DW_OP_lit31);		\
     DTABLE_ADD (I8_OP_call);		\
+    DTABLE_ADD (I8_OP_load_external);	\
     DTABLE_ADD (I8X_OP_return);		\
-    DTABLE_ADD (I8X_OP_loadext_func);	\
-    DTABLE_ADD (I8X_OP_loadext_sym);	\
   } while (0)
 
 /* Call into the interpreter with the magic sequence to make
@@ -471,16 +470,17 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       CONTINUE;
     }
 
+  OPERATION (I8_OP_load_external):
+    ADJUST_STACK (1);
+    STACK(0).f = op->ext1;
+    CONTINUE;
+
   OPERATION (I8X_OP_return):
     RETURN_FROM_CALL ();
     SETUP_BYTECODE (ref);
     CONTINUE;
 
-  OPERATION (I8X_OP_loadext_func):
-    ADJUST_STACK (1);
-    STACK(0).f = (struct i8x_funcref *) op->ext1;
-    CONTINUE;
-
+#if 0 // XXX
   OPERATION (I8X_OP_loadext_sym):
     {
       struct i8x_symref *sym = (struct i8x_symref *) op->ext1;
@@ -511,6 +511,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       STACK(0).u = sym->cached_value;
       CONTINUE;
     }
+#endif // 0
 
  unhandled_operation:
   i8x_internal_error (__FILE__, __LINE__, __FUNCTION__,

@@ -186,7 +186,5 @@
 
 /* libi8x internal operations.  */
 #define I8X_OP_return			0x140
-#define I8X_OP_loadext_func		0x141
-#define I8X_OP_loadext_sym		0x142
 
 #endif /* _LIBI8X_OPCODES_H_ */

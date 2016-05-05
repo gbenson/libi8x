@@ -68,9 +68,9 @@ struct i8x_instr
   const struct i8x_idesc *desc;		/* Description.  */
   union i8x_value arg1, arg2;		/* Operands.  */
 
-  /* For I8_OP_load_external, a pointer to the external value
+  /* For I8_OP_load_external, a pointer to the external function
      referenced by arg1.  */
-  struct i8x_object *ext1;
+  struct i8x_funcref *ext1;
 
   /* Pointers to the next instruction for branch and non-branch
      cases.  NULL in either pointer is a return from this function.  */
