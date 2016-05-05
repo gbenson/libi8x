@@ -57,7 +57,7 @@ libi8x_la_SOURCES = \
 	interp-private.h \
 	funcref-private.h \
 	inferior-private.h \
-	symref-private.h \
+	reloc-private.h \
 	xctx-private.h \
 	opcodes.h \
 	chunk.c \
@@ -72,7 +72,7 @@ libi8x_la_SOURCES = \
 	object.c \
 	note.c \
 	readbuf.c \
-	symref.c \
+	reloc.c \
 	type.c \
 	util.c \
 	validator.c \

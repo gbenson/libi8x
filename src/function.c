@@ -46,7 +46,8 @@ i8x_func_get_interp_impl (struct i8x_func *func)
   return func->code;
 }
 
-i8x_nat_fn_t *i8x_func_get_native_impl (struct i8x_func *func)
+i8x_nat_fn_t *
+i8x_func_get_native_impl (struct i8x_func *func)
 {
   return func->native_impl;
 }
@@ -234,6 +235,12 @@ I8X_EXPORT struct i8x_list *
 i8x_func_get_externals (struct i8x_func *func)
 {
   return func->externals;
+}
+
+I8X_EXPORT struct i8x_list *
+i8x_func_get_relocs (struct i8x_func *func)
+{
+  return i8x_code_get_relocs (func->code);
 }
 
 bool

@@ -25,6 +25,7 @@ global:
 	i8x_func_get_note;
 	i8x_func_is_native;
 	i8x_func_get_externals;
+	i8x_func_get_relocs;
 
 	i8x_funcref_get_fullname;
 	i8x_funcref_is_private;
@@ -32,6 +33,7 @@ global:
 
 	i8x_inferior_new;
 	i8x_inferior_set_resolve_sym_fn;
+	i8x_inferior_invalidate_relocs;
 
 	i8x_list_size;
 	i8x_list_get_first;
@@ -71,6 +73,8 @@ global:
 	i8x_rb_read_uleb128;
 	i8x_rb_read_bytes;
 	i8x_rb_read_offset_string;
+
+	i8x_reloc_get_unrelocated;
 
 	i8x_xctx_new;
 	i8x_xctx_get_use_debug_interpreter;

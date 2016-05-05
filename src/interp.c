@@ -30,7 +30,7 @@
 #include "interp-private.h"
 #include "funcref-private.h"
 #include "inferior-private.h"
-#include "symref-private.h"
+#include "reloc-private.h"
 #include "xctx-private.h"
 
 #ifdef DEBUG_INTERPRETER
@@ -176,6 +176,7 @@ enum
 
 #define DTABLE_ADD_OPS(dtable)		\
   do {					\
+    DTABLE_ADD (DW_OP_addr);		\
     DTABLE_ADD (DW_OP_dup);		\
     DTABLE_ADD (DW_OP_drop);		\
     DTABLE_ADD (DW_OP_swap);		\
@@ -328,6 +329,38 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   struct i8x_instr *op;
   DISPATCH (code->entry_point);
 
+  OPERATION (DW_OP_addr):
+    {
+      struct i8x_reloc *reloc = op->addr1;
+
+      /* See comments in reloc-private.h about the limitations
+	 of this cache.  */
+      if (__i8x_unlikely (reloc->cached_from != inf))
+	{
+	  struct i8x_func *func = (struct i8x_func *) code->_ob.parent;
+	  uintptr_t value = I8X_POISON_BAD_RELOCATE_FN;
+
+	  err = inf->relocate_fn (xctx, inf, func, reloc->unrelocated,
+				  &value);
+
+	  if (__i8x_unlikely (err != I8X_OK))
+	    {
+	      /* The resolver is user code and has no access to
+		 i8x_ctx_set_error, so we augment whatever they
+		 returned with a note and location.  */
+	      err = i8x_code_error (code, err, op);
+	      goto unwind_and_return;
+	    }
+
+	  reloc->cached_value = value;
+	  reloc->cached_from = inf;
+	}
+
+      ADJUST_STACK (1);
+      STACK(0).u = reloc->cached_value;
+      CONTINUE;
+    }
+
   OPERATION (DW_OP_dup):
     ENSURE_DEPTH (1);
     ADJUST_STACK (1);
@@ -479,39 +512,6 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
     RETURN_FROM_CALL ();
     SETUP_BYTECODE (ref);
     CONTINUE;
-
-#if 0 // XXX
-  OPERATION (I8X_OP_loadext_sym):
-    {
-      struct i8x_symref *sym = (struct i8x_symref *) op->ext1;
-
-      /* See comments in symref-private.h about the limitations of
-	 this cache.  */
-      if (__i8x_unlikely (sym->cached_from != inf))
-	{
-	  struct i8x_func *func = (struct i8x_func *) code->_ob.parent;
-	  uintptr_t value = I8X_POISON_BAD_SYM_RESOLVER;
-
-	  err = inf->resolve_sym_fn (xctx, inf, func, sym->name, &value);
-
-	  if (__i8x_unlikely (err != I8X_OK))
-	    {
-	      /* The resolver is user code and has no access to
-		 i8x_ctx_set_error, so we augment whatever they
-		 returned with a note and location.  */
-	      err = i8x_code_error (code, err, op);
-	      goto unwind_and_return;
-	    }
-
-	  sym->cached_value = value;
-	  sym->cached_from = inf;
-	}
-
-      ADJUST_STACK (1);
-      STACK(0).u = sym->cached_value;
-      CONTINUE;
-    }
-#endif // 0
 
  unhandled_operation:
   i8x_internal_error (__FILE__, __LINE__, __FUNCTION__,

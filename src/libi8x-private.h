@@ -35,12 +35,12 @@
 /* Poison values.  */
 
 #define I8X_POISON_RELEASED_OBJECT	0xDEADBEEF
-#define I8X_POISON_BAD_CACHED_SYMREF	0xCAFEBABE
-#define I8X_POISON_BAD_SYM_RESOLVER	0xBAADF00D
+#define I8X_POISON_BAD_CACHED_RELOC	0xCAFEBABE
+#define I8X_POISON_BAD_RELOCATE_FN	0xBAADF00D
 
 /* Forward declarations.  */
 
-struct i8x_symref;
+struct i8x_code;
 struct i8x_type;
 
 /* Errors.  */
@@ -191,21 +191,7 @@ I8X_COMMON_OBJECT_FUNCTIONS (code);
 
 i8x_err_e i8x_code_new_from_func (struct i8x_func *func,
 				  struct i8x_code **code);
-
-/*
- * i8x_symref
- *
- * access to symrefs of i8x
- */
-I8X_COMMON_OBJECT_FUNCTIONS (symref);
-I8X_LIST_FUNCTIONS (symref);
-I8X_LISTABLE_OBJECT_FUNCTIONS (symref);
-
-i8x_err_e i8x_symref_new (struct i8x_ctx *ctx, const char *name,
-			  struct i8x_symref **ref);
-const char *i8x_symref_get_name (struct i8x_symref *ref);
-void i8x_symref_invalidate_for_inferior (struct i8x_symref *ref,
-					 struct i8x_inferior *inf);
+struct i8x_list *i8x_code_get_relocs (struct i8x_code *code);
 
 /*
  * i8x_type
@@ -259,10 +245,6 @@ i8x_err_e i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
 					 struct i8x_note *src_note,
 					 struct i8x_funcref **ref);
 void i8x_ctx_forget_funcref (struct i8x_funcref *ref);
-i8x_err_e i8x_ctx_get_symref (struct i8x_ctx *ctx,
-			      const char *name,
-			      struct i8x_symref **ref);
-void i8x_ctx_forget_symref (struct i8x_symref *ref);
 i8x_err_e i8x_ctx_get_functype (struct i8x_ctx *ctx,
 				const char *encoded_ptypes_start,
 				const char *encoded_ptypes_limit,
@@ -280,7 +262,6 @@ i8x_err_e i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
 i8x_err_e i8x_ctx_init_dispatch_table (struct i8x_ctx *ctx,
 				       void **table, size_t table_size,
 				       bool is_debug);
-void i8x_ctx_invalidate_symbols (struct i8x_inferior *inf);
 
 /* i8x_func private functions.  */
 
@@ -341,6 +322,14 @@ struct i8x_object *i8x_ob_get_parent (struct i8x_object *ob);
 const char *i8x_rb_get_ptr (struct i8x_readbuf *rb);
 i8x_err_e i8x_rb_read_funcref (struct i8x_readbuf *rb,
 			       struct i8x_funcref **ref);
+
+/* i8x_reloc private functions.  */
+I8X_LIST_FUNCTIONS (reloc);
+
+i8x_err_e i8x_reloc_new (struct i8x_code *code, uintptr_t unrelocated,
+			 struct i8x_reloc **reloc);
+void i8x_reloc_invalidate_for_inferior (struct i8x_reloc *reloc,
+					struct i8x_inferior *inf);
 
 #ifdef __cplusplus
 } /* extern "C" */

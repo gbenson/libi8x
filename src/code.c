@@ -36,6 +36,12 @@ i8x_code_get_note (struct i8x_code *code)
   return i8x_func_get_note (i8x_code_get_func (code));
 }
 
+struct i8x_list *
+i8x_code_get_relocs (struct i8x_code *code)
+{
+  return code->relocs;
+}
+
 i8x_err_e
 i8x_code_error (struct i8x_code *code, i8x_err_e err,
 		struct i8x_instr *ip)
@@ -277,6 +283,7 @@ static i8x_err_e
 i8x_code_unpack_bytecode (struct i8x_code *code)
 {
   struct i8x_note *note = i8x_code_get_note (code);
+  struct i8x_ctx *ctx = i8x_note_get_ctx (note);
   struct i8x_chunk *chunk;
   size_t itable_size;
   struct i8x_readbuf *rb;
@@ -309,7 +316,7 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   itable_size = code->code_size + 1;  /* For I8X_OP_return.  */
   code->itable = calloc (itable_size, sizeof (struct i8x_instr));
   if (code->itable == NULL)
-    return i8x_out_of_memory (i8x_note_get_ctx (note));
+    return i8x_out_of_memory (ctx);
 
   code->itable_limit = code->itable + itable_size;
 
@@ -323,6 +330,10 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 
   if (chunk == NULL)
     return I8X_OK;
+
+  err = i8x_list_new (ctx, true, &code->relocs);
+  if (err != I8X_OK)
+    return err;
 
   err = i8x_rb_new_from_chunk (chunk, &rb);
   if (err != I8X_OK)
@@ -345,8 +356,7 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 
       if (op->desc == NULL || op->desc->name == NULL)
 	{
-	  notice (i8x_note_get_ctx (note),
-		  "opcode 0x%lx not in optable\n", op->code);
+	  notice (ctx, "opcode 0x%lx not in optable\n", op->code);
 	  err = i8x_code_error (code, I8X_NOTE_UNHANDLED, op);
 	  break;
 	}
@@ -466,6 +476,45 @@ i8x_code_setup_flow (struct i8x_code *code)
   return I8X_OK;
 }
 
+static i8x_err_e
+i8x_code_get_reloc (struct i8x_code *code, uintptr_t unrelocated,
+		    struct i8x_reloc **relocp)
+{
+  struct i8x_listitem *li;
+  struct i8x_reloc *reloc;
+  i8x_err_e err;
+
+  /* If we have this relocation already then return it.  */
+  i8x_list_foreach (code->relocs, li)
+    {
+      reloc = i8x_listitem_get_reloc (li);
+
+      if (i8x_reloc_get_unrelocated (reloc) == unrelocated)
+	{
+	  *relocp = i8x_reloc_ref (reloc);
+
+	  return I8X_OK;
+	}
+    }
+
+  /* It's a new relocation that needs creating.  */
+  err = i8x_reloc_new (code, unrelocated, &reloc);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_list_append_reloc (code->relocs, reloc);
+  if (err != I8X_OK)
+    {
+      reloc = i8x_reloc_unref (reloc);
+
+      return err;
+    }
+
+  *relocp = reloc;
+
+  return I8X_OK;
+}
+
 /* XXX
 static void
 i8x_code_rewrite_op (struct i8x_instr *op, i8x_opcode_t new_opcode)
@@ -478,28 +527,41 @@ i8x_code_rewrite_op (struct i8x_instr *op, i8x_opcode_t new_opcode)
 */
 
 static i8x_err_e
-i8x_code_setup_externals (struct i8x_code *code)
+i8x_code_rewrite_pre_validate (struct i8x_code *code)
 {
   struct i8x_func *func = i8x_code_get_func (code);
   struct i8x_list *externals = i8x_func_get_externals (func);
   struct i8x_instr *op;
+  i8x_err_e err;
 
   i8x_code_foreach_op (code, op)
     {
-      if (op->code != I8_OP_load_external)
-	continue;
-
-      if (op->arg1.u == 0)
-	op->ext1 = i8x_funcref_ref (i8x_func_get_funcref (func));
-      else
+      switch (op->code)
 	{
-	  struct i8x_listitem *li;
+	case DW_OP_addr:
+	  /* Create a relocation and store at op->addr1.  */
+	  err = i8x_code_get_reloc (code, op->arg1.u, &op->addr1);
+	  if (err != I8X_OK)
+	    return err;
+	  break;
 
-	  li = i8x_list_get_item_by_index (externals, op->arg1.u - 1);
-	  if (li == NULL)
-	    return i8x_code_error (code, I8X_NOTE_INVALID, op);
+	case I8_OP_load_external:
+	  /* Put the indicated function reference at op->ext1.  */
+	  if (op->arg1.u == 0)
+	    op->ext1 = i8x_funcref_ref (i8x_func_get_funcref (func));
+	  else
+	    {
+	      struct i8x_listitem *li;
 
-	  op->ext1 = i8x_funcref_ref (i8x_listitem_get_funcref (li));
+	      li = i8x_list_get_item_by_index (externals,
+					       op->arg1.u - 1);
+	      if (li == NULL)
+		return i8x_code_error (code, I8X_NOTE_INVALID, op);
+
+	      op->ext1
+		= i8x_funcref_ref (i8x_listitem_get_funcref (li));
+	    }
+	  break;
 	}
     }
 
@@ -579,7 +641,7 @@ i8x_code_init (struct i8x_code *code)
   if (err != I8X_OK)
     return err;
 
-  err = i8x_code_setup_externals (code);
+  err = i8x_code_rewrite_pre_validate (code);
   if (err != I8X_OK)
     return err;
 
@@ -602,7 +664,12 @@ i8x_code_unlink (struct i8x_object *ob)
 
   if (code->itable != NULL)
     i8x_code_foreach_op (code, op)
-      op->ext1 = i8x_funcref_unref (op->ext1);
+      {
+	op->addr1 = i8x_reloc_unref (op->addr1);
+	op->ext1 = i8x_funcref_unref (op->ext1);
+      }
+
+  code->relocs = i8x_list_unref (code->relocs);
 }
 
 static void

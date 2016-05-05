@@ -173,6 +173,11 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	case IT_EMPTY_SLOT:
 	  NOTE_NOT_VALID ();
 
+	case DW_OP_addr:
+	  ADJUST_STACK (1);
+	  STACK(0) = ptrtype;
+	  break;
+
 	case DW_OP_deref:
 	  ENSURE_DEPTH (1);
 	  ENSURE_TYPE (0, ptrtype);

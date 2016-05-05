@@ -48,7 +48,6 @@ struct i8x_ctx
   const char *error_ptr;	/* Pointer into error_note.  */
 
   struct i8x_list *funcrefs;	/* List of interned function references.  */
-  struct i8x_list *symrefs;	/* List of interned symbol references.  */
   struct i8x_list *functypes;	/* List of interned function types.  */
 
   struct i8x_list *functions;	/* List of registered functions.  */
@@ -173,10 +172,6 @@ i8x_ctx_init (struct i8x_ctx *ctx)
   if (err != I8X_OK)
     return err;
 
-  err = i8x_list_new (ctx, false, &ctx->symrefs);
-  if (err != I8X_OK)
-    return err;
-
   err = i8x_list_new (ctx, false, &ctx->functypes);
   if (err != I8X_OK)
     return err;
@@ -210,7 +205,6 @@ i8x_ctx_unlink (struct i8x_object *ob)
   ctx->functions = i8x_list_unref (ctx->functions);
 
   ctx->funcrefs = i8x_list_unref (ctx->funcrefs);
-  ctx->symrefs = i8x_list_unref (ctx->symrefs);
   ctx->functypes = i8x_list_unref (ctx->functypes);
 
   ctx->integer_type = i8x_type_unref (ctx->integer_type);
@@ -427,11 +421,8 @@ error_message_for (i8x_err_e code)
     case I8X_STACK_OVERFLOW:
       return _("Stack overflow");
 
-    case I8X_NO_SYMBOL_RESOLVER:
-      return _("No symbol resolver");
-
-    case I8X_NO_SUCH_SYMBOL:
-      return _("Unresolved symbol");
+    case I8X_NO_RELOCATE_FN:
+      return _("Inferior has no address relocation function");
 
     default:
       return NULL;
@@ -611,53 +602,6 @@ i8x_ctx_forget_funcref (struct i8x_funcref *ref)
   struct i8x_ctx *ctx = i8x_funcref_get_ctx (ref);
 
   i8x_list_remove_funcref (ctx->funcrefs, ref);
-}
-
-i8x_err_e
-i8x_ctx_get_symref (struct i8x_ctx *ctx, const char *name,
-		    struct i8x_symref **refp)
-{
-  struct i8x_listitem *li;
-  struct i8x_symref *ref;
-  i8x_err_e err;
-
-  /* If we have this reference already then return it.  */
-  i8x_list_foreach (ctx->symrefs, li)
-    {
-      ref = i8x_listitem_get_symref (li);
-
-      if (strcmp (i8x_symref_get_name (ref), name) == 0)
-	{
-	  *refp = i8x_symref_ref (ref);
-
-	  return I8X_OK;
-	}
-    }
-
-  /* It's a new reference that needs creating.  */
-  err = i8x_symref_new (ctx, name, &ref);
-  if (err != I8X_OK)
-    return err;
-
-  err = i8x_list_append_symref (ctx->symrefs, ref);
-  if (err != I8X_OK)
-    {
-      ref = i8x_symref_unref (ref);
-
-      return err;
-    }
-
-  *refp = ref;
-
-  return I8X_OK;
-}
-
-void
-i8x_ctx_forget_symref (struct i8x_symref *ref)
-{
-  struct i8x_ctx *ctx = i8x_symref_get_ctx (ref);
-
-  i8x_list_remove_symref (ctx->symrefs, ref);
 }
 
 i8x_err_e
@@ -924,16 +868,23 @@ i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
   return I8X_OK;
 }
 
-void
-i8x_ctx_invalidate_symbols (struct i8x_inferior *inf)
+I8X_EXPORT void
+i8x_inferior_invalidate_relocs (struct i8x_inferior *inf)
 {
   struct i8x_ctx *ctx = i8x_inferior_get_ctx (inf);
   struct i8x_listitem *li;
 
-  i8x_list_foreach (ctx->symrefs, li)
+  i8x_list_foreach (ctx->functions, li)
     {
-      struct i8x_symref *ref = i8x_listitem_get_symref (li);
+      struct i8x_func *func = i8x_listitem_get_func (li);
+      struct i8x_list *relocs = i8x_func_get_relocs (func);
+      struct i8x_listitem *lj;
 
-      i8x_symref_invalidate_for_inferior (ref, inf);
+      i8x_list_foreach (relocs, lj)
+	{
+	  struct i8x_reloc *reloc = i8x_listitem_get_reloc (lj);
+
+	  i8x_reloc_invalidate_for_inferior (reloc, inf);
+	}
     }
 }

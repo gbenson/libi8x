@@ -68,8 +68,10 @@ struct i8x_instr
   const struct i8x_idesc *desc;		/* Description.  */
   union i8x_value arg1, arg2;		/* Operands.  */
 
-  /* For I8_OP_load_external, a pointer to the external function
-     referenced by arg1.  */
+  /* For DW_OP_addr: the relocation referenced by arg1.  */
+  struct i8x_reloc *addr1;
+
+  /* For I8_OP_load_external: the external function referenced by arg1.  */
   struct i8x_funcref *ext1;
 
   /* Pointers to the next instruction for branch and non-branch
@@ -107,6 +109,8 @@ struct i8x_code
   struct i8x_instr *entry_point;	/* Function entry point.  */
 
   size_t max_stack;		/* Maximum stack this function uses.  */
+
+  struct i8x_list *relocs;	/* List of interned relocations.  */
 };
 
 /* Interpreter private functions.  */

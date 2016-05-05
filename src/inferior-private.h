@@ -28,7 +28,7 @@ struct i8x_inferior
 {
   I8X_OBJECT_FIELDS;
 
-  i8x_resolve_sym_fn_t *resolve_sym_fn;
+  i8x_relocate_fn_t *relocate_fn;
 };
 
 #endif /* _INFERIOR_PRIVATE_H_ */

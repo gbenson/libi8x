@@ -17,18 +17,18 @@
    License along with the Infinity Note Execution Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#ifndef _SYMREF_PRIVATE_H_
-#define _SYMREF_PRIVATE_H_
+#ifndef _RELOC_PRIVATE_H_
+#define _RELOC_PRIVATE_H_
 
 #include <libi8x.h>
 
 /* Symbol references.  */
 
-struct i8x_symref
+struct i8x_reloc
 {
   I8X_OBJECT_FIELDS;
 
-  char *name;	/* The symbol's name.  */
+  uintptr_t unrelocated;	/* Unrelocated value.  */
 
   /* A very primitive cache, keyed by the inferior that looked up
      the value.  It's liable to frequently be invalid if you have
@@ -38,4 +38,4 @@ struct i8x_symref
   struct i8x_inferior *cached_from;
 };
 
-#endif /* _SYMREF_PRIVATE_H_ */
+#endif /* _RELOC_PRIVATE_H_ */

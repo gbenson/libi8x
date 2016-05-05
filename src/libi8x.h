@@ -43,8 +43,7 @@ typedef enum
 
   /* Runtime errors.  */
   I8X_STACK_OVERFLOW = -299,
-  I8X_NO_SYMBOL_RESOLVER,
-  I8X_NO_SUCH_SYMBOL,
+  I8X_NO_RELOCATE_FN,
 }
 i8x_err_e;
 
@@ -77,6 +76,7 @@ struct i8x_listitem;
 struct i8x_note;
 struct i8x_object;
 struct i8x_readbuf;
+struct i8x_reloc;
 struct i8x_xctx;
 
 /* Values.  */
@@ -262,6 +262,7 @@ bool i8x_func_is_native (struct i8x_func *func);
 struct i8x_funcref *i8x_func_get_funcref (struct i8x_func *func);
 struct i8x_note *i8x_func_get_note (struct i8x_func *func);
 struct i8x_list *i8x_func_get_externals (struct i8x_func *func);
+struct i8x_list *i8x_func_get_relocs (struct i8x_func *func);
 
 #define i8x_func_get_fullname(func) \
   i8x_funcref_get_fullname (i8x_func_get_funcref (func))
@@ -287,16 +288,17 @@ bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
  */
 I8X_COMMON_OBJECT_FUNCTIONS (inferior);
 
-typedef i8x_err_e i8x_resolve_sym_fn_t (struct i8x_xctx *xctx,
-					struct i8x_inferior *inf,
-					struct i8x_func *func,
-					const char *name,
-					uintptr_t *result);
+typedef i8x_err_e i8x_relocate_fn_t (struct i8x_xctx *xctx,
+				     struct i8x_inferior *inf,
+				     struct i8x_func *func,
+				     uintptr_t unrelocated,
+				     uintptr_t *result);
 
 i8x_err_e i8x_inferior_new (struct i8x_ctx *ctx,
 			    struct i8x_inferior **inf);
-void i8x_inferior_set_resolve_sym_fn (struct i8x_inferior *inf,
-				      i8x_resolve_sym_fn_t *resolve_sym_fn);
+void i8x_inferior_set_relocate_fn (struct i8x_inferior *inf,
+				   i8x_relocate_fn_t *relocate_fn);
+void i8x_inferior_invalidate_relocs (struct i8x_inferior *inf);
 
 /*
  * i8x_list
@@ -366,6 +368,16 @@ i8x_err_e i8x_rb_read_bytes (struct i8x_readbuf *rb, size_t nbytes,
 			     const char **result);
 i8x_err_e i8x_rb_read_offset_string (struct i8x_readbuf *rb,
 				     const char **result);
+
+/*
+ * i8x_reloc
+ *
+ * access to relocs of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (reloc);
+I8X_LISTABLE_OBJECT_FUNCTIONS (reloc);
+
+uintptr_t i8x_reloc_get_unrelocated (struct i8x_reloc *reloc);
 
 /*
  * i8x_xctx

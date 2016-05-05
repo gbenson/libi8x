@@ -21,11 +21,12 @@
 #include "inferior-private.h"
 
 static i8x_err_e
-no_resolver (struct i8x_xctx *xctx, struct i8x_inferior *inf,
-	     struct i8x_func *func, const char *name, uintptr_t *result)
+no_relocate_fn (struct i8x_xctx *xctx, struct i8x_inferior *inf,
+		struct i8x_func *func, uintptr_t unresolved,
+		uintptr_t *result)
 {
   /* Don't use i8x_ctx_set_error, the interpreter does it for us.  */
-  return I8X_NO_SYMBOL_RESOLVER;
+  return I8X_NO_RELOCATE_FN;
 }
 
 static void
@@ -33,7 +34,7 @@ i8x_inferior_unlink (struct i8x_object *ob)
 {
   struct i8x_inferior *inf = (struct i8x_inferior *) ob;
 
-  i8x_ctx_invalidate_symbols (inf);
+  i8x_inferior_invalidate_relocs (inf);
 }
 
 const struct i8x_object_ops i8x_inferior_ops =
@@ -54,7 +55,7 @@ i8x_inferior_new (struct i8x_ctx *ctx, struct i8x_inferior **inf)
   if (err != I8X_OK)
     return err;
 
-  i->resolve_sym_fn = no_resolver;
+  i->relocate_fn = no_relocate_fn;
 
   *inf = i;
 
@@ -62,8 +63,8 @@ i8x_inferior_new (struct i8x_ctx *ctx, struct i8x_inferior **inf)
 }
 
 I8X_EXPORT void
-i8x_inferior_set_resolve_sym_fn (struct i8x_inferior *inf,
-				 i8x_resolve_sym_fn_t *resolve_sym_fn)
+i8x_inferior_set_relocate_fn (struct i8x_inferior *inf,
+			      i8x_relocate_fn_t *relocate_fn)
 {
-  inf->resolve_sym_fn = resolve_sym_fn;
+  inf->relocate_fn = relocate_fn;
 }
