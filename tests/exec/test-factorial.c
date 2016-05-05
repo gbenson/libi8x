@@ -31,8 +31,11 @@
 
 #define NUM_TESTS 2
 static const char *tests[NUM_TESTS] = {
-  "corpus/i8c/0.0.2/test_loops/test_basic_0001",	/* Iterative */
-  "corpus/i8c/0.0.2/test_debug_code/test_loggers_0001",	/* Recursive */
+  /* Iterative */
+  "corpus/i8c/0.0.3/%d%s/test_loops/test_basic/0001-0001",
+
+  /* Recursive */
+  "corpus/i8c/0.0.3/%d%s/test_debug_code/test_loggers/0001-0001",
 };
 
 #define NUM_FACTORIALS (sizeof (factorials) / sizeof (intptr_t))
@@ -106,17 +109,17 @@ load_and_register (struct i8x_ctx *ctx, const char *filename,
 static void
 do_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
 	 struct i8x_inferior *inf, const char *test_note,
-	 const char *byte_order_name)
+	 int wordsize, const char *byte_order_name)
 {
   char filename[BUFSIZ];
   struct i8x_func *func;
   struct i8x_funcref *ref;
-  int max_input = __WORDSIZE == 64 ? 20 : 12; // XXX
+  int max_input = wordsize == 64 ? 20 : 12;
   i8x_err_e err;
   int len;
 
   len = snprintf (filename, sizeof (filename),
-		  "%s/%s/0001", test_note, byte_order_name);
+		  test_note, wordsize, byte_order_name);
   CHECK ((size_t) len < sizeof (filename));
 
   err = load_and_register (ctx, filename, &func);
@@ -140,11 +143,11 @@ do_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
 
 void
 i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
-		    struct i8x_inferior *inf,
-		    i8x_byte_order_e byte_order)
+		    struct i8x_inferior *inf, int wordsize,
+		    bool bytes_reversed)
 {
-  const char *byte_order_name = i8x_byte_order_name (byte_order);
+  const char *byte_order_name = i8x_byte_order_name (bytes_reversed);
 
   for (int i = 0; i < NUM_TESTS; i++)
-    do_test (ctx, xctx, inf, tests[i], byte_order_name);
+    do_test (ctx, xctx, inf, tests[i], wordsize, byte_order_name);
 }

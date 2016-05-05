@@ -53,6 +53,15 @@ i8x_code_reset_is_visited (struct i8x_code *code)
     op->is_visited = false;
 }
 
+/* Architecture specifiers.  */
+
+#define ARCHSPEC_1(msb, lsb, wordsize) \
+  ((((msb) ^ (wordsize)) << 8) | ((lsb) ^ (wordsize)))
+
+#define ARCHSPEC(wordsize, is_swapped)			\
+  (!(is_swapped) ? ARCHSPEC_1 ('i', '8', wordsize)	\
+		 : ARCHSPEC_1 ('8', 'i', wordsize))
+
 static i8x_err_e
 i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
 {
@@ -61,6 +70,7 @@ i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
   struct i8x_chunk *chunk;
   struct i8x_readbuf *rb;
   const char *location;
+  uint16_t archspec;
   i8x_err_e err;
 
   err = i8x_note_get_unique_chunk (note, I8_CHUNK_CODEINFO,
@@ -70,7 +80,7 @@ i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
 
   if (chunk == NULL)
     {
-      i8x_assert (code->byte_order == I8X_BYTE_ORDER_UNKNOWN);
+      i8x_assert (code->wordsize == 0);
       code->max_stack = num_params;
 
       return I8X_OK;
@@ -83,12 +93,35 @@ i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
   if (err != I8X_OK)
     return err;
 
-  err = i8x_rb_read_byte_order_mark (rb);
+  /* Read the architecture specifier.  */
+  location = i8x_rb_get_ptr (rb);
+  i8x_rb_set_swap_bytes (rb, false);
+  err = i8x_rb_read_uint16_t (rb, &archspec);
   if (err != I8X_OK)
-    goto cleanup;
+    return err;
 
-  code->byte_order = i8x_rb_get_byte_order (rb);
+  i8x_assert (code->wordsize == 0);
+  for (int wordsize = 32; wordsize <= __WORDSIZE; wordsize += 32)
+    {
+      for (int is_swapped = 0; is_swapped <= 1; is_swapped++)
+	{
+	  if (archspec == ARCHSPEC (wordsize, is_swapped))
+	    {
+	      code->wordsize = wordsize;
+	      code->bytes_swapped = is_swapped;
 
+	      break;
+	    }
+	}
+
+      if (code->wordsize != 0)
+	break;
+    }
+
+  if (code->wordsize == 0)
+    return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
+
+  /* Read max_stack.  */
   location = i8x_rb_get_ptr (rb);
   err = i8x_rb_read_uleb128 (rb, &code->max_stack);
   if (err != I8X_OK)
@@ -274,7 +307,8 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   if (err != I8X_OK)
     return err;
 
-  i8x_rb_set_byte_order (rb, code->byte_order);
+  if (code->wordsize != 0)
+    i8x_rb_set_swap_bytes (rb, code->bytes_swapped);
 
   while (i8x_rb_bytes_left (rb) > 0)
     {

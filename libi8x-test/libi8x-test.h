@@ -43,13 +43,13 @@ void __i8x_test_fail (const char *file, int line,
 		      const char *format, ...)
   __attribute__ ((__noreturn__, format (printf, 5, 6)));
 
-const char *i8x_byte_order_name (i8x_byte_order_e byte_order);
+const char *i8x_byte_order_name (bool bytes_reversed);
 
 void i8x_execution_test_main (void) __attribute__ ((__noreturn__));
 
 void i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
-			 struct i8x_inferior *inf,
-			 i8x_byte_order_e byte_order);
+			 struct i8x_inferior *inf, int wordsize,
+			 bool bytes_reversed);
 
 #ifdef __cplusplus
 } /* extern "C" */

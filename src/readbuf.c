@@ -24,7 +24,8 @@ struct i8x_readbuf
 {
   I8X_OBJECT_FIELDS;
 
-  i8x_byte_order_e byte_order;	/* Byte order for multibyte values.  */
+  bool swap_bytes;	/* True if multibyte values should be swapped.  */
+  bool swap_bytes_set;	/* True if swap_bytes has been set.  */
 
   const char *start;	/* Pointer to first byte of buffer.  */
   const char *limit;	/* Pointer to byte after last byte of buffer.  */
@@ -81,16 +82,11 @@ i8x_rb_get_note (struct i8x_readbuf *rb)
     i8x_ob_get_parent ((struct i8x_object *) rb);
 }
 
-I8X_EXPORT i8x_byte_order_e
-i8x_rb_get_byte_order (struct i8x_readbuf *rb)
-{
-  return rb->byte_order;
-}
-
 I8X_EXPORT void
-i8x_rb_set_byte_order (struct i8x_readbuf *rb, i8x_byte_order_e order)
+i8x_rb_set_swap_bytes (struct i8x_readbuf *rb, bool swap_bytes)
 {
-  rb->byte_order = order;
+  rb->swap_bytes = swap_bytes;
+  rb->swap_bytes_set = true;
 }
 
 const char *
@@ -103,29 +99,6 @@ I8X_EXPORT size_t
 i8x_rb_bytes_left (struct i8x_readbuf *rb)
 {
   return rb->limit - rb->ptr;
-}
-
-I8X_EXPORT i8x_err_e
-i8x_rb_read_byte_order_mark (struct i8x_readbuf *rb)
-{
-  const char *saved_ptr = rb->ptr;
-  i8x_byte_order_e saved_order = rb->byte_order;
-  uint16_t new_order;
-  i8x_err_e err;
-
-  rb->byte_order = I8X_BYTE_ORDER_STANDARD;
-  err = i8x_rb_read_uint16_t (rb, &new_order);
-  rb->byte_order = saved_order;
-  if (err != I8X_OK)
-    return err;
-
-  if (new_order != I8X_BYTE_ORDER_STANDARD
-      && new_order != I8X_BYTE_ORDER_REVERSED)
-    return i8x_rb_error (rb, I8X_NOTE_INVALID, saved_ptr);
-
-  rb->byte_order = new_order;
-
-  return I8X_OK;
 }
 
 #define CHECK_HAS_BYTES(rb, n)					\
@@ -167,10 +140,9 @@ i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result)
     tmp = *(TYPE *) rb->ptr;						\
     rb->ptr += sizeof (TYPE);						\
 									\
-    if (rb->byte_order == I8X_BYTE_ORDER_REVERSED)			\
+    i8x_assert (rb->swap_bytes_set);					\
+    if (rb->swap_bytes)							\
       tmp = BSWAP (tmp);						\
-    else								\
-      i8x_assert (rb->byte_order == I8X_BYTE_ORDER_STANDARD);		\
 									\
     *result = tmp;							\
 									\

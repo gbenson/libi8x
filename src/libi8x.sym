@@ -57,10 +57,8 @@ global:
 	i8x_rb_new_from_note;
 	i8x_rb_new_from_chunk;
 	i8x_rb_get_note;
+	i8x_rb_set_swap_bytes;
 	i8x_rb_bytes_left;
-	i8x_rb_get_byte_order;
-	i8x_rb_set_byte_order;
-	i8x_rb_read_byte_order_mark;
 	i8x_rb_read_int8_t;
 	i8x_rb_read_uint8_t;
 	i8x_rb_read_int16_t;

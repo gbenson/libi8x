@@ -18,6 +18,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
+#include <byteswap.h>
 #include <libi8x-test.h>
 
 void
@@ -45,24 +46,15 @@ __i8x_test_fail (const char *file, int line,
 }
 
 const char *
-i8x_byte_order_name (i8x_byte_order_e byte_order)
+i8x_byte_order_name (bool bytes_reversed)
 {
-  uint16_t tmp = (uint16_t) byte_order;
-  const char *buf = (const char *) &tmp;
+  static const char *names[2] = {"be", "el"};
+  uint16_t tmp = 1;
 
-  switch (buf[0])
-    {
-    case 'i':
-      CHECK (buf[1] == '8');
-      return "be";
+  if (bytes_reversed)
+    tmp = bswap_16 (tmp);
 
-    case '8':
-      CHECK (buf[1] == 'i');
-      return "el";
-
-    default:
-      FAIL ("Invalid byte order 0x%04x", tmp);
-    }
+  return names[*((unsigned char *) &tmp)];
 }
 
 void
@@ -89,12 +81,15 @@ i8x_execution_test_main (void)
       err = i8x_inferior_new (ctx, &inf);
       CHECK_CALL (ctx, err);
 
-      /* Run each test in native byte order first, and then
-	 in reversed byte order to catch any missing swaps.  */
-      for (int is_reversed = 0; is_reversed <= 1; is_reversed++)
-	i8x_execution_test (ctx, xctx, inf,
-			    is_reversed == 0 ? I8X_BYTE_ORDER_STANDARD
-			                     : I8X_BYTE_ORDER_REVERSED);
+      /* Run each test in 32-bit mode first, and then 64-bit
+	 mode if supported.  */
+      for (int wordsize = 32; wordsize <= __WORDSIZE; wordsize += 32)
+	{
+	  /* Run each test in native byte order first, and then
+	     in reversed byte order to catch any missing swaps.  */
+	  for (int is_reversed = 0; is_reversed <= 1; is_reversed++)
+	    i8x_execution_test (ctx, xctx, inf, wordsize, is_reversed);
+	}
 
       i8x_inferior_unref (inf);
       i8x_xctx_unref (xctx);
