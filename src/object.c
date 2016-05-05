@@ -186,20 +186,6 @@ i8x_ob_get_parent (struct i8x_object *ob)
   return ob->parent;
 }
 
-struct i8x_object *
-i8x_ob_cast (struct i8x_object *ob, const struct i8x_object_ops *ops)
-{
-  if (ob == NULL)
-    return NULL;
-
-  i8x_assert_not_poisoned (ob);
-
-  if (ob->ops == ops)
-    return ob;
-  else
-    return NULL;
-}
-
 I8X_EXPORT struct i8x_ctx *
 i8x_ob_get_ctx (struct i8x_object *ob)
 {

@@ -93,12 +93,6 @@ i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
   return I8X_OK;
 }
 
-struct i8x_funcref *
-i8x_object_as_funcref (struct i8x_object *ob)
-{
-  return (struct i8x_funcref *) i8x_ob_cast (ob, &i8x_funcref_ops);
-}
-
 I8X_EXPORT const char *
 i8x_funcref_get_fullname (struct i8x_funcref *ref)
 {
