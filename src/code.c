@@ -174,6 +174,7 @@ i8x_code_read_opcode (struct i8x_readbuf *rb, i8x_opcode_t *opcode)
 
 static i8x_err_e
 i8x_code_read_operand (struct i8x_readbuf *rb,
+		       struct i8x_code *code,
 		       i8x_operand_type_e type,
 		       union i8x_value *operand)
 {
@@ -183,6 +184,26 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
   union i8x_value result;
   bool is_signed;
   i8x_err_e err;
+
+  if (type == I8X_OPR_ADDRESS)
+    {
+      if (code->wordsize > __WORDSIZE)
+	return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
+
+      switch (code->wordsize)
+	{
+	case 32:
+	  type = I8X_OPR_UINT32;
+	  break;
+
+	case 64:
+	  type = I8X_OPR_UINT64;
+	  break;
+
+	default:
+	  return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
+	}
+    }
 
   switch (type)
     {
@@ -330,11 +351,11 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 	  break;
 	}
 
-      err = i8x_code_read_operand (rb, op->desc->arg1, &op->arg1);
+      err = i8x_code_read_operand (rb, code, op->desc->arg1, &op->arg1);
       if (err != I8X_OK)
 	break;
 
-      err = i8x_code_read_operand (rb, op->desc->arg2, &op->arg2);
+      err = i8x_code_read_operand (rb, code, op->desc->arg2, &op->arg2);
       if (err != I8X_OK)
 	break;
 
