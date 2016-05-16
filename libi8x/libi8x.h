@@ -222,6 +222,10 @@ i8x_err_e i8x_ctx_register_func (struct i8x_ctx *ctx,
 				 struct i8x_func *func);
 i8x_err_e i8x_ctx_unregister_func (struct i8x_ctx *ctx,
 				   struct i8x_func *func);
+i8x_err_e i8x_ctx_import_bytecode (struct i8x_ctx *ctx,
+				   const char *buf, size_t bufsiz,
+				   const char *srcname, ssize_t srcoffset,
+				   struct i8x_func **func);
 i8x_err_e i8x_ctx_import_native (struct i8x_ctx *ctx,
 				 const char *provider, const char *name,
 				 const char *ptypes, const char *rtypes,

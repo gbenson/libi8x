@@ -68,13 +68,11 @@ static intptr_t factorials[] =
 
 static i8x_err_e
 load_and_register (struct i8x_ctx *ctx, const char *filename,
-		   struct i8x_func **funcp)
+		   struct i8x_func **func)
 {
   struct stat sb;
   char *buf;
   int fd;
-  struct i8x_note *note;
-  struct i8x_func *func;
   i8x_err_e err;
 
   fd = open (filename, O_RDONLY);
@@ -87,21 +85,11 @@ load_and_register (struct i8x_ctx *ctx, const char *filename,
 
   CHECK (close (fd) != -1);
 
-  err = i8x_note_new_from_buf (ctx, buf, sb.st_size, filename, 0, &note);
+  err = i8x_ctx_import_bytecode (ctx, buf, sb.st_size, filename, 0, func);
+
   CHECK (munmap (buf, sb.st_size) != -1);
-  if (err != I8X_OK)
-    return err;
 
-  err = i8x_func_new_from_note (note, &func);
-  i8x_note_unref (note);
-  if (err != I8X_OK)
-    return err;
-
-  err = i8x_ctx_register_func (ctx, func);
-  i8x_func_unref (func);
   CHECK_CALL (ctx, err);
-
-  *funcp = i8x_func_ref (func);
 
   return I8X_OK;
 }

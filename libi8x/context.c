@@ -768,6 +768,37 @@ i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
 /* convenience */
 
 I8X_EXPORT i8x_err_e
+i8x_ctx_import_bytecode (struct i8x_ctx *ctx,
+			 const char *buf, size_t bufsiz,
+			 const char *srcname, ssize_t srcoffset,
+			 struct i8x_func **func)
+{
+  struct i8x_note *note;
+  struct i8x_func *f;
+  i8x_err_e err;
+
+  err = i8x_note_new_from_buf (ctx, buf, bufsiz, srcname, srcoffset,
+			       &note);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_func_new_from_note (note, &f);
+  i8x_note_unref (note);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_ctx_register_func (ctx, f);
+  if (err == I8X_OK && func != NULL)
+    *func = f;
+  else
+    i8x_func_unref (f);
+
+  return err;
+}
+
+/* convenience */
+
+I8X_EXPORT i8x_err_e
 i8x_ctx_import_native (struct i8x_ctx *ctx, const char *provider,
 		       const char *name, const char *ptypes,
 		       const char *rtypes, i8x_nat_fn_t *impl_fn,

@@ -111,34 +111,19 @@ process_notes (struct i8x_ctx *ctx,
     {
       const char *name = (const char *) data->d_buf + name_offset;
       const char *desc = (const char *) data->d_buf + desc_offset;
-      struct i8x_note *note;
-      struct i8x_func *func;
       i8x_err_e err;
 
       if (strncmp (name, "GNU", 4) || nhdr.n_type != NT_GNU_INFINITY)
 	continue;
 
-      /* Create the i8x_note.  */
-      err = i8x_note_new_from_buf (ctx, desc, nhdr.n_descsz,
-				   ef->filename,
-				   scn_offset + desc_offset, &note);
-      if (err != I8X_OK)
-	error_i8x (ctx, err);
-
-      /* Create a function from the note.  */
-      err = i8x_func_new_from_note (note, &func);
-      i8x_note_unref (note);
+      err = i8x_ctx_import_bytecode (ctx, desc, nhdr.n_descsz,
+				     ef->filename,
+				     scn_offset + desc_offset, NULL);
       if (err != I8X_OK)
 	{
 	  warn_i8x (ctx, err);
 	  continue;
 	}
-
-      /* Register the function.  */
-      err = i8x_ctx_register_func (ctx, func);
-      i8x_func_unref (func);
-      if (err != I8X_OK)
-	error_i8x (ctx, err);
     }
 }
 
