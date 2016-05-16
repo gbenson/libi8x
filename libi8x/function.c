@@ -140,7 +140,7 @@ i8x_bcf_init (struct i8x_func *func)
   if (err != I8X_OK)
     return err;
 
-  err = i8x_code_new_from_func (func, &func->code);
+  err = i8x_code_new (func, &func->code);
   if (err != I8X_OK)
     return err;
 
@@ -170,7 +170,7 @@ const struct i8x_object_ops i8x_func_ops =
   };
 
 I8X_EXPORT i8x_err_e
-i8x_func_new_from_note (struct i8x_note *note, struct i8x_func **func)
+i8x_func_new_bytecode (struct i8x_note *note, struct i8x_func **func)
 {
   struct i8x_ctx *ctx = i8x_note_get_ctx (note);
   struct i8x_func *f;

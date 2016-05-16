@@ -777,12 +777,11 @@ i8x_ctx_import_bytecode (struct i8x_ctx *ctx,
   struct i8x_func *f;
   i8x_err_e err;
 
-  err = i8x_note_new_from_buf (ctx, buf, bufsiz, srcname, srcoffset,
-			       &note);
+  err = i8x_note_new (ctx, buf, bufsiz, srcname, srcoffset, &note);
   if (err != I8X_OK)
     return err;
 
-  err = i8x_func_new_from_note (note, &f);
+  err = i8x_func_new_bytecode (note, &f);
   i8x_note_unref (note);
   if (err != I8X_OK)
     return err;

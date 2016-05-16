@@ -690,7 +690,7 @@ const struct i8x_object_ops i8x_code_ops =
   };
 
 i8x_err_e
-i8x_code_new_from_func (struct i8x_func *func, struct i8x_code **code)
+i8x_code_new (struct i8x_func *func, struct i8x_code **code)
 {
   struct i8x_code *c;
   i8x_err_e err;

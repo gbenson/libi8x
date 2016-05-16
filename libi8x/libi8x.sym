@@ -19,7 +19,7 @@ global:
 	i8x_ctx_import_bytecode;
 	i8x_ctx_import_native;
 
-	i8x_func_new_from_note;
+	i8x_func_new_bytecode;
 	i8x_func_new_native;
 	i8x_func_get_funcref;
 	i8x_func_get_note;
@@ -42,7 +42,7 @@ global:
 
 	i8x_listitem_get_object;
 
-	i8x_note_new_from_buf;
+	i8x_note_new;
 	i8x_note_get_src_name;
 	i8x_note_get_src_offset;
 	i8x_note_get_encoded_size;

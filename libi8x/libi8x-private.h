@@ -189,8 +189,7 @@ void i8x_list_remove (struct i8x_list *list, struct i8x_object *ob);
  */
 I8X_COMMON_OBJECT_FUNCTIONS (code);
 
-i8x_err_e i8x_code_new_from_func (struct i8x_func *func,
-				  struct i8x_code **code);
+i8x_err_e i8x_code_new (struct i8x_func *func, struct i8x_code **code);
 struct i8x_list *i8x_code_get_relocs (struct i8x_code *code);
 
 /*
@@ -222,8 +221,8 @@ struct i8x_list *i8x_type_get_rtypes (struct i8x_type *type);
 
 I8X_LIST_FUNCTIONS (chunk);
 
-i8x_err_e i8x_chunk_new_from_readbuf (struct i8x_readbuf *rb,
-				      struct i8x_chunk **chunk);
+i8x_err_e i8x_chunk_new (struct i8x_readbuf *rb,
+			 struct i8x_chunk **chunk);
 i8x_err_e i8x_chunk_unhandled_error (struct i8x_chunk *chunk);
 i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
 

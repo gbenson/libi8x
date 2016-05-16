@@ -42,8 +42,7 @@ const struct i8x_object_ops i8x_chunk_ops =
   };
 
 i8x_err_e
-i8x_chunk_new_from_readbuf (struct i8x_readbuf *rb,
-			    struct i8x_chunk **chunk)
+i8x_chunk_new (struct i8x_readbuf *rb, struct i8x_chunk **chunk)
 {
   struct i8x_note *note = i8x_rb_get_note (rb);
   struct i8x_ctx *ctx = i8x_note_get_ctx (note);
