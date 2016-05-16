@@ -89,26 +89,12 @@ union i8x_value
   struct i8x_funcref *f;	/* Function values.  */
 };
 
-/* Native functions.  */
+/* Native function implementations.  */
 
 typedef i8x_err_e i8x_nat_fn_t (struct i8x_xctx *xctx,
 				struct i8x_inferior *inf,
 				union i8x_value *args,
 				union i8x_value *rets);
-
-/* Tables of native functions, for i8x_ctx_register_native_funcs.  */
-
-struct i8x_native_fn
-{
-  const char *provider;
-  const char *name;
-  const char *encoded_ptypes;
-  const char *encoded_rtypes;
-
-  i8x_nat_fn_t *impl_fn;
-};
-
-#define I8X_END_TABLE {NULL}
 
 /*
  * i8x_object
@@ -236,14 +222,11 @@ i8x_err_e i8x_ctx_register_func (struct i8x_ctx *ctx,
 				 struct i8x_func *func);
 i8x_err_e i8x_ctx_unregister_func (struct i8x_ctx *ctx,
 				   struct i8x_func *func);
-i8x_err_e i8x_ctx_register_native_func (struct i8x_ctx *ctx,
-					const char *provider,
-					const char *name,
-					const char *encoded_ptypes,
-					const char *encoded_rtypes,
-					i8x_nat_fn_t *impl_fn);
-i8x_err_e i8x_ctx_register_native_funcs (struct i8x_ctx *ctx,
-					 const struct i8x_native_fn *table);
+i8x_err_e i8x_ctx_import_native (struct i8x_ctx *ctx,
+				 const char *provider, const char *name,
+				 const char *ptypes, const char *rtypes,
+				 i8x_nat_fn_t *impl_fn,
+				 struct i8x_func **func);
 
 /*
  * i8x_func

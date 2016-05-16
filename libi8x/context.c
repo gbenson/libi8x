@@ -768,52 +768,29 @@ i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
 /* convenience */
 
 I8X_EXPORT i8x_err_e
-i8x_ctx_register_native_func (struct i8x_ctx *ctx,
-			      const char *provider, const char *name,
-			      const char *ptypes, const char *rtypes,
-			      i8x_nat_fn_t *impl_fn)
+i8x_ctx_import_native (struct i8x_ctx *ctx, const char *provider,
+		       const char *name, const char *ptypes,
+		       const char *rtypes, i8x_nat_fn_t *impl_fn,
+		       struct i8x_func **func)
 {
   struct i8x_funcref *sig;
-  struct i8x_func *func;
+  struct i8x_func *f;
   i8x_err_e err;
 
   err = i8x_ctx_get_funcref (ctx, provider, name, ptypes, rtypes, &sig);
   if (err != I8X_OK)
     return err;
 
-  err = i8x_func_new_native (ctx, sig, impl_fn, &func);
+  err = i8x_func_new_native (ctx, sig, impl_fn, &f);
   i8x_funcref_unref (sig);
   if (err != I8X_OK)
     return err;
 
-  err = i8x_ctx_register_func (ctx, func);
-  i8x_func_unref (func);
-
-  return err;
-}
-
-/* convenience */
-/* note it can stop mid-way! */
-
-I8X_EXPORT i8x_err_e
-i8x_ctx_register_native_funcs (struct i8x_ctx *ctx,
-			       const struct i8x_native_fn *table)
-{
-  i8x_err_e err = I8X_OK;
-
-  while (table->provider != NULL)
-    {
-      err = i8x_ctx_register_native_func (ctx,
-					  table->provider,
-					  table->name,
-					  table->encoded_ptypes,
-					  table->encoded_rtypes,
-					  table->impl_fn);
-      if (err != I8X_OK)
-	break;
-
-      table++;
-    }
+  err = i8x_ctx_register_func (ctx, f);
+  if (err == I8X_OK && func != NULL)
+    *func = f;
+  else
+    i8x_func_unref (f);
 
   return err;
 }

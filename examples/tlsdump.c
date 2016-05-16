@@ -279,12 +279,24 @@ ps_get_thread_area (struct i8x_xctx *xctx, struct i8x_inferior *inf,
   error ("%s:%d: Not implemented.", __FILE__, __LINE__);
 }
 
-static struct i8x_native_fn native_func_table[] =
+struct native_func
+{
+  const char *provider;
+  const char *name;
+  const char *ptypes;
+  const char *rtypes;
+
+  i8x_nat_fn_t *impl_fn;
+};
+
+#define END_TABLE {NULL}
+
+static struct native_func native_func_table[] =
 {
   {"procservice", "getpid",          "",   "i",  ps_getpid},
   {"procservice", "get_thread_area", "ii", "ip", ps_get_thread_area},
 
-  I8X_END_TABLE
+  END_TABLE
 };
 
 static void
@@ -292,6 +304,7 @@ tlsdump_process (pid_t pid)
 {
   struct i8x_ctx *ctx;
   struct userdata ud;
+  struct native_func *nf;
   struct i8x_funcref *fr;
   struct i8x_inferior *inf;
   struct i8x_xctx *xctx;
@@ -309,9 +322,15 @@ tlsdump_process (pid_t pid)
   ud.elfs = NULL;
   i8x_ctx_set_userdata (ctx, &ud, NULL);
 
-  err = i8x_ctx_register_native_funcs (ctx, native_func_table);
-  if (err != I8X_OK)
-    error_i8x (ctx, err);
+  for (nf = native_func_table; nf->provider != NULL; nf++)
+    {
+      err = i8x_ctx_import_native (ctx,
+				   nf->provider, nf->name,
+				   nf->ptypes, nf->rtypes,
+				   nf->impl_fn, NULL);
+      if (err != I8X_OK)
+	error_i8x (ctx, err);
+    }
 
   read_mappings (ctx);
 
