@@ -21,7 +21,7 @@ SUBDIRS = corpus
 
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
-	-I${top_srcdir}/src \
+	-I${top_srcdir}/libi8x \
 	-I${top_srcdir}/libi8x-test
 
 AM_CFLAGS = ${my_CFLAGS}

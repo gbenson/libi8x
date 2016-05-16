@@ -23,7 +23,7 @@ AC_INIT([libi8x],
         [infinity@sourceware.org],
         [libi8x],
         [https://sourceware.org/gdb/wiki/Infinity])
-AC_CONFIG_SRCDIR([src/libi8x-private.h])
+AC_CONFIG_SRCDIR([libi8x/libi8x.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([
 	check-news
@@ -101,7 +101,7 @@ AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES([
         Makefile
 	examples/Makefile
-	src/Makefile
+	libi8x/Makefile
 	libi8x-test/Makefile
 	tests/Makefile
 	tests/corpus/Makefile

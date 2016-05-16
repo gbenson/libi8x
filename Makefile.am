@@ -19,4 +19,4 @@
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
-SUBDIRS = src libi8x-test examples tests
+SUBDIRS = libi8x libi8x-test examples tests

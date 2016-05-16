@@ -82,8 +82,8 @@ EXTRA_DIST += libi8x.sym optable.c
 
 libi8x_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIBI8X_CURRENT):$(LIBI8X_REVISION):$(LIBI8X_AGE) \
-	-Wl,--version-script=$(top_srcdir)/src/libi8x.sym
-libi8x_la_DEPENDENCIES = ${top_srcdir}/src/libi8x.sym
+	-Wl,--version-script=$(top_srcdir)/libi8x/libi8x.sym
+libi8x_la_DEPENDENCIES = ${top_srcdir}/libi8x/libi8x.sym
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libi8x.pc

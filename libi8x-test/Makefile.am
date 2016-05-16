@@ -19,12 +19,12 @@
 
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
-	-I${top_srcdir}/src
+	-I${top_srcdir}/libi8x
 
 AM_CFLAGS = ${my_CFLAGS}
 
 AM_LDFLAGS = \
-	$(top_builddir)/src/libi8x.la
+	$(top_builddir)/libi8x/libi8x.la
 
 noinst_LTLIBRARIES = libi8x-test.la
 

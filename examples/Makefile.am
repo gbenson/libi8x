@@ -23,7 +23,7 @@ noinst_PROGRAMS =
 
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
-	-I${top_srcdir}/src
+	-I${top_srcdir}/libi8x
 
 AM_CFLAGS = ${my_CFLAGS}
 
@@ -31,5 +31,5 @@ if HAVE_LIBELF
 noinst_PROGRAMS += tlsdump
 tlsdump_SOURCES = tlsdump.c
 tlsdump_CFLAGS = $(LIBELF_CFLAGS)
-tlsdump_LDADD = $(top_builddir)/src/libi8x.la $(LIBELF_LIBS)
+tlsdump_LDADD = $(top_builddir)/libi8x/libi8x.la $(LIBELF_LIBS)
 endif
