@@ -64,6 +64,7 @@ libi8x_la_SOURCES = \
 	code.c \
 	context.c \
 	dbg-interp.c \
+	errors.c \
 	function.c \
 	funcref.c \
 	inferior.c \
@@ -74,7 +75,6 @@ libi8x_la_SOURCES = \
 	readbuf.c \
 	reloc.c \
 	type.c \
-	util.c \
 	validator.c \
 	xctx.c
 
