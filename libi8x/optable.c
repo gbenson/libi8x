@@ -163,7 +163,7 @@ static struct i8x_idesc optable[] =
   /* 0x100..0x10f */
   {"I8_OP_call"},
   {"I8_OP_load_external", I8X_OPR_ULEB128},
-  {"I8_OP_deref_int", I8X_OPR_INT8},
+  {"I8_OP_deref_int", I8X_OPR_SLEB128},
   {NULL},
   {NULL}, {NULL}, {NULL}, {NULL},
   {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL},
