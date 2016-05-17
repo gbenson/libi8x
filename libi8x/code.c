@@ -520,7 +520,6 @@ i8x_code_get_reloc (struct i8x_code *code, uintptr_t unrelocated,
   return I8X_OK;
 }
 
-/* XXX
 static void
 i8x_code_rewrite_op (struct i8x_instr *op, i8x_opcode_t new_opcode)
 {
@@ -529,7 +528,6 @@ i8x_code_rewrite_op (struct i8x_instr *op, i8x_opcode_t new_opcode)
   op->code = new_opcode;
   op->desc = &optable[new_opcode];
 }
-*/
 
 static i8x_err_e
 i8x_code_rewrite_pre_validate (struct i8x_code *code)
@@ -568,6 +566,72 @@ i8x_code_rewrite_pre_validate (struct i8x_code *code)
 	    }
 	  break;
 	}
+    }
+
+  i8x_code_dump_itable (code, __FUNCTION__);
+
+  return I8X_OK;
+}
+
+static int
+i8x_log2 (int x)
+{
+  int y = 0;
+
+  while (x >>= 1)
+    y++;
+
+  return y;
+}
+
+static i8x_err_e
+i8x_code_rewrite_derefs (struct i8x_code *code)
+{
+  struct i8x_instr *op;
+  bool is_signed = false;
+  int size, shift;
+
+  i8x_code_foreach_op (code, op)
+    {
+      switch (op->code)
+	{
+	case DW_OP_deref:
+	  size = code->wordsize;
+	  break;
+
+	case I8_OP_deref_int:
+	  size = op->arg1.i;
+
+	  if (size == 0)
+	    size = code->wordsize;
+	  else if (size < 0)
+	    {
+	      size = -size;
+	      is_signed = true;
+	    }
+	  break;
+
+	default:
+	  continue;
+	}
+
+      shift = i8x_log2 (size);
+      if (shift < 3
+	  || (1 << shift) != size
+	  || size > __WORDSIZE)
+	return i8x_code_error (code, I8X_NOTE_UNHANDLED, op);
+
+      shift -= 3;
+      i8x_assert (shift >= 0 && shift <= 3);
+
+      /* There are no reversed variants for 1-byte derefs.  */
+      bool is_swapped = (shift > 0) && code->bytes_swapped;
+
+      i8x_code_rewrite_op (op,
+			   I8X_OP_deref_u8
+			   | ((shift & 3)  << 2)
+			   | ((is_signed ? 1 : 0) << 1)
+			   | (is_swapped ? 1 : 0));
     }
 
   i8x_code_dump_itable (code, __FUNCTION__);
@@ -651,6 +715,10 @@ i8x_code_init (struct i8x_code *code)
     return err;
 
   err = i8x_code_validate (code, ref);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_code_rewrite_derefs (code);
   if (err != I8X_OK)
     return err;
 

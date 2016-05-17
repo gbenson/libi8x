@@ -182,6 +182,29 @@ static struct i8x_idesc optable[] =
 
   /* 0x140..0x14f */
   {"I8X_OP_return"},
+  {NULL},
+  {NULL},
+  {NULL},
+  {NULL}, {NULL}, {NULL}, {NULL},
+  {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL}, {NULL},
+
+  /* 0x150..0x15f */
+  {"I8X_OP_deref_u8"},
+  {NULL},
+  {"I8X_OP_deref_i8"},
+  {NULL},
+  {"I8X_OP_deref_u16n"},
+  {"I8X_OP_deref_u16r"},
+  {"I8X_OP_deref_i16n"},
+  {"I8X_OP_deref_i16r"},
+  {"I8X_OP_deref_u32n"},
+  {"I8X_OP_deref_u32r"},
+  {"I8X_OP_deref_i32n"},
+  {"I8X_OP_deref_i32r"},
+  {"I8X_OP_deref_u64n"},
+  {"I8X_OP_deref_u64r"},
+  {"I8X_OP_deref_i64n"},
+  {"I8X_OP_deref_i64r"},
 };
 
 #define NUM_OPCODES (sizeof (optable) / sizeof (struct i8x_idesc))

@@ -187,4 +187,19 @@
 /* libi8x internal operations.  */
 #define I8X_OP_return			0x140
 
+#define I8X_OP_deref_u8			0x150
+#define I8X_OP_deref_i8			0x152
+#define I8X_OP_deref_u16n		0x154
+#define I8X_OP_deref_u16r		0x155
+#define I8X_OP_deref_i16n		0x156
+#define I8X_OP_deref_i16r		0x157
+#define I8X_OP_deref_u32n		0x158
+#define I8X_OP_deref_u32r		0x159
+#define I8X_OP_deref_i32n		0x15a
+#define I8X_OP_deref_i32r		0x15b
+#define I8X_OP_deref_u64n		0x15c
+#define I8X_OP_deref_u64r		0x15d
+#define I8X_OP_deref_i64n		0x15e
+#define I8X_OP_deref_i64r		0x15f
+
 #endif /* _LIBI8X_OPCODES_H_ */

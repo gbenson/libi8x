@@ -25,6 +25,7 @@
    but the debug interpreter has assertions and tracing code that are
    compiled out of the standard interpreter.  */
 
+#include <byteswap.h>
 #include <string.h>
 #include "libi8x-private.h"
 #include "interp-private.h"
@@ -46,6 +47,12 @@
 # define i8x_assert(expr)
 # define dbg(ctx, arg...)
 # define i8x_xctx_trace(...)
+#endif
+
+#if __WORDSIZE >= 64
+# define IF_64BIT(expr) expr
+#else
+# define IF_64BIT(expr)
 #endif
 
 /* Value stack macros.  */
@@ -174,63 +181,77 @@ enum
 #define DTABLE_ADD(code) \
   dtable[code] = &&op_ ## code
 
-#define DTABLE_ADD_OPS(dtable)		\
-  do {					\
-    DTABLE_ADD (DW_OP_addr);		\
-    DTABLE_ADD (DW_OP_dup);		\
-    DTABLE_ADD (DW_OP_drop);		\
-    DTABLE_ADD (DW_OP_swap);		\
-    DTABLE_ADD (DW_OP_rot);		\
-    DTABLE_ADD (DW_OP_and);		\
-    DTABLE_ADD (DW_OP_minus);		\
-    DTABLE_ADD (DW_OP_mul);		\
-    DTABLE_ADD (DW_OP_or);		\
-    DTABLE_ADD (DW_OP_plus);		\
-    DTABLE_ADD (DW_OP_shl);		\
-    DTABLE_ADD (DW_OP_shr);		\
-    DTABLE_ADD (DW_OP_xor);		\
-    DTABLE_ADD (DW_OP_bra);		\
-    DTABLE_ADD (DW_OP_eq);		\
-    DTABLE_ADD (DW_OP_ge);		\
-    DTABLE_ADD (DW_OP_gt);		\
-    DTABLE_ADD (DW_OP_le);		\
-    DTABLE_ADD (DW_OP_lt);		\
-    DTABLE_ADD (DW_OP_ne);		\
-    DTABLE_ADD (DW_OP_lit0);		\
-    DTABLE_ADD (DW_OP_lit1);		\
-    DTABLE_ADD (DW_OP_lit2);		\
-    DTABLE_ADD (DW_OP_lit3);		\
-    DTABLE_ADD (DW_OP_lit4);		\
-    DTABLE_ADD (DW_OP_lit5);		\
-    DTABLE_ADD (DW_OP_lit6);		\
-    DTABLE_ADD (DW_OP_lit7);		\
-    DTABLE_ADD (DW_OP_lit8);		\
-    DTABLE_ADD (DW_OP_lit9);		\
-    DTABLE_ADD (DW_OP_lit10);		\
-    DTABLE_ADD (DW_OP_lit11);		\
-    DTABLE_ADD (DW_OP_lit12);		\
-    DTABLE_ADD (DW_OP_lit13);		\
-    DTABLE_ADD (DW_OP_lit14);		\
-    DTABLE_ADD (DW_OP_lit15);		\
-    DTABLE_ADD (DW_OP_lit16);		\
-    DTABLE_ADD (DW_OP_lit17);		\
-    DTABLE_ADD (DW_OP_lit18);		\
-    DTABLE_ADD (DW_OP_lit19);		\
-    DTABLE_ADD (DW_OP_lit20);		\
-    DTABLE_ADD (DW_OP_lit21);		\
-    DTABLE_ADD (DW_OP_lit22);		\
-    DTABLE_ADD (DW_OP_lit23);		\
-    DTABLE_ADD (DW_OP_lit24);		\
-    DTABLE_ADD (DW_OP_lit25);		\
-    DTABLE_ADD (DW_OP_lit26);		\
-    DTABLE_ADD (DW_OP_lit27);		\
-    DTABLE_ADD (DW_OP_lit28);		\
-    DTABLE_ADD (DW_OP_lit29);		\
-    DTABLE_ADD (DW_OP_lit30);		\
-    DTABLE_ADD (DW_OP_lit31);		\
-    DTABLE_ADD (I8_OP_call);		\
-    DTABLE_ADD (I8_OP_load_external);	\
-    DTABLE_ADD (I8X_OP_return);		\
+#define DTABLE_ADD_OPS(dtable)			\
+  do {						\
+    DTABLE_ADD (DW_OP_addr);			\
+    DTABLE_ADD (DW_OP_dup);			\
+    DTABLE_ADD (DW_OP_drop);			\
+    DTABLE_ADD (DW_OP_swap);			\
+    DTABLE_ADD (DW_OP_rot);			\
+    DTABLE_ADD (DW_OP_and);			\
+    DTABLE_ADD (DW_OP_minus);			\
+    DTABLE_ADD (DW_OP_mul);			\
+    DTABLE_ADD (DW_OP_or);			\
+    DTABLE_ADD (DW_OP_plus);			\
+    DTABLE_ADD (DW_OP_shl);			\
+    DTABLE_ADD (DW_OP_shr);			\
+    DTABLE_ADD (DW_OP_xor);			\
+    DTABLE_ADD (DW_OP_bra);			\
+    DTABLE_ADD (DW_OP_eq);			\
+    DTABLE_ADD (DW_OP_ge);			\
+    DTABLE_ADD (DW_OP_gt);			\
+    DTABLE_ADD (DW_OP_le);			\
+    DTABLE_ADD (DW_OP_lt);			\
+    DTABLE_ADD (DW_OP_ne);			\
+    DTABLE_ADD (DW_OP_lit0);			\
+    DTABLE_ADD (DW_OP_lit1);			\
+    DTABLE_ADD (DW_OP_lit2);			\
+    DTABLE_ADD (DW_OP_lit3);			\
+    DTABLE_ADD (DW_OP_lit4);			\
+    DTABLE_ADD (DW_OP_lit5);			\
+    DTABLE_ADD (DW_OP_lit6);			\
+    DTABLE_ADD (DW_OP_lit7);			\
+    DTABLE_ADD (DW_OP_lit8);			\
+    DTABLE_ADD (DW_OP_lit9);			\
+    DTABLE_ADD (DW_OP_lit10);			\
+    DTABLE_ADD (DW_OP_lit11);			\
+    DTABLE_ADD (DW_OP_lit12);			\
+    DTABLE_ADD (DW_OP_lit13);			\
+    DTABLE_ADD (DW_OP_lit14);			\
+    DTABLE_ADD (DW_OP_lit15);			\
+    DTABLE_ADD (DW_OP_lit16);			\
+    DTABLE_ADD (DW_OP_lit17);			\
+    DTABLE_ADD (DW_OP_lit18);			\
+    DTABLE_ADD (DW_OP_lit19);			\
+    DTABLE_ADD (DW_OP_lit20);			\
+    DTABLE_ADD (DW_OP_lit21);			\
+    DTABLE_ADD (DW_OP_lit22);			\
+    DTABLE_ADD (DW_OP_lit23);			\
+    DTABLE_ADD (DW_OP_lit24);			\
+    DTABLE_ADD (DW_OP_lit25);			\
+    DTABLE_ADD (DW_OP_lit26);			\
+    DTABLE_ADD (DW_OP_lit27);			\
+    DTABLE_ADD (DW_OP_lit28);			\
+    DTABLE_ADD (DW_OP_lit29);			\
+    DTABLE_ADD (DW_OP_lit30);			\
+    DTABLE_ADD (DW_OP_lit31);			\
+    DTABLE_ADD (I8_OP_call);			\
+    DTABLE_ADD (I8_OP_load_external);		\
+    DTABLE_ADD (I8X_OP_return);			\
+    DTABLE_ADD (I8X_OP_deref_u8);		\
+    DTABLE_ADD (I8X_OP_deref_i8);		\
+    DTABLE_ADD (I8X_OP_deref_u16n);		\
+    DTABLE_ADD (I8X_OP_deref_u16r);		\
+    DTABLE_ADD (I8X_OP_deref_i16n);		\
+    DTABLE_ADD (I8X_OP_deref_i16r);		\
+    DTABLE_ADD (I8X_OP_deref_u32n);		\
+    DTABLE_ADD (I8X_OP_deref_u32r);		\
+    DTABLE_ADD (I8X_OP_deref_i32n);		\
+    DTABLE_ADD (I8X_OP_deref_i32r);		\
+    IF_64BIT (DTABLE_ADD (I8X_OP_deref_u64n));	\
+    IF_64BIT (DTABLE_ADD (I8X_OP_deref_u64r));	\
+    IF_64BIT (DTABLE_ADD (I8X_OP_deref_i64n));	\
+    IF_64BIT (DTABLE_ADD (I8X_OP_deref_i64r));	\
   } while (0)
 
 /* Call into the interpreter with the magic sequence to make
@@ -516,6 +537,43 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
     RETURN_FROM_CALL ();
     SETUP_BYTECODE (ref);
     CONTINUE;
+
+#define OPERATION_I8X_OP_deref_2(name, type, process, result)		\
+  OPERATION (I8X_OP_deref_ ## name):					\
+    {									\
+      type tmp;								\
+									\
+      ENSURE_DEPTH (1);							\
+      err = inf->read_mem_fn (inf, STACK(0).u, sizeof (tmp), &tmp);	\
+      CALLBACK_ERROR_CHECK ();						\
+      tmp = process (tmp);						\
+      STACK(0).result = tmp;						\
+      CONTINUE;								\
+    }
+
+#define OPERATION_I8X_OP_deref_1(name, SIZE, process)			\
+  OPERATION_I8X_OP_deref_2 (u ## name, uint ## SIZE ## _t, process, u)	\
+  OPERATION_I8X_OP_deref_2 (i ## name, int ## SIZE ## _t, process, i)
+
+#define OPERATION_I8X_OP_deref_8()					\
+  OPERATION_I8X_OP_deref_1(8, 8, NOSWAP)
+
+#define OPERATION_I8X_OP_deref(SIZE)					\
+  OPERATION_I8X_OP_deref_1(SIZE ## n, SIZE, NOSWAP);			\
+  OPERATION_I8X_OP_deref_1(SIZE ## r, SIZE, bswap_ ## SIZE)
+
+#define NOSWAP
+
+  OPERATION_I8X_OP_deref_8 ();
+  OPERATION_I8X_OP_deref (16);
+  OPERATION_I8X_OP_deref (32);
+  IF_64BIT (OPERATION_I8X_OP_deref (64));
+
+#undef OPERATION_I8X_OP_deref_2
+#undef OPERATION_I8X_OP_deref_1
+#undef OPERATION_I8X_OP_deref_8
+#undef OPERATION_I8X_OP_deref
+#undef NOSWAP
 
  unhandled_operation:
   i8x_internal_error (__FILE__, __LINE__, __FUNCTION__,
