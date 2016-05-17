@@ -160,7 +160,39 @@ I8X_RB_READ_FIXED_MULTI (64)
 I8X_EXPORT i8x_err_e
 i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intmax_t *rp)
 {
-  i8x_not_implemented ();
+  intmax_t result = 0;
+  int shift = 0;
+
+  while (1)
+    {
+      uint8_t byte;
+      int err;
+
+      err = i8x_rb_read_uint8_t (rb, &byte);
+      if (err != I8X_OK)
+	return err;
+
+      result |= ((byte & 127) << shift);
+
+      if ((byte & 128) == 0)
+	{
+	  if (byte & 64)
+	    {
+	      intmax_t sign = 64 << shift;
+
+	      result &= ~sign;
+	      result -= sign;
+	    }
+
+	  break;
+	}
+
+      shift += 7;
+    }
+
+  *rp = result;
+
+  return I8X_OK;
 }
 
 I8X_EXPORT i8x_err_e
