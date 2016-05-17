@@ -386,6 +386,12 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   return err;
 }
 
+/* True if the only thing this instruction does is continue
+   onwards to exactly one other instruction.  */
+
+#define i8x_op_is_fall_through_only(op) \
+  ((op)->code == DW_OP_skip || (op)->code == DW_OP_nop)
+
 /* Check and optimize one next instruction pointer of one
    instruction (or the entry point, in which case OP will
    be NULL). */
@@ -410,11 +416,12 @@ i8x_code_setup_flow_1 (struct i8x_code *code,
 	  || next_op->code == IT_EMPTY_SLOT)
 	return i8x_code_error (code, I8X_NOTE_INVALID, op);
 
-      /* If the next instruction isn't a skip then we're done.  */
-      if (next_op->code != DW_OP_skip)
+      /* If the next instruction does anything more than
+	 fall through then we're done.  */
+      if (!i8x_op_is_fall_through_only (next_op))
 	break;
 
-      /* Continue through this skip instruction.  */
+      /* Continue through this null instruction.  */
       op = next_op;
       next_op = op->fall_through;
 
@@ -433,8 +440,9 @@ i8x_code_setup_flow_1 (struct i8x_code *code,
 /* Set up the function entry point, then check and optimize the next
    instruction pointers of all instructions.  A successful result
    indicates that the entry point and all next instruction pointers
-   except I8X_OP_return  point to a valid location in the instruction
-   table, and that all "skip" instructions have been removed.  */
+   except I8X_OP_return point to a valid location in the instruction
+   table, and that all "skip" and "nop" instructions have been
+   removed.  */
 
 static i8x_err_e
 i8x_code_setup_flow (struct i8x_code *code)
@@ -466,9 +474,9 @@ i8x_code_setup_flow (struct i8x_code *code)
 	return err;
     }
 
-  /* Lose all the now-unreachable skip instructions.  */
+  /* Lose all the now-unreachable fall-through-only instructions.  */
   i8x_code_foreach_op (code, op)
-    if (op->code == DW_OP_skip)
+    if (i8x_op_is_fall_through_only (op))
       op->code = IT_EMPTY_SLOT;
 
   i8x_code_dump_itable (code, __FUNCTION__);
