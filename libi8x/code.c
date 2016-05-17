@@ -407,9 +407,6 @@ i8x_code_setup_flow_1 (struct i8x_code *code,
 
   while (true)
     {
-      if (next_op->code == I8X_OP_return)
-	break;
-
       /* Validate the branch that got us here.  */
       if (next_op < code->itable
 	  || next_op >= code->itable_limit
