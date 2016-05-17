@@ -54,7 +54,7 @@ static intptr_t factorials[] =
     3628800,
     39916800,
     479001600,
-#if __WORDSIZE == 64
+#if __WORDSIZE >= 64
     6227020800,
     87178291200,
     1307674368000,
@@ -63,7 +63,7 @@ static intptr_t factorials[] =
     6402373705728000,
     121645100408832000,
     2432902008176640000,
-#endif // __WORDSIZE == 64
+#endif // __WORDSIZE >= 64
   };
 
 static i8x_err_e
