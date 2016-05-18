@@ -258,6 +258,18 @@ i8x_ctx_init_dispatch_table (struct i8x_ctx *ctx, void **table,
 }
 #endif /* DEBUG_INTERPRETER */
 
+/* Callbacks are user code and have no access to i8x_ctx_set_error,
+   so we decorate whatever they return with a note and location.  */
+
+#define CALLBACK_ERROR_CHECK()			\
+  do {						\
+    if (__i8x_unlikely (err != I8X_OK))		\
+      {						\
+	err = i8x_code_error (code, err, op);	\
+	goto unwind_and_return;			\
+      }						\
+  } while (0)
+
 /* The interpreter itself, aka
 
 I8X_EXPORT i8x_err_e
@@ -338,19 +350,11 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       if (__i8x_unlikely (reloc->cached_from != inf))
 	{
 	  struct i8x_func *func = (struct i8x_func *) code->_ob.parent;
-	  uintptr_t value = I8X_POISON_BAD_RELOCATE_FN;
+	  struct i8x_note *note = i8x_func_get_note (func);
+	  uintptr_t value DEBUG_ONLY(= I8X_POISON_BAD_RELOCATE_FN);
 
-	  err = inf->relocate_fn (xctx, inf, func, reloc->unrelocated,
-				  &value);
-
-	  if (__i8x_unlikely (err != I8X_OK))
-	    {
-	      /* The resolver is user code and has no access to
-		 i8x_ctx_set_error, so we augment whatever they
-		 returned with a note and location.  */
-	      err = i8x_code_error (code, err, op);
-	      goto unwind_and_return;
-	    }
+	  err = inf->relocate_fn (inf, note, reloc->unrelocated, &value);
+	  CALLBACK_ERROR_CHECK ();
 
 	  reloc->cached_value = value;
 	  reloc->cached_from = inf;

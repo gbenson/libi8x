@@ -421,8 +421,8 @@ error_message_for (i8x_err_e code)
     case I8X_STACK_OVERFLOW:
       return _("Stack overflow");
 
-    case I8X_NO_RELOCATE_FN:
-      return _("Inferior has no address relocation function");
+    case I8X_RELOC_FAILED:
+      return _("Relocation failed");
 
     default:
       return NULL;

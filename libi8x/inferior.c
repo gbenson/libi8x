@@ -21,12 +21,15 @@
 #include "inferior-private.h"
 
 static i8x_err_e
-no_relocate_fn (struct i8x_xctx *xctx, struct i8x_inferior *inf,
-		struct i8x_func *func, uintptr_t unresolved,
-		uintptr_t *result)
+no_relocate_fn (struct i8x_inferior *inf, struct i8x_note *note,
+		uintptr_t unresolved, uintptr_t *result)
 {
-  /* Don't use i8x_ctx_set_error, the interpreter does it for us.  */
-  return I8X_NO_RELOCATE_FN;
+  error (i8x_inferior_get_ctx (inf),
+	 "inferior %p has no relocate function\n", inf);
+
+  /* Don't use i8x_ctx_set_error, the interpreter decorates
+     our returned error code in CALLBACK_ERROR_CHECK.  */
+  return I8X_RELOC_FAILED;
 }
 
 static void
