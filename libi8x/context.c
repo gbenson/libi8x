@@ -53,11 +53,11 @@ struct i8x_ctx
   struct i8x_list *functions;	/* List of registered functions.  */
 
   /* User-supplied function called when a function becomes available.  */
-  i8x_func_cb_t *func_avail_observer_fn;
+  i8x_notify_fn_t *func_avail_observer_fn;
 
   /* User-supplied function called when a function is about to become
      unavailable.  */
-  i8x_func_cb_t *func_unavail_observer_fn;
+  i8x_notify_fn_t *func_unavail_observer_fn;
 
   /* The three core types.  */
   struct i8x_type *integer_type;
@@ -351,14 +351,14 @@ i8x_ctx_get_use_debug_interpreter_default (struct i8x_ctx *ctx)
 
 I8X_EXPORT void
 i8x_ctx_set_func_available_cb (struct i8x_ctx *ctx,
-			       i8x_func_cb_t *func_avail_cb_fn)
+			       i8x_notify_fn_t *func_avail_cb_fn)
 {
   ctx->func_avail_observer_fn = func_avail_cb_fn;
 }
 
 I8X_EXPORT void
 i8x_ctx_set_func_unavailable_cb (struct i8x_ctx *ctx,
-				 i8x_func_cb_t *func_unavail_cb_fn)
+				 i8x_notify_fn_t *func_unavail_cb_fn)
 {
   ctx->func_unavail_observer_fn = func_unavail_cb_fn;
 }
@@ -368,7 +368,7 @@ i8x_ctx_fire_availability_observer (struct i8x_func *func,
 				    bool is_available)
 {
   struct i8x_ctx *ctx = i8x_func_get_ctx (func);
-  i8x_func_cb_t *callback;
+  i8x_notify_fn_t *callback;
 
   callback = is_available
     ? ctx->func_avail_observer_fn

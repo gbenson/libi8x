@@ -58,11 +58,11 @@ i8x_err_e;
 
 /* Chunk types.  */
 
-#define I8_CHUNK_SIGNATURE 1
-#define I8_CHUNK_BYTECODE 2
-#define I8_CHUNK_EXTERNALS 3
-#define I8_CHUNK_STRINGS 4
-#define I8_CHUNK_CODEINFO 5
+#define I8_CHUNK_SIGNATURE	1
+#define I8_CHUNK_BYTECODE	2
+#define I8_CHUNK_EXTERNALS	3
+#define I8_CHUNK_STRINGS	4
+#define I8_CHUNK_CODEINFO	5
 
 /* Forward declarations.  */
 
@@ -79,7 +79,7 @@ struct i8x_readbuf;
 struct i8x_reloc;
 struct i8x_xctx;
 
-/* Values.  */
+/* Runtime values.  */
 
 union i8x_value
 {
@@ -89,20 +89,13 @@ union i8x_value
   struct i8x_funcref *f;	/* Function values.  */
 };
 
-/* Native function implementations.  */
-
-typedef i8x_err_e i8x_nat_fn_t (struct i8x_xctx *xctx,
-				struct i8x_inferior *inf,
-				union i8x_value *args,
-				union i8x_value *rets);
-
 /*
  * i8x_object
  *
- * XXX don't call these directly, use the inline functions provided by
- * I8X_COMMON_OBJECT_FUNCTIONS et al.
+ * Don't call these functions directly, use the casted inline
+ * functions provided by I8X_COMMON_OBJECT_FUNCTIONS et al.
  */
-typedef void i8x_userdata_cleanup_fn (void *userdata);
+typedef void i8x_cleanup_fn_t (void *userdata);
 
 #ifdef __cplusplus
 extern "C" {
@@ -114,7 +107,7 @@ struct i8x_ctx *i8x_ob_get_ctx (struct i8x_object *ob);
 void *i8x_ob_get_userdata (struct i8x_object *ob);
 void i8x_ob_set_userdata (struct i8x_object *ob,
 			  void *userdata,
-			  i8x_userdata_cleanup_fn *userdata_cleanup);
+			  i8x_cleanup_fn_t *userdata_cleanup);
 struct i8x_object *i8x_listitem_get_object (struct i8x_listitem *item);
 
 #define I8X_NOPARENT_OBJECT_FUNCTIONS(TYPE, PREFIX)			\
@@ -141,7 +134,7 @@ struct i8x_object *i8x_listitem_get_object (struct i8x_listitem *item);
   static inline void __attribute__ ((always_inline))			\
   i8x_ ## PREFIX ## _set_userdata (struct i8x_ ## TYPE *x,		\
 				   void *userdata,			\
-				   i8x_userdata_cleanup_fn *cleanup)	\
+				   i8x_cleanup_fn_t *cleanup)	\
   {									\
     i8x_ob_set_userdata ((struct i8x_object *) x, userdata, cleanup);	\
   }
@@ -197,7 +190,12 @@ typedef void i8x_log_fn_t (struct i8x_ctx *ctx,
 			   const char *fn,
 			   const char *format, va_list args);
 
-typedef void i8x_func_cb_t (struct i8x_func *func);
+typedef i8x_err_e i8x_nat_fn_t (struct i8x_xctx *xctx,
+				struct i8x_inferior *inf,
+				union i8x_value *args,
+				union i8x_value *rets);
+
+typedef void i8x_notify_fn_t (struct i8x_func *func);
 
 I8X_CONTEXT_OBJECT_FUNCTIONS (ctx);
 
@@ -209,9 +207,9 @@ void i8x_ctx_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn);
 int i8x_ctx_get_log_priority (struct i8x_ctx *ctx);
 void i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority);
 void i8x_ctx_set_func_available_cb (struct i8x_ctx *ctx,
-				    i8x_func_cb_t *func_avail_cb_fn);
+				    i8x_notify_fn_t *func_avail_cb_fn);
 void i8x_ctx_set_func_unavailable_cb (struct i8x_ctx *ctx,
-				      i8x_func_cb_t *func_unavail_cb_fn);
+				      i8x_notify_fn_t *func_unavail_cb_fn);
 i8x_err_e i8x_ctx_get_funcref (struct i8x_ctx *ctx,
 			       const char *provider,
 			       const char *name,

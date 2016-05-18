@@ -228,7 +228,7 @@ i8x_ob_get_userdata (struct i8x_object *ob)
  **/
 I8X_EXPORT void
 i8x_ob_set_userdata (struct i8x_object *ob, void *userdata,
-		     i8x_userdata_cleanup_fn *cleanup)
+		     i8x_cleanup_fn_t *cleanup)
 {
   i8x_assert_not_poisoned (ob);
   i8x_assert (userdata != NULL || cleanup == NULL);

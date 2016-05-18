@@ -151,7 +151,7 @@ struct i8x_object
   struct i8x_object *parent;
   int refcount[2];
   void *userdata;
-  i8x_userdata_cleanup_fn *userdata_cleanup;
+  i8x_cleanup_fn_t *userdata_cleanup;
   bool use_debug_allocator : 1;
   bool is_moribund : 1;
   bool is_poisoned : 1;
