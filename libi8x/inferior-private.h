@@ -28,6 +28,7 @@ struct i8x_inferior
 {
   I8X_OBJECT_FIELDS;
 
+  i8x_read_mem_fn_t *read_mem_fn;
   i8x_relocate_fn_t *relocate_fn;
 };
 

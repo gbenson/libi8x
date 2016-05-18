@@ -32,6 +32,7 @@ global:
 	i8x_funcref_is_resolved;
 
 	i8x_inferior_new;
+	i8x_inferior_set_read_mem_fn;
 	i8x_inferior_set_relocate_fn;
 	i8x_inferior_invalidate_relocs;
 

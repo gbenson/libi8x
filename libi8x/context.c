@@ -424,6 +424,9 @@ error_message_for (i8x_err_e code)
     case I8X_RELOC_FAILED:
       return _("Relocation failed");
 
+    case I8X_READ_MEM_FAILED:
+      return _("Read memory failed");
+
     default:
       return NULL;
     }

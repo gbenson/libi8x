@@ -44,6 +44,7 @@ typedef enum
   /* Runtime errors.  */
   I8X_STACK_OVERFLOW = -299,
   I8X_RELOC_FAILED,
+  I8X_READ_MEM_FAILED,
 }
 i8x_err_e;
 
@@ -273,6 +274,10 @@ bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
  */
 I8X_COMMON_OBJECT_FUNCTIONS (inferior);
 
+typedef i8x_err_e i8x_read_mem_fn_t (struct i8x_inferior *inf,
+				     uintptr_t addr, size_t len,
+				     void *result);
+
 typedef i8x_err_e i8x_relocate_fn_t (struct i8x_inferior *inf,
 				     struct i8x_note *note,
 				     uintptr_t unrelocated,
@@ -280,6 +285,8 @@ typedef i8x_err_e i8x_relocate_fn_t (struct i8x_inferior *inf,
 
 i8x_err_e i8x_inferior_new (struct i8x_ctx *ctx,
 			    struct i8x_inferior **inf);
+void i8x_inferior_set_read_mem_fn (struct i8x_inferior *inf,
+				   i8x_read_mem_fn_t *read_mem_fn);
 void i8x_inferior_set_relocate_fn (struct i8x_inferior *inf,
 				   i8x_relocate_fn_t *relocate_fn);
 void i8x_inferior_invalidate_relocs (struct i8x_inferior *inf);

@@ -21,6 +21,18 @@
 #include "inferior-private.h"
 
 static i8x_err_e
+no_read_mem_fn (struct i8x_inferior *inf, uintptr_t addr,
+		size_t len, void *result)
+{
+  error (i8x_inferior_get_ctx (inf),
+	 "inferior %p has no read_mem function\n", inf);
+
+  /* Don't use i8x_ctx_set_error, the interpreter decorates
+     our returned error code in CALLBACK_ERROR_CHECK.  */
+  return I8X_READ_MEM_FAILED;
+}
+
+static i8x_err_e
 no_relocate_fn (struct i8x_inferior *inf, struct i8x_note *note,
 		uintptr_t unresolved, uintptr_t *result)
 {
@@ -58,11 +70,19 @@ i8x_inferior_new (struct i8x_ctx *ctx, struct i8x_inferior **inf)
   if (err != I8X_OK)
     return err;
 
+  i->read_mem_fn = no_read_mem_fn;
   i->relocate_fn = no_relocate_fn;
 
   *inf = i;
 
   return I8X_OK;
+}
+
+I8X_EXPORT void
+i8x_inferior_set_read_mem_fn (struct i8x_inferior *inf,
+			     i8x_read_mem_fn_t *read_mem_fn)
+{
+  inf->read_mem_fn = read_mem_fn;
 }
 
 I8X_EXPORT void
