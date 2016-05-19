@@ -306,7 +306,7 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 
   if (chunk != NULL)
     {
-      if (i8x_chunk_get_version (chunk) != 2)
+      if (i8x_chunk_get_version (chunk) != 3)
 	return i8x_chunk_version_error (chunk);
 
       code->code_size = i8x_chunk_get_encoded_size (chunk);
