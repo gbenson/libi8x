@@ -195,6 +195,12 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	  ADJUST_STACK (-1);
 	  break;
 
+	case DW_OP_pick:
+	  ENSURE_DEPTH (op->arg1.u + 1);
+	  ADJUST_STACK (1);
+	  STACK(0) = STACK(op->arg1.u + 1);
+	  break;
+
 	case DW_OP_swap:
 	  ENSURE_DEPTH (2);
 	  tmp = STACK(0);

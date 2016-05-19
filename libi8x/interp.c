@@ -191,6 +191,7 @@ enum
     DTABLE_ADD (DW_OP_addr);			\
     DTABLE_ADD (DW_OP_dup);			\
     DTABLE_ADD (DW_OP_drop);			\
+    DTABLE_ADD (DW_OP_pick);			\
     DTABLE_ADD (DW_OP_swap);			\
     DTABLE_ADD (DW_OP_rot);			\
     DTABLE_ADD (DW_OP_and);			\
@@ -400,6 +401,12 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   OPERATION (DW_OP_drop):
     ENSURE_DEPTH (1);
     ADJUST_STACK (-1);
+    CONTINUE;
+
+  OPERATION (DW_OP_pick):
+    ENSURE_DEPTH (op->arg1.u + 1);
+    ADJUST_STACK (1);
+    STACK(0) = STACK(op->arg1.u + 1);
     CONTINUE;
 
   OPERATION (DW_OP_swap):
