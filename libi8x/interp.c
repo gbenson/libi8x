@@ -23,7 +23,12 @@
    the indirect one builds the debug interpreter i8x_xctx_call_dbg.
    Both interpreters rely on the validator having checked the code
    but the debug interpreter has assertions and tracing code that are
-   compiled out of the standard interpreter.  */
+   compiled out of the standard interpreter.
+
+   A principle of the interpreter is that any decision that can be
+   made during preprocessing should be made during preprocessing,
+   even if this means having 14 different versions of I8_OP_deref_int
+   or wasting a bunch of memory somewhere.  */
 
 #include <byteswap.h>
 #include <string.h>
