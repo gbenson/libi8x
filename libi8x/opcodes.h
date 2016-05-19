@@ -186,6 +186,7 @@
 
 /* libi8x internal operations.  */
 #define I8X_OP_return			0x140
+#define I8X_OP_const			0x141
 
 #define I8X_OP_deref_u8			0x150
 #define I8X_OP_deref_i8			0x152

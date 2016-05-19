@@ -527,6 +527,8 @@ i8x_code_rewrite_op (struct i8x_instr *op, i8x_opcode_t new_opcode)
 
   op->code = new_opcode;
   op->desc = &optable[new_opcode];
+
+  i8x_assert (op->desc->name != NULL);
 }
 
 static i8x_err_e
@@ -541,6 +543,20 @@ i8x_code_rewrite_pre_validate (struct i8x_code *code)
     {
       switch (op->code)
 	{
+	case DW_OP_const1u:
+	case DW_OP_const1s:
+	case DW_OP_const2u:
+	case DW_OP_const2s:
+	case DW_OP_const4u:
+	case DW_OP_const4s:
+	case DW_OP_const8u:
+	case DW_OP_const8s:
+	case DW_OP_constu:
+	case DW_OP_consts:
+	  /* These are all the same.  */
+	  i8x_code_rewrite_op (op, I8X_OP_const);
+	  break;
+
 	case DW_OP_addr:
 	  /* Create a relocation and store at op->addr1.  */
 	  err = i8x_code_get_reloc (code, op->arg1.u, &op->addr1);

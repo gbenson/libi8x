@@ -244,6 +244,7 @@ enum
     DTABLE_ADD (I8_OP_call);			\
     DTABLE_ADD (I8_OP_load_external);		\
     DTABLE_ADD (I8X_OP_return);			\
+    DTABLE_ADD (I8X_OP_const);			\
     DTABLE_ADD (I8X_OP_deref_u8);		\
     DTABLE_ADD (I8X_OP_deref_i8);		\
     DTABLE_ADD (I8X_OP_deref_u16n);		\
@@ -548,6 +549,11 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   OPERATION (I8X_OP_return):
     RETURN_FROM_CALL ();
     SETUP_BYTECODE (ref);
+    CONTINUE;
+
+  OPERATION (I8X_OP_const):
+    ADJUST_STACK (1);
+    STACK(0).u = op->arg1.u;
     CONTINUE;
 
 #define OPERATION_I8X_OP_deref_2(name, type, process, result)		\

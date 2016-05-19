@@ -182,7 +182,7 @@ static struct i8x_idesc optable[] =
 
   /* 0x140..0x14f */
   {"I8X_OP_return"},
-  {NULL},
+  {"I8X_OP_const"},
   {NULL},
   {NULL},
   {NULL}, {NULL}, {NULL}, {NULL},

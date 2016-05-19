@@ -341,6 +341,11 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	  STACK(0) = inttype;
 	  break;
 
+	case I8X_OP_const:
+	  ADJUST_STACK (1);
+	  STACK(0) = inttype;
+	  break;
+
 	default:
 	  notice (ctx, "%s not implemented in validator\n",
 		  op->desc->name);
