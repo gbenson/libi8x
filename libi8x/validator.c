@@ -216,6 +216,13 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	  STACK(2) = tmp;
 	  break;
 
+	case DW_OP_abs:
+	case DW_OP_neg:
+	case DW_OP_not:
+	  ENSURE_DEPTH (1);
+	  ENSURE_TYPE (0, inttype);
+	  break;
+
 	case DW_OP_and:
 	case DW_OP_div:
 	case DW_OP_mod:
