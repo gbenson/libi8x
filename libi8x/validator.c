@@ -160,9 +160,22 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 		memset (stack_ptr, 0,
 			dead_slots * sizeof (struct i8x_type *));
 
-	      if (memcmp (stack, op->entry_stack,
-			  total_slots * sizeof (struct i8x_type *)) != 0)
-		NOTE_NOT_VALID ();
+	      for (size_t i = 0; i < total_slots; i++)
+		{
+		  if (stack[i] == NULL)
+		    {
+		      if (op->entry_stack[i] != NULL)
+			NOTE_NOT_VALID ();
+
+		      break;
+		    }
+
+		  if (op->entry_stack[i] == NULL)
+		    NOTE_NOT_VALID ();
+
+		  if (!TYPES_MATCH (stack[i], op->entry_stack[i]))
+		    NOTE_NOT_VALID ();
+		}
 	    }
 
 	  return I8X_OK;
