@@ -199,6 +199,7 @@ enum
     DTABLE_ADD (DW_OP_mul);			\
     DTABLE_ADD (DW_OP_or);			\
     DTABLE_ADD (DW_OP_plus);			\
+    DTABLE_ADD (DW_OP_plus_uconst);		\
     DTABLE_ADD (DW_OP_shl);			\
     DTABLE_ADD (DW_OP_shr);			\
     DTABLE_ADD (DW_OP_xor);			\
@@ -450,6 +451,11 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   OPERATION_DW_binary_op (xor,   ^);
 
 #undef OPERATION_DW_binary_op
+
+  OPERATION (DW_OP_plus_uconst):
+    ENSURE_DEPTH (1);
+    STACK(0).u += op->arg1.u;
+    CONTINUE;
 
   OPERATION (DW_OP_bra):
     ENSURE_DEPTH (1);
