@@ -368,9 +368,11 @@ i8x_ctx_fire_availability_observer (struct i8x_func *func,
 				    bool is_available)
 {
   struct i8x_ctx *ctx = i8x_func_get_ctx (func);
-  i8x_notify_fn_t *callback;
 
-  callback = is_available
+  notice (ctx, "%s became %s\n", i8x_func_get_fullname (func),
+	  is_available ? "available" : "unavailable");
+
+  i8x_notify_fn_t *callback = is_available
     ? ctx->func_avail_observer_fn
     : ctx->func_unavail_observer_fn;
 
