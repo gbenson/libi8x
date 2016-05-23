@@ -39,6 +39,10 @@
 #endif
 
 static td_err_e td_ta_init (td_thragent_t *ta);
+static i8x_err_e td_ta_thr_iter_cb (struct i8x_xctx *xctx,
+				    struct i8x_inferior *inf,
+				    union i8x_value *args,
+				    union i8x_value *rets);
 
 /* Handle for a process, created by td_ta_new and passed as
    the first argument to all other libthread_db functions.  */
@@ -62,6 +66,9 @@ struct td_thragent
   /* References to functions we use.  */
   struct i8x_funcref *map_lwp2thr;
   struct i8x_funcref *thr_iter;
+
+  /* Callback for td_ta_thr_iter.  */
+  struct i8x_funcref *thr_iter_cb;
 };
 
 /* Map an i8x error code to a libthread_db one.  */
@@ -361,6 +368,19 @@ td_ta_init (td_thragent_t *ta)
       && !i8x_funcref_is_resolved (ta->thr_iter))
     return TD_VERSION;
 
+  /* Register the callback wrapper for td_ta_thr_iter.  */
+  struct i8x_func *func;
+
+  err = i8x_ctx_import_native (ta->ctx,
+			       "libthread_db", "thr_iter_cb",
+			       "po", "i",
+			       td_ta_thr_iter_cb, &func);
+  if (err != I8X_OK)
+    return td_err_from_i8x_err (err);
+
+  ta->thr_iter_cb = i8x_funcref_ref (i8x_func_get_funcref (func));
+  func = i8x_func_unref (func);
+
   /* Create the inferior.  */
   err = i8x_inferior_new (ta->ctx, &ta->inf);
   if (err != I8X_OK)
@@ -383,6 +403,7 @@ td_ta_delete (td_thragent_t *ta)
 {
   i8x_funcref_unref (ta->map_lwp2thr);
   i8x_funcref_unref (ta->thr_iter);
+  i8x_funcref_unref (ta->thr_iter_cb);
 
   i8x_inferior_unref (ta->inf);
   i8x_xctx_unref (ta->xctx);
@@ -422,7 +443,45 @@ td_ta_thr_iter (const td_thragent_t *ta, td_thr_iter_f *callback,
 		void *cbdata_p, td_thr_state_e state, int ti_pri,
 		sigset_t *ti_sigmask_p, unsigned int ti_user_flags)
 {
-  return TD_NOCAPAB;
+  /* glibc's libthread_db completely ignores these two, but that
+     seems wrong.  We're going to bail with a meaningful error.  */
+  if (ti_sigmask_p != TD_SIGNO_MASK
+      || ti_user_flags != TD_THR_ANY_USER_FLAGS)
+    return TD_NOCAPAB;
+
+  /* glibc's libthread_db doesn't ignore this one but maybe it
+     should; what it actually does is return TD_OK without
+     iterating the thread list.  That's totally misleading so
+     again we're going to bail with a meaningful error.  */
+  if (state != TD_THR_ANY_STATE)
+    return TD_NOCAPAB;
+
+  /* We have something glibc's libpthread::thr_iter can handle.  */
+  if (ta->thr_iter == NULL || !i8x_funcref_is_resolved (ta->thr_iter))
+    return TD_NOCAPAB;
+
+  union i8x_value args[3], ret;
+
+  args[0].f = ta->thr_iter_cb;
+  args[1].p = cbdata_p;
+  args[2].i = ti_pri;
+
+  i8x_err_e err = i8x_xctx_call (ta->xctx, ta->thr_iter, ta->inf,
+				 args, &ret);
+  if (err != I8X_OK)
+    return td_err_from_i8x_err (err);
+
+  return ret.i;
+}
+
+/* Helper for td_ta_thr_iter.  */
+
+static i8x_err_e
+td_ta_thr_iter_cb (struct i8x_xctx *xctx, struct i8x_inferior *inf,
+		   union i8x_value *args, union i8x_value *rets)
+{
+  fprintf (stderr, "%s:%d: Not implemented.", __FILE__, __LINE__);
+  exit (0);
 }
 
 /* Validate that TH is a thread handle.  */
