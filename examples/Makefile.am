@@ -32,4 +32,23 @@ noinst_PROGRAMS += tlsdump
 tlsdump_SOURCES = tlsdump.c
 tlsdump_CFLAGS = $(LIBELF_CFLAGS)
 tlsdump_LDADD = $(top_builddir)/libi8x/libi8x.la $(LIBELF_LIBS)
+
+# It doesn't seem to be possible to cause automake/libtool to build
+# a noinst shared library, so this is going to get installed and then
+# removed.  I hate this completely.
+
+lib_LTLIBRARIES = libi8x-tdbx.la
+libi8x_tdbx_la_SOURCES = libthread_db.c
+libi8x_tdbx_la_CFLAGS = $(LIBELF_CFLAGS)
+libi8x_tdbx_la_LIBADD = $(top_builddir)/libi8x/libi8x.la $(LIBELF_LIBS)
+libi8x_tdbx_la_LDFLAGS = -avoid-version -module -shared -export-dynamic
+
+all-local:
+	ln -sf .libs/libi8x-tdbx.so libthread_db.so.1
+
+clean-local:
+	rm -f libthread_db.so.1
+
+install-exec-hook:
+	rm -f $(DESTDIR)$(libdir)/libi8x-tdbx.*
 endif
