@@ -179,6 +179,9 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 		}
 	    }
 
+	  if (trace_prefix != NULL)
+	    dbg (ctx, "\n");
+
 	  return I8X_OK;
 	}
 

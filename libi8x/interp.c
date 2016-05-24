@@ -549,6 +549,9 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 	  DISPATCH (code->entry_point);
 	}
 
+      trace (i8x_xctx_get_ctx (xctx), "%s: native call\n",
+	     callee->fullname);
+
       size_t num_args = callee->num_args;
       size_t num_rets = callee->num_rets;
 
@@ -564,6 +567,9 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       err = callee->native_impl (xctx, inf, arg0, ret0);
       if (__i8x_unlikely (err != I8X_OK))
 	goto unwind_and_return;
+
+      trace (i8x_xctx_get_ctx (xctx), "%s: native return\n",
+	     callee->fullname);
 
       if (__i8x_likely (num_args != 0))
 	{
