@@ -474,9 +474,9 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   OPERATION (DW_OP_ ## name):			\
     ENSURE_DEPTH (2);				\
     if (STACK(1).i operator STACK(0).i)		\
-      STACK(0).i = 1;				\
+      STACK(1).i = 1;				\
     else					\
-      STACK(0).i = 0;				\
+      STACK(1).i = 0;				\
     ADJUST_STACK (-1);				\
     CONTINUE
 
