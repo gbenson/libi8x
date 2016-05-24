@@ -98,8 +98,9 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
   struct i8x_type *int_or_ptr = i8x_ctx_get_int_or_ptr_type (ctx);
   const char *trace_prefix = NULL;
   struct i8x_type **saved_sp, *tmp;
-  struct i8x_list *types;
+  struct i8x_list *ptypes, *rtypes;
   struct i8x_listitem *li;
+  size_t reqd_stack;
   i8x_err_e err;
 
   if (i8x_ctx_get_log_priority (ctx) > LOG_DEBUG)
@@ -122,8 +123,8 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 
 	  ENSURE_DEPTH (i8x_funcref_get_num_returns (ref));
 
-	  types = i8x_funcref_get_rtypes (ref);
-	  i8x_list_foreach (types, li)
+	  rtypes = i8x_funcref_get_rtypes (ref);
+	  i8x_list_foreach (rtypes, li)
 	    {
 	      ENSURE_TYPE (slot, i8x_listitem_get_type (li));
 	      slot++;
@@ -339,16 +340,25 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	    NOTE_NOT_VALID ();
 	  ADJUST_STACK (-1);
 
-	  types = i8x_type_get_ptypes (tmp);
-	  i8x_list_foreach_reversed (types, li)
+	  ptypes = i8x_type_get_ptypes (tmp);
+	  rtypes = i8x_type_get_rtypes (tmp);
+
+	  /* If the callee is native then the interpreter will
+	     allocate the return values array on the stack here.
+	     The spec doesn't account for this in the caller's
+	     declared max_stack, so we adjust it if required.  */
+	  reqd_stack = STACK_DEPTH () + i8x_list_size (rtypes);
+	  if (code->max_stack < reqd_stack)
+	    code->max_stack = reqd_stack;
+
+	  i8x_list_foreach_reversed (ptypes, li)
 	    {
 	      ENSURE_DEPTH (1);
 	      ENSURE_TYPE (0, i8x_listitem_get_type (li));
 	      ADJUST_STACK (-1);
 	    }
 
-	  types = i8x_type_get_rtypes (tmp);
-	  i8x_list_foreach_reversed (types, li)
+	  i8x_list_foreach_reversed (rtypes, li)
 	    {
 	      ADJUST_STACK (1);
 	      STACK(0) = i8x_listitem_get_type (li);

@@ -549,7 +549,27 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 	  DISPATCH (code->entry_point);
 	}
 
-      i8x_not_implemented ();
+      size_t num_args = callee->num_args;
+      size_t num_rets = callee->num_rets;
+
+      union i8x_value *arg0 = vsp - num_args;
+
+      /* Allocate return values array on the stack.  The spec
+	 doesn't account for this in the function's declared
+	 max_stack, but the validator will have increased it
+	 for us if necessary.  */
+      union i8x_value *ret0 = vsp;
+      ADJUST_STACK (callee->num_rets);
+
+      err = callee->native_impl (xctx, inf, arg0, ret0);
+      if (__i8x_unlikely (err != I8X_OK))
+	goto unwind_and_return;
+
+      if (__i8x_likely (num_args != 0))
+	{
+	  memmove (arg0, ret0, num_rets * sizeof (union i8x_value));
+	  ADJUST_STACK (-num_args);
+	}
       CONTINUE;
     }
 
