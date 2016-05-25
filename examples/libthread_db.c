@@ -369,13 +369,13 @@ td_ta_init (td_thragent_t *ta)
     }
 
   /* Store references to the functions we use.  */
-#define GET_FUNCREF(name, args, rets)				\
-  do {								\
-    err = i8x_ctx_get_funcref (ta->ctx,				\
-			       "libpthread", #name, args, rets, \
-			       &ta->name);			\
-    if (err != I8X_OK)						\
-      return td_err_from_i8x_err (err);				\
+#define GET_FUNCREF(name, args, rets)				    \
+  do {								    \
+    err = i8x_ctx_get_funcref (ta->ctx,				    \
+			       "libpthread", #name, args, rets,     \
+			       &ta->name);			    \
+    if (err != I8X_OK)						    \
+      return td_err_from_i8x_err (err);				    \
   } while (0)
 
   GET_FUNCREF (map_lwp2thr,	"i",		"ip");
@@ -480,7 +480,22 @@ td_err_e
 td_ta_map_lwp2thr (const td_thragent_t *ta, lwpid_t lwpid,
 		   td_thrhandle_t *th)
 {
-  return TD_NOCAPAB;
+  union i8x_value args[1], rets[2];
+  i8x_err_e err;
+
+  args[0].i = lwpid;
+
+  err = i8x_xctx_call (ta->xctx, ta->map_lwp2thr, ta->inf, args, rets);
+  if (err != I8X_OK)
+    return td_err_from_i8x_err (err);
+
+  if (rets[1].i != TD_OK)
+    return rets[1].i;
+
+  th->th_ta_p = (td_thragent_t *) ta;
+  th->th_unique = rets[0].p;
+
+  return TD_OK;
 }
 
 /* Call for each thread in a process associated with TA the callback
@@ -508,7 +523,8 @@ td_ta_thr_iter (const td_thragent_t *ta, td_thr_iter_f *callback,
   if (ta->thr_iter == NULL || !i8x_funcref_is_resolved (ta->thr_iter))
     return TD_NOCAPAB;
 
-  union i8x_value args[3], ret;
+  union i8x_value args[3], rets[1];
+  i8x_err_e err;
 
   args[0].f = ta->thr_iter_cb;
   args[1].p = cbdata_p;
@@ -516,12 +532,11 @@ td_ta_thr_iter (const td_thragent_t *ta, td_thr_iter_f *callback,
 
   ((td_thragent_t *) ta)->thr_iter_cb_impl = callback;
 
-  i8x_err_e err = i8x_xctx_call (ta->xctx, ta->thr_iter, ta->inf,
-				 args, &ret);
+  err = i8x_xctx_call (ta->xctx, ta->thr_iter, ta->inf, args, rets);
   if (err != I8X_OK)
     return td_err_from_i8x_err (err);
 
-  return ret.i;
+  return rets[0].i;
 }
 
 /* Helper for td_ta_thr_iter.  */
@@ -562,20 +577,20 @@ td_thr_get_info (const td_thrhandle_t *th, td_thrinfo_t *infop)
 
   /* Fill in the fields we handle.  */
   union i8x_value args[1], rets[2];
+  i8x_err_e err;
 
   args[0].p = th->th_unique;
 
-#define GET_FIELD(FUNC, FIELD, ITYPE)				\
-  do {								\
-    i8x_err_e err = i8x_xctx_call (ta->xctx, ta->FUNC, ta->inf, \
-				   args, rets);			\
-    if (err != I8X_OK)						\
-      return td_err_from_i8x_err (err);				\
-								\
-    if (rets[1].i != TD_OK)					\
-      return rets[1].i;						\
-								\
-    infop->FIELD = (typeof (infop->FIELD)) rets[0].ITYPE;	\
+#define GET_FIELD(fn, field, itype)				    \
+  do {								    \
+    err = i8x_xctx_call (ta->xctx, ta->fn, ta->inf, args, rets);    \
+    if (err != I8X_OK)						    \
+      return td_err_from_i8x_err (err);				    \
+								    \
+    if (rets[1].i != TD_OK)					    \
+      return rets[1].i;						    \
+								    \
+    infop->field = (typeof (infop->field)) rets[0].itype;	    \
   } while (0)
 
   GET_FIELD (thr_get_lwpid, ti_lid, i);
