@@ -196,6 +196,20 @@ td_relocate_address (struct i8x_inf *inf, struct i8x_note *note,
   return I8X_OK;
 }
 
+/* Memory reader function.  */
+
+static i8x_err_e
+td_read_memory (struct i8x_inf *inf, uintptr_t addr, size_t len,
+		void *result)
+{
+  td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
+
+  if (ps_pdread (ta->ph, (psaddr_t) addr, result, len) != PS_OK)
+    return I8X_READ_MEM_FAILED;
+
+  return I8X_OK;
+}
+
 /* Infinity native function wrapper for ps_getpid.  */
 
 static i8x_err_e
@@ -391,6 +405,7 @@ td_ta_init (td_thragent_t *ta)
 
   i8x_inf_set_userdata (ta->inf, ta, NULL);
   i8x_inf_set_relocate_fn (ta->inf, td_relocate_address);
+  i8x_inf_set_read_mem_fn (ta->inf, td_read_memory);
 
   /* Create an execution context.  */
   err = i8x_xctx_new (ta->ctx, 512, &ta->xctx);
