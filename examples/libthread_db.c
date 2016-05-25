@@ -22,7 +22,7 @@
 #include <thread_db.h>
 #include "proc_service.h"
 
-#include <stdio.h>  /* XXX.  */
+#include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -66,6 +66,8 @@ struct td_thragent
   /* References to functions we use.  */
   struct i8x_funcref *map_lwp2thr;
   struct i8x_funcref *thr_iter;
+  struct i8x_funcref *thr_get_lwpid;
+  struct i8x_funcref *thr_get_state;
 
   /* Callback for td_ta_thr_iter.  */
   struct i8x_funcref *thr_iter_cb;
@@ -367,23 +369,27 @@ td_ta_init (td_thragent_t *ta)
     }
 
   /* Store references to the functions we use.  */
-  err = i8x_ctx_get_funcref (ta->ctx,
-			     "libpthread", "map_lwp2thr",
-			     "i", "ip",
-			     &ta->map_lwp2thr);
-  if (err != I8X_OK)
-    return td_err_from_i8x_err (err);
+#define GET_FUNCREF(name, args, rets)				\
+  do {								\
+    err = i8x_ctx_get_funcref (ta->ctx,				\
+			       "libpthread", #name, args, rets, \
+			       &ta->name);			\
+    if (err != I8X_OK)						\
+      return td_err_from_i8x_err (err);				\
+  } while (0)
 
-  err = i8x_ctx_get_funcref (ta->ctx,
-			     "libpthread", "thr_iter",
-			     "Fi(po)oi", "i",
-			     &ta->thr_iter);
-  if (err != I8X_OK)
-    return td_err_from_i8x_err (err);
+  GET_FUNCREF (map_lwp2thr,	"i",		"ip");
+  GET_FUNCREF (thr_iter,	"Fi(po)oi",	"i");
+  GET_FUNCREF (thr_get_lwpid,	"p",		"ii");
+  GET_FUNCREF (thr_get_state,	"p",		"ii");
+
+#undef GET_FUNCREF
 
   /* Check we have at least one resolved function.  */
   if (!i8x_funcref_is_resolved (ta->map_lwp2thr)
-      && !i8x_funcref_is_resolved (ta->thr_iter))
+      && !i8x_funcref_is_resolved (ta->thr_iter)
+      && !(i8x_funcref_is_resolved (ta->thr_get_lwpid)
+	   && i8x_funcref_is_resolved (ta->thr_get_state)))
     return TD_VERSION;
 
   /* Register the callback wrapper for td_ta_thr_iter.  */
@@ -413,6 +419,25 @@ td_ta_init (td_thragent_t *ta)
   if (err != I8X_OK)
     return td_err_from_i8x_err (err);
 
+  /* Print a warning.  */
+  fputs (
+"==================================================================\n"
+"\n"
+"  WELCOME to INFINITY!\n"
+"\n"
+"  >>> This libthread_db is a DEMONSTRATION,\n"
+"  >>> DO NOT USE IN PRODUCTION IT WILL EAT YOUR BABIES!!!\n"
+"\n"
+"  Note that td_thr_get_info does not fill in all the fields that\n"
+"  glibc's libthread_db fills in -- only ti_ta_p, ti_tid, ti_lid\n"
+"  and ti_state are valid.  Note also that many functions are not\n"
+"  present, and some that are present always return TD_NOCAPAB.\n"
+"\n"
+"  OK HAVE FUN!\n"
+"\n"
+"==================================================================\n",
+	 stderr);
+
   return TD_OK;
 }
 
@@ -423,6 +448,9 @@ td_ta_delete (td_thragent_t *ta)
 {
   i8x_funcref_unref (ta->map_lwp2thr);
   i8x_funcref_unref (ta->thr_iter);
+  i8x_funcref_unref (ta->thr_get_lwpid);
+  i8x_funcref_unref (ta->thr_get_state);
+
   i8x_funcref_unref (ta->thr_iter_cb);
 
   i8x_inf_unref (ta->inf);
@@ -523,5 +551,37 @@ td_thr_validate (const td_thrhandle_t *th)
 td_err_e
 td_thr_get_info (const td_thrhandle_t *th, td_thrinfo_t *infop)
 {
-  return TD_NOCAPAB;
+  td_thragent_t *ta = th->th_ta_p;
+
+  /* Clear first to provide reproducable results.  */
+  memset (infop, 0, sizeof (td_thrinfo_t));
+
+  /* Fill in information.  */
+  infop->ti_tid = (thread_t) th->th_unique;
+  infop->ti_ta_p = th->th_ta_p;
+
+  /* Fill in the fields we handle.  */
+  union i8x_value args[1], rets[2];
+
+  args[0].p = th->th_unique;
+
+#define GET_FIELD(FUNC, FIELD, ITYPE)				\
+  do {								\
+    i8x_err_e err = i8x_xctx_call (ta->xctx, ta->FUNC, ta->inf, \
+				   args, rets);			\
+    if (err != I8X_OK)						\
+      return td_err_from_i8x_err (err);				\
+								\
+    if (rets[1].i != TD_OK)					\
+      return rets[1].i;						\
+								\
+    infop->FIELD = (typeof (infop->FIELD)) rets[0].ITYPE;	\
+  } while (0)
+
+  GET_FIELD (thr_get_lwpid, ti_lid, i);
+  GET_FIELD (thr_get_state, ti_state, i);
+
+#undef GET_FIELD
+
+  return TD_OK;
 }
