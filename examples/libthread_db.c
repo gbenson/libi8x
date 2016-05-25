@@ -202,8 +202,11 @@ static i8x_err_e
 td_ps_getpid (struct i8x_xctx *xctx, struct i8x_inf *inf,
 	      union i8x_value *args, union i8x_value *rets)
 {
-  fprintf (stderr, "%s:%d: Not implemented.\n", __FILE__, __LINE__);
-  exit (0);
+  td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
+
+  rets[0].i = ps_getpid (ta->ph);
+
+  return I8X_OK;
 }
 
 /* Infinity native function wrapper for ps_get_thread_area.  */
@@ -386,6 +389,7 @@ td_ta_init (td_thragent_t *ta)
   if (err != I8X_OK)
     return td_err_from_i8x_err (err);
 
+  i8x_inf_set_userdata (ta->inf, ta, NULL);
   i8x_inf_set_relocate_fn (ta->inf, td_relocate_address);
 
   /* Create an execution context.  */
