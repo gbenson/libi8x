@@ -69,6 +69,7 @@ struct td_thragent
 
   /* Callback for td_ta_thr_iter.  */
   struct i8x_funcref *thr_iter_cb;
+  td_thr_iter_f *thr_iter_cb_impl;
 };
 
 /* Map an i8x error code to a libthread_db one.  */
@@ -485,6 +486,8 @@ td_ta_thr_iter (const td_thragent_t *ta, td_thr_iter_f *callback,
   args[1].p = cbdata_p;
   args[2].i = ti_pri;
 
+  ((td_thragent_t *) ta)->thr_iter_cb_impl = callback;
+
   i8x_err_e err = i8x_xctx_call (ta->xctx, ta->thr_iter, ta->inf,
 				 args, &ret);
   if (err != I8X_OK)
@@ -499,8 +502,12 @@ static i8x_err_e
 td_ta_thr_iter_cb (struct i8x_xctx *xctx, struct i8x_inf *inf,
 		   union i8x_value *args, union i8x_value *rets)
 {
-  fprintf (stderr, "%s:%d: Not implemented.", __FILE__, __LINE__);
-  exit (0);
+  td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
+  struct td_thrhandle th = {ta, args[0].p};
+
+  rets[0].i = ta->thr_iter_cb_impl (&th, args[1].p);
+
+  return I8X_OK;
 }
 
 /* Validate that TH is a thread handle.  */
