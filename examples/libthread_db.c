@@ -228,12 +228,18 @@ td_ps_getpid (struct i8x_xctx *xctx, struct i8x_inf *inf,
 
 /* Infinity native function wrapper for ps_get_thread_area.  */
 
+#pragma weak ps_get_thread_area
+
 static i8x_err_e
 td_ps_get_thread_area (struct i8x_xctx *xctx, struct i8x_inf *inf,
 		       union i8x_value *args, union i8x_value *rets)
 {
-  fprintf (stderr, "%s:%d: Not implemented.\n", __FILE__, __LINE__);
-  exit (0);
+  td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
+
+  rets[1].i = ps_get_thread_area (ta->ph, args[0].i, args[1].i,
+				  &rets[0].p);
+
+  return I8X_OK;
 }
 
 /* Initialize the thread debug support library.  */
@@ -346,7 +352,9 @@ td_ta_init (td_thragent_t *ta)
   } while (0)
 
   REGISTER (getpid,          "",   "i",  td_ps_getpid);
-  REGISTER (get_thread_area, "ii", "ip", td_ps_get_thread_area);
+
+  if (&ps_get_thread_area != NULL)
+    REGISTER (get_thread_area, "ii", "ip", td_ps_get_thread_area);
 
 #undef REGISTER
 
