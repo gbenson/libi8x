@@ -40,7 +40,7 @@
 
 static td_err_e td_ta_init (td_thragent_t *ta);
 static i8x_err_e td_ta_thr_iter_cb (struct i8x_xctx *xctx,
-				    struct i8x_inferior *inf,
+				    struct i8x_inf *inf,
 				    union i8x_value *args,
 				    union i8x_value *rets);
 
@@ -58,7 +58,7 @@ struct td_thragent
   struct i8x_ctx *ctx;
 
   /* The process we are accessing.  */
-  struct i8x_inferior *inf;
+  struct i8x_inf *inf;
 
   /* Execution context.  */
   struct i8x_xctx *xctx;
@@ -188,7 +188,7 @@ td_import_notes (td_thragent_t *ta, const char *filename, Elf *elf,
 /* Address relocation function.  */
 
 static i8x_err_e
-td_relocate_address (struct i8x_inferior *inf, struct i8x_note *note,
+td_relocate_address (struct i8x_inf *inf, struct i8x_note *note,
 		     uintptr_t unresolved, uintptr_t *result)
 {
   *result = (uintptr_t) i8x_note_get_userdata (note) + unresolved;
@@ -199,7 +199,7 @@ td_relocate_address (struct i8x_inferior *inf, struct i8x_note *note,
 /* Infinity native function wrapper for ps_getpid.  */
 
 static i8x_err_e
-td_ps_getpid (struct i8x_xctx *xctx, struct i8x_inferior *inf,
+td_ps_getpid (struct i8x_xctx *xctx, struct i8x_inf *inf,
 	      union i8x_value *args, union i8x_value *rets)
 {
   fprintf (stderr, "%s:%d: Not implemented.\n", __FILE__, __LINE__);
@@ -209,7 +209,7 @@ td_ps_getpid (struct i8x_xctx *xctx, struct i8x_inferior *inf,
 /* Infinity native function wrapper for ps_get_thread_area.  */
 
 static i8x_err_e
-td_ps_get_thread_area (struct i8x_xctx *xctx, struct i8x_inferior *inf,
+td_ps_get_thread_area (struct i8x_xctx *xctx, struct i8x_inf *inf,
 		       union i8x_value *args, union i8x_value *rets)
 {
   fprintf (stderr, "%s:%d: Not implemented.\n", __FILE__, __LINE__);
@@ -382,11 +382,11 @@ td_ta_init (td_thragent_t *ta)
   func = i8x_func_unref (func);
 
   /* Create the inferior.  */
-  err = i8x_inferior_new (ta->ctx, &ta->inf);
+  err = i8x_inf_new (ta->ctx, &ta->inf);
   if (err != I8X_OK)
     return td_err_from_i8x_err (err);
 
-  i8x_inferior_set_relocate_fn (ta->inf, td_relocate_address);
+  i8x_inf_set_relocate_fn (ta->inf, td_relocate_address);
 
   /* Create an execution context.  */
   err = i8x_xctx_new (ta->ctx, 512, &ta->xctx);
@@ -405,7 +405,7 @@ td_ta_delete (td_thragent_t *ta)
   i8x_funcref_unref (ta->thr_iter);
   i8x_funcref_unref (ta->thr_iter_cb);
 
-  i8x_inferior_unref (ta->inf);
+  i8x_inf_unref (ta->inf);
   i8x_xctx_unref (ta->xctx);
 
   i8x_ctx_unref (ta->ctx);
@@ -477,7 +477,7 @@ td_ta_thr_iter (const td_thragent_t *ta, td_thr_iter_f *callback,
 /* Helper for td_ta_thr_iter.  */
 
 static i8x_err_e
-td_ta_thr_iter_cb (struct i8x_xctx *xctx, struct i8x_inferior *inf,
+td_ta_thr_iter_cb (struct i8x_xctx *xctx, struct i8x_inf *inf,
 		   union i8x_value *args, union i8x_value *rets)
 {
   fprintf (stderr, "%s:%d: Not implemented.", __FILE__, __LINE__);

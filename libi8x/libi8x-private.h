@@ -328,7 +328,7 @@ I8X_LIST_FUNCTIONS (reloc);
 i8x_err_e i8x_reloc_new (struct i8x_code *code, uintptr_t unrelocated,
 			 struct i8x_reloc **reloc);
 void i8x_reloc_invalidate_for_inferior (struct i8x_reloc *reloc,
-					struct i8x_inferior *inf);
+					struct i8x_inf *inf);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -24,7 +24,7 @@
 
 /* Inferior processes.  */
 
-struct i8x_inferior
+struct i8x_inf
 {
   I8X_OBJECT_FIELDS;
 

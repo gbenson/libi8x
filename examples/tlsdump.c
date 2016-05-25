@@ -251,14 +251,14 @@ function_unavailable (struct i8x_func *func)
 }
 
 static i8x_err_e
-ps_getpid (struct i8x_xctx *xctx, struct i8x_inferior *inf,
+ps_getpid (struct i8x_xctx *xctx, struct i8x_inf *inf,
 	   union i8x_value *args, union i8x_value *rets)
 {
   error ("%s:%d: Not implemented.", __FILE__, __LINE__);
 }
 
 static i8x_err_e
-ps_get_thread_area (struct i8x_xctx *xctx, struct i8x_inferior *inf,
+ps_get_thread_area (struct i8x_xctx *xctx, struct i8x_inf *inf,
 		    union i8x_value *args, union i8x_value *rets)
 {
   error ("%s:%d: Not implemented.", __FILE__, __LINE__);
@@ -291,7 +291,7 @@ tlsdump_process (pid_t pid)
   struct userdata ud;
   struct native_func *nf;
   struct i8x_funcref *fr;
-  struct i8x_inferior *inf;
+  struct i8x_inf *inf;
   struct i8x_xctx *xctx;
   union i8x_value args[1], rets[2];
   i8x_err_e err;
@@ -328,7 +328,7 @@ tlsdump_process (pid_t pid)
   if (!i8x_funcref_is_resolved (fr))
     error ("%s: function not resolved", i8x_funcref_get_fullname (fr));
 
-  err = i8x_inferior_new (ctx, &inf);
+  err = i8x_inf_new (ctx, &inf);
   if (err != I8X_OK)
     error_i8x (ctx, err);
 
@@ -344,7 +344,7 @@ tlsdump_process (pid_t pid)
   printf ("map_lwp2thr(%d) = %d, %p\n", pid, rets[0].i, rets[1].p);
 
   i8x_xctx_unref (xctx);
-  i8x_inferior_unref (inf);
+  i8x_inf_unref (inf);
   i8x_funcref_unref (fr);
 
   /* XXX free stuff in userdata e.g. the list of ELF files  */

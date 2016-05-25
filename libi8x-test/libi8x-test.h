@@ -48,7 +48,7 @@ const char *i8x_byte_order_name (bool bytes_reversed);
 void i8x_execution_test_main (void) __attribute__ ((__noreturn__));
 
 void i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
-			 struct i8x_inferior *inf, int wordsize,
+			 struct i8x_inf *inf, int wordsize,
 			 bool bytes_reversed);
 
 #ifdef __cplusplus

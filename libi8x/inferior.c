@@ -21,10 +21,10 @@
 #include "inferior-private.h"
 
 static i8x_err_e
-no_read_mem_fn (struct i8x_inferior *inf, uintptr_t addr,
-		size_t len, void *result)
+no_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
+		void *result)
 {
-  error (i8x_inferior_get_ctx (inf),
+  error (i8x_inf_get_ctx (inf),
 	 "inferior %p has no read_mem function\n", inf);
 
   /* Don't use i8x_ctx_set_error, the interpreter decorates
@@ -33,10 +33,10 @@ no_read_mem_fn (struct i8x_inferior *inf, uintptr_t addr,
 }
 
 static i8x_err_e
-no_relocate_fn (struct i8x_inferior *inf, struct i8x_note *note,
+no_relocate_fn (struct i8x_inf *inf, struct i8x_note *note,
 		uintptr_t unresolved, uintptr_t *result)
 {
-  error (i8x_inferior_get_ctx (inf),
+  error (i8x_inf_get_ctx (inf),
 	 "inferior %p has no relocate function\n", inf);
 
   /* Don't use i8x_ctx_set_error, the interpreter decorates
@@ -45,28 +45,28 @@ no_relocate_fn (struct i8x_inferior *inf, struct i8x_note *note,
 }
 
 static void
-i8x_inferior_unlink (struct i8x_object *ob)
+i8x_inf_unlink (struct i8x_object *ob)
 {
-  struct i8x_inferior *inf = (struct i8x_inferior *) ob;
+  struct i8x_inf *inf = (struct i8x_inf *) ob;
 
-  i8x_inferior_invalidate_relocs (inf);
+  i8x_inf_invalidate_relocs (inf);
 }
 
-const struct i8x_object_ops i8x_inferior_ops =
+const struct i8x_object_ops i8x_inf_ops =
   {
-    "inferior",				/* Object name.  */
-    sizeof (struct i8x_inferior),	/* Object size.  */
-    i8x_inferior_unlink,		/* Unlink function.  */
-    NULL,				/* Free function.  */
+    "inferior",			/* Object name.  */
+    sizeof (struct i8x_inf),	/* Object size.  */
+    i8x_inf_unlink,		/* Unlink function.  */
+    NULL,			/* Free function.  */
   };
 
 I8X_EXPORT i8x_err_e
-i8x_inferior_new (struct i8x_ctx *ctx, struct i8x_inferior **inf)
+i8x_inf_new (struct i8x_ctx *ctx, struct i8x_inf **inf)
 {
-  struct i8x_inferior *i;
+  struct i8x_inf *i;
   i8x_err_e err;
 
-  err = i8x_ob_new (ctx, &i8x_inferior_ops, &i);
+  err = i8x_ob_new (ctx, &i8x_inf_ops, &i);
   if (err != I8X_OK)
     return err;
 
@@ -79,15 +79,15 @@ i8x_inferior_new (struct i8x_ctx *ctx, struct i8x_inferior **inf)
 }
 
 I8X_EXPORT void
-i8x_inferior_set_read_mem_fn (struct i8x_inferior *inf,
-			     i8x_read_mem_fn_t *read_mem_fn)
+i8x_inf_set_read_mem_fn (struct i8x_inf *inf,
+			 i8x_read_mem_fn_t *read_mem_fn)
 {
   inf->read_mem_fn = read_mem_fn;
 }
 
 I8X_EXPORT void
-i8x_inferior_set_relocate_fn (struct i8x_inferior *inf,
-			      i8x_relocate_fn_t *relocate_fn)
+i8x_inf_set_relocate_fn (struct i8x_inf *inf,
+			 i8x_relocate_fn_t *relocate_fn)
 {
   inf->relocate_fn = relocate_fn;
 }

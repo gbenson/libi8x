@@ -153,7 +153,7 @@ expect_result (int size,  bool is_signed, bool bytes_reversed)
 
 static void
 do_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
-	 struct i8x_inferior *inf, int size, bool is_signed,
+	 struct i8x_inf *inf, int size, bool is_signed,
 	 bool bytes_reversed)
 {
   union i8x_value expect = expect_result (size, is_signed,
@@ -181,8 +181,8 @@ do_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
 static uint8_t test_memory[__WORDSIZE >> 3];
 
 static i8x_err_e
-read_memory (struct i8x_inferior *inf, uintptr_t addr,
-	     size_t len, void *result)
+read_memory (struct i8x_inf *inf, uintptr_t addr, size_t len,
+	     void *result)
 {
   CHECK (addr == TEST_ADDR);
 
@@ -202,7 +202,7 @@ read_memory (struct i8x_inferior *inf, uintptr_t addr,
 
 void
 i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
-		    struct i8x_inferior *inf, int wordsize,
+		    struct i8x_inf *inf, int wordsize,
 		    bool bytes_reversed)
 {
   static bool is_setup = false;
@@ -217,7 +217,7 @@ i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
       is_setup = true;
     }
 
-  i8x_inferior_set_read_mem_fn (inf, read_memory);
+  i8x_inf_set_read_mem_fn (inf, read_memory);
 
   *testnote_byteorder = ARCHSPEC (wordsize, bytes_reversed);
 

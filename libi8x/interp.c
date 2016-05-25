@@ -304,12 +304,12 @@ i8x_ctx_init_dispatch_table (struct i8x_ctx *ctx, void **table,
 
 I8X_EXPORT i8x_err_e
 i8x_xctx_call (struct i8x_xctx *xctx, struct i8x_funcref *ref,
-	       struct i8x_inferior *inf, union i8x_value *args,
+	       struct i8x_inf *inf, union i8x_value *args,
 	       union i8x_value *rets)  */
 
 NOT_DEBUG(I8X_EXPORT) i8x_err_e
 INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
-	     struct i8x_inferior *inf, union i8x_value *args,
+	     struct i8x_inf *inf, union i8x_value *args,
 	     union i8x_value *rets)
 {
   /* If this function is native then we're in the wrong place.  */

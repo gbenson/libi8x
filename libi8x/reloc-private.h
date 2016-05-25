@@ -35,7 +35,7 @@ struct i8x_reloc
      more than one inferior, and it prevents i8x_xctx_call from
      being callable simultaneously from multiple threads.  */
   uintptr_t cached_value;
-  struct i8x_inferior *cached_from;
+  struct i8x_inf *cached_from;
 };
 
 #endif /* _RELOC_PRIVATE_H_ */

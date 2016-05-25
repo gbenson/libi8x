@@ -67,7 +67,7 @@ i8x_execution_test_main (void)
     {
       struct i8x_ctx *ctx;
       struct i8x_xctx *xctx;
-      struct i8x_inferior *inf;
+      struct i8x_inf *inf;
       const int stack_size = 512;
       i8x_err_e err;
 
@@ -78,7 +78,7 @@ i8x_execution_test_main (void)
       CHECK_CALL (ctx, err);
       i8x_xctx_set_use_debug_interpreter (xctx, is_debug);
 
-      err = i8x_inferior_new (ctx, &inf);
+      err = i8x_inf_new (ctx, &inf);
       CHECK_CALL (ctx, err);
 
       /* Run each test in 32-bit mode first, and then 64-bit
@@ -91,7 +91,7 @@ i8x_execution_test_main (void)
 	    i8x_execution_test (ctx, xctx, inf, wordsize, is_reversed);
 	}
 
-      i8x_inferior_unref (inf);
+      i8x_inf_unref (inf);
       i8x_xctx_unref (xctx);
       i8x_ctx_unref (ctx);
     }

@@ -881,9 +881,9 @@ i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
 }
 
 I8X_EXPORT void
-i8x_inferior_invalidate_relocs (struct i8x_inferior *inf)
+i8x_inf_invalidate_relocs (struct i8x_inf *inf)
 {
-  struct i8x_ctx *ctx = i8x_inferior_get_ctx (inf);
+  struct i8x_ctx *ctx = i8x_inf_get_ctx (inf);
   struct i8x_listitem *li;
 
   i8x_list_foreach (ctx->functions, li)

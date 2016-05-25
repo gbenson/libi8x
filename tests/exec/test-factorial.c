@@ -96,7 +96,7 @@ load_and_register (struct i8x_ctx *ctx, const char *filename,
 
 static void
 do_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
-	 struct i8x_inferior *inf, const char *test_note,
+	 struct i8x_inf *inf, const char *test_note,
 	 int wordsize, const char *byte_order_name)
 {
   char filename[BUFSIZ];
@@ -131,7 +131,7 @@ do_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
 
 void
 i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
-		    struct i8x_inferior *inf, int wordsize,
+		    struct i8x_inf *inf, int wordsize,
 		    bool bytes_reversed)
 {
   const char *byte_order_name = i8x_byte_order_name (bytes_reversed);

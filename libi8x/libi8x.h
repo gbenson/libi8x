@@ -71,7 +71,7 @@ struct i8x_chunk;
 struct i8x_ctx;
 struct i8x_func;
 struct i8x_funcref;
-struct i8x_inferior;
+struct i8x_inf;
 struct i8x_list;
 struct i8x_listitem;
 struct i8x_note;
@@ -192,7 +192,7 @@ typedef void i8x_log_fn_t (struct i8x_ctx *ctx,
 			   const char *format, va_list args);
 
 typedef i8x_err_e i8x_nat_fn_t (struct i8x_xctx *xctx,
-				struct i8x_inferior *inf,
+				struct i8x_inf *inf,
 				union i8x_value *args,
 				union i8x_value *rets);
 
@@ -268,28 +268,27 @@ bool i8x_funcref_is_private (struct i8x_funcref *ref);
 bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
 
 /*
- * i8x_inferior
+ * i8x_inf
  *
  * access to inferiors of i8x
  */
-I8X_COMMON_OBJECT_FUNCTIONS (inferior);
+I8X_COMMON_OBJECT_FUNCTIONS (inf);
 
-typedef i8x_err_e i8x_read_mem_fn_t (struct i8x_inferior *inf,
+typedef i8x_err_e i8x_read_mem_fn_t (struct i8x_inf *inf,
 				     uintptr_t addr, size_t len,
 				     void *result);
 
-typedef i8x_err_e i8x_relocate_fn_t (struct i8x_inferior *inf,
+typedef i8x_err_e i8x_relocate_fn_t (struct i8x_inf *inf,
 				     struct i8x_note *note,
 				     uintptr_t unrelocated,
 				     uintptr_t *result);
 
-i8x_err_e i8x_inferior_new (struct i8x_ctx *ctx,
-			    struct i8x_inferior **inf);
-void i8x_inferior_set_read_mem_fn (struct i8x_inferior *inf,
-				   i8x_read_mem_fn_t *read_mem_fn);
-void i8x_inferior_set_relocate_fn (struct i8x_inferior *inf,
-				   i8x_relocate_fn_t *relocate_fn);
-void i8x_inferior_invalidate_relocs (struct i8x_inferior *inf);
+i8x_err_e i8x_inf_new (struct i8x_ctx *ctx, struct i8x_inf **inf);
+void i8x_inf_set_read_mem_fn (struct i8x_inf *inf,
+			      i8x_read_mem_fn_t *read_mem_fn);
+void i8x_inf_set_relocate_fn (struct i8x_inf *inf,
+			      i8x_relocate_fn_t *relocate_fn);
+void i8x_inf_invalidate_relocs (struct i8x_inf *inf);
 
 /*
  * i8x_list
@@ -384,7 +383,7 @@ void i8x_xctx_set_use_debug_interpreter (struct i8x_xctx *xctx,
 					 bool use_debug_interpreter);
 i8x_err_e i8x_xctx_call (struct i8x_xctx *xctx,
 			 struct i8x_funcref *ref,
-			 struct i8x_inferior *inf,
+			 struct i8x_inf *inf,
 			 union i8x_value *args,
 			 union i8x_value *rets);
 

@@ -23,7 +23,7 @@
 
 void
 i8x_reloc_invalidate_for_inferior (struct i8x_reloc *reloc,
-				   struct i8x_inferior *inf)
+				   struct i8x_inf *inf)
 {
   if (reloc->cached_from != inf)
     return;
@@ -31,7 +31,7 @@ i8x_reloc_invalidate_for_inferior (struct i8x_reloc *reloc,
   /* Set cached_from to something that definitely isn't an
      inferior, and poison the cached value too while we're
      at it.  */
-  reloc->cached_from = (struct i8x_inferior *) reloc;
+  reloc->cached_from = (struct i8x_inf *) reloc;
   reloc->cached_value = I8X_POISON_BAD_CACHED_RELOC;
 
   dbg (i8x_reloc_get_ctx (reloc),
@@ -44,7 +44,7 @@ i8x_reloc_init (struct i8x_reloc *reloc, uintptr_t unrelocated)
   reloc->unrelocated = unrelocated;
 
   i8x_reloc_invalidate_for_inferior (reloc, reloc->cached_from);
-  i8x_assert (reloc->cached_from == (struct i8x_inferior *) reloc);
+  i8x_assert (reloc->cached_from == (struct i8x_inf *) reloc);
 
   return I8X_OK;
 }

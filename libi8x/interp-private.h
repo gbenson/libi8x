@@ -128,7 +128,7 @@ i8x_err_e i8x_code_validate (struct i8x_code *code,
 			     struct i8x_funcref *ref);
 i8x_err_e i8x_xctx_call_dbg (struct i8x_xctx *xctx,
 			     struct i8x_funcref *ref,
-			     struct i8x_inferior *inf,
+			     struct i8x_inf *inf,
 			     union i8x_value *args,
 			     union i8x_value *rets);
 
