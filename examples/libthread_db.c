@@ -226,6 +226,45 @@ td_ps_getpid (struct i8x_xctx *xctx, struct i8x_inf *inf,
   return I8X_OK;
 }
 
+/* Infinity native function wrapper for ps_get_register.  */
+
+static i8x_err_e
+td_ps_get_register (struct i8x_xctx *xctx, struct i8x_inf *inf,
+		    union i8x_value *args, union i8x_value *rets)
+{
+  td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
+
+  /* We cannot use prgregset_t here because we may be accessing a
+     process on an architecture with a larger prgregset_t than our
+     own.  I will probably eat my words later, but here goes: 1024
+     registers should be suitably vast.  */
+  elf_greg_t regs[1024];
+  rets[1].i = ps_lgetregs (ta->ph, args[0].i, regs);
+  if (rets[1].i != PS_OK)
+    return I8X_OK;
+
+  switch (i8x_xctx_get_wordsize (xctx))
+    {
+#define CASE(SIZE)							\
+    case SIZE:								\
+      rets[0].u =							\
+	*(uint ## SIZE ## _t *) ((uint8_t *) regs + args[1].i);		\
+      break
+
+    CASE(32);
+
+#if __WORDSIZE >= 64
+    CASE(64);
+#endif /* __WORDSIZE >= 64 */
+
+    default:
+      rets[1].i = PS_ERR;
+      return I8X_OK;
+    }
+
+  return I8X_OK;
+}
+
 /* Infinity native function wrapper for ps_get_thread_area.  */
 
 #pragma weak ps_get_thread_area
@@ -351,7 +390,8 @@ td_ta_init (td_thragent_t *ta)
       return td_err_from_i8x_err (err);				    \
   } while (0)
 
-  REGISTER (getpid,          "",   "i",  td_ps_getpid);
+  REGISTER (getpid,       "",   "i",  td_ps_getpid);
+  REGISTER (get_register, "ii", "ii", td_ps_get_register);
 
   if (&ps_get_thread_area != NULL)
     REGISTER (get_thread_area, "ii", "ip", td_ps_get_thread_area);
