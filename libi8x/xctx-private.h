@@ -49,6 +49,12 @@ struct i8x_xctx
   /* The "top" slot in the call stack.
      Slots in the call stack are csp <= SLOT < stack_limit.  */
   union i8x_value *csp;
+
+  /* Wordsize of the current interpreter frame, or 0 if unknown.  */
+  int wordsize;
+
+  /* Byte order of the current frame.  */
+  i8x_byte_order_e byte_order;
 };
 
 #endif /* _XCTX_PRIVATE_H_ */

@@ -81,6 +81,8 @@ global:
 	i8x_xctx_get_use_debug_interpreter;
 	i8x_xctx_set_use_debug_interpreter;
 	i8x_xctx_call;
+	i8x_xctx_get_wordsize;
+	i8x_xctx_get_byte_order;
 local:
 	*;
 };
