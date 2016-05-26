@@ -236,28 +236,6 @@ td_ps_get_thread_area (struct i8x_xctx *xctx, struct i8x_inf *inf,
   exit (0);
 }
 
-/* Table of native functions we implement.  */
-
-struct td_native_func
-{
-  const char *provider;
-  const char *name;
-  const char *ptypes;
-  const char *rtypes;
-
-  i8x_nat_fn_t *impl_fn;
-};
-
-#define END_TABLE {NULL}
-
-static struct td_native_func native_func_table[] =
-{
-  {"procservice", "getpid",          "",   "i",  td_ps_getpid},
-  {"procservice", "get_thread_area", "ii", "ip", td_ps_get_thread_area},
-
-  END_TABLE
-};
-
 /* Initialize the thread debug support library.  */
 
 td_err_e
@@ -357,16 +335,20 @@ td_ta_init (td_thragent_t *ta)
   i8x_err_e err;
 
   /* Register the native functions we provide.  */
-  for (struct td_native_func *nf = native_func_table;
-       nf->provider != NULL; nf++)
-    {
-      err = i8x_ctx_import_native (ta->ctx,
-				   nf->provider, nf->name,
-				   nf->ptypes, nf->rtypes,
-				   nf->impl_fn, NULL);
-      if (err != I8X_OK)
-	return td_err_from_i8x_err (err);
-    }
+#define REGISTER(name, args, rets, impl)			    \
+  do {								    \
+    err = i8x_ctx_import_native (ta->ctx,			    \
+				 "procservice", #name,		    \
+				 args, rets,			    \
+				 impl, NULL);			    \
+    if (err != I8X_OK)						    \
+      return td_err_from_i8x_err (err);				    \
+  } while (0)
+
+  REGISTER (getpid,          "",   "i",  td_ps_getpid);
+  REGISTER (get_thread_area, "ii", "ip", td_ps_get_thread_area);
+
+#undef REGISTER
 
   /* Store references to the functions we use.  */
 #define GET_FUNCREF(name, args, rets)				    \
