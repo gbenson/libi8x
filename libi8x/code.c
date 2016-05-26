@@ -101,7 +101,7 @@ i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
 
   /* Read the architecture specifier.  */
   location = i8x_rb_get_ptr (rb);
-  i8x_rb_set_swap_bytes (rb, false);
+  i8x_rb_set_byte_order (rb, I8X_BYTE_ORDER_NATIVE);
   err = i8x_rb_read_uint16_t (rb, &archspec);
   if (err != I8X_OK)
     return err;
@@ -114,7 +114,8 @@ i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
 	  if (archspec == ARCHSPEC (wordsize, is_swapped))
 	    {
 	      code->wordsize = wordsize;
-	      code->bytes_swapped = is_swapped;
+	      code->byte_order = is_swapped ?
+		I8X_BYTE_ORDER_REVERSED : I8X_BYTE_ORDER_NATIVE;
 
 	      break;
 	    }
@@ -339,8 +340,7 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   if (err != I8X_OK)
     return err;
 
-  if (code->wordsize != 0)
-    i8x_rb_set_swap_bytes (rb, code->bytes_swapped);
+  i8x_rb_set_byte_order (rb, code->byte_order);
 
   while (i8x_rb_bytes_left (rb) > 0)
     {
@@ -604,11 +604,13 @@ static i8x_err_e
 i8x_code_rewrite_derefs (struct i8x_code *code)
 {
   struct i8x_instr *op;
-  bool is_signed = false;
   int size, shift;
 
   i8x_code_foreach_op (code, op)
     {
+      bool is_signed = false;
+      bool is_swapped = false;
+
       switch (op->code)
 	{
 	case DW_OP_deref:
@@ -640,8 +642,13 @@ i8x_code_rewrite_derefs (struct i8x_code *code)
       shift -= 3;
       i8x_assert (shift >= 0 && shift <= 3);
 
-      /* There are no reversed variants for 1-byte derefs.  */
-      bool is_swapped = (shift > 0) && code->bytes_swapped;
+      if (shift > 0)
+	{
+	  if (code->byte_order == I8X_BYTE_ORDER_REVERSED)
+	    is_swapped = true;
+	  else if (code->byte_order != I8X_BYTE_ORDER_NATIVE)
+	    return i8x_code_error (code, I8X_NOTE_INVALID, op);
+	}
 
       i8x_code_rewrite_op (op,
 			   I8X_OP_deref_u8

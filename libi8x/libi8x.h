@@ -65,6 +65,16 @@ i8x_err_e;
 #define I8_CHUNK_STRINGS	4
 #define I8_CHUNK_CODEINFO	5
 
+/* Byte orderings.  */
+
+typedef enum
+{
+  I8X_BYTE_ORDER_UNKNOWN,
+  I8X_BYTE_ORDER_NATIVE,
+  I8X_BYTE_ORDER_REVERSED
+}
+i8x_byte_order_e;
+
 /* Forward declarations.  */
 
 struct i8x_chunk;
@@ -342,7 +352,8 @@ i8x_err_e i8x_rb_new_from_note (struct i8x_note *note,
 i8x_err_e i8x_rb_new_from_chunk (struct i8x_chunk *chunk,
 				 struct i8x_readbuf **rb);
 struct i8x_note *i8x_rb_get_note (struct i8x_readbuf *rb);
-void i8x_rb_set_swap_bytes (struct i8x_readbuf *rb, bool swap_bytes);
+void i8x_rb_set_byte_order (struct i8x_readbuf *rb,
+			    i8x_byte_order_e byte_order);
 size_t i8x_rb_bytes_left (struct i8x_readbuf *rb);
 i8x_err_e i8x_rb_read_int8_t (struct i8x_readbuf *rb, int8_t *result);
 i8x_err_e i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result);

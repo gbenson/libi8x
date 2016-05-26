@@ -24,12 +24,11 @@ struct i8x_readbuf
 {
   I8X_OBJECT_FIELDS;
 
-  bool swap_bytes;	/* True if multibyte values should be swapped.  */
-  bool swap_bytes_set;	/* True if swap_bytes has been set.  */
-
   const char *start;	/* Pointer to first byte of buffer.  */
   const char *limit;	/* Pointer to byte after last byte of buffer.  */
   const char *ptr;	/* Pointer to next byte to be read.  */
+
+  i8x_byte_order_e byte_order;	/* Byte order for multibyte values.  */
 };
 
 const struct i8x_object_ops i8x_readbuf_ops =
@@ -83,10 +82,10 @@ i8x_rb_get_note (struct i8x_readbuf *rb)
 }
 
 I8X_EXPORT void
-i8x_rb_set_swap_bytes (struct i8x_readbuf *rb, bool swap_bytes)
+i8x_rb_set_byte_order (struct i8x_readbuf *rb,
+		       i8x_byte_order_e byte_order)
 {
-  rb->swap_bytes = swap_bytes;
-  rb->swap_bytes_set = true;
+  rb->byte_order = byte_order;
 }
 
 const char *
@@ -140,9 +139,10 @@ i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result)
     tmp = *(TYPE *) rb->ptr;						\
     rb->ptr += sizeof (TYPE);						\
 									\
-    i8x_assert (rb->swap_bytes_set);					\
-    if (rb->swap_bytes)							\
+    if (rb->byte_order == I8X_BYTE_ORDER_REVERSED)			\
       tmp = BSWAP (tmp);						\
+    else								\
+      i8x_assert (rb->byte_order == I8X_BYTE_ORDER_NATIVE);		\
 									\
     *result = tmp;							\
 									\

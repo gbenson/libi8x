@@ -98,8 +98,7 @@ struct i8x_code
   I8X_OBJECT_FIELDS;
 
   int wordsize;		/* Wordsize of the code chunk, or 0 if unknown.  */
-  bool bytes_swapped;	/* True if bytes are swapped (unknown if
-			   wordsize == 0)  */
+  i8x_byte_order_e byte_order;	/* Byte ordering of the code chunk.  */
 
   size_t code_size;		/* Size of undecoded bytecode, in bytes.  */
   const char *code_start;	/* First byte of undecoded bytecode.  */
