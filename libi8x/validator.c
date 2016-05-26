@@ -256,6 +256,24 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	  STACK(0) = inttype;
 	  break;
 
+	case DW_OP_plus:
+	  ENSURE_DEPTH (2);
+	  ENSURE_TYPE (0, int_or_ptr);
+	  ENSURE_TYPE (1, int_or_ptr);
+	  if (STACK(0) == ptrtype)
+	    {
+	      if (STACK(1) == ptrtype)
+		NOTE_NOT_VALID ();
+
+	      STACK(1) = ptrtype;
+	    }
+	  else if (STACK(1) == int_or_ptr)
+	    {
+	      STACK(1) = inttype;
+	    }
+	  ADJUST_STACK (-1);
+	  break;
+
 	case DW_OP_minus:
 	  ENSURE_DEPTH (2);
 	  ENSURE_TYPE (0, inttype);
