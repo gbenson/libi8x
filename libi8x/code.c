@@ -589,6 +589,35 @@ i8x_code_rewrite_pre_validate (struct i8x_code *code)
   return I8X_OK;
 }
 
+static i8x_err_e
+i8x_code_remove_casts (struct i8x_code *code)
+{
+  struct i8x_instr *op1, *op2;
+
+  i8x_code_foreach_op (code, op1)
+    {
+      if (op1->code != I8_OP_cast_int2ptr
+	  && op1->code != I8_OP_cast_ptr2int)
+	continue;
+
+      i8x_code_foreach_op (code, op2)
+	{
+	  if (op2->branch_next == op1)
+	    op2->branch_next = op1->fall_through;
+
+	  if (op2->fall_through == op1)
+	    op2->fall_through = op1->fall_through;
+	}
+
+      op1->code = IT_EMPTY_SLOT;
+      op1->is_visited = false;
+    }
+
+  i8x_code_dump_itable (code, __FUNCTION__);
+
+  return I8X_OK;
+}
+
 static int
 i8x_log2 (int x)
 {
@@ -742,6 +771,10 @@ i8x_code_init (struct i8x_code *code)
     return err;
 
   err = i8x_code_rewrite_derefs (code);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_code_remove_casts (code);
   if (err != I8X_OK)
     return err;
 

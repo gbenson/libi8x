@@ -18,8 +18,14 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <string.h>
+#include <limits.h>
 #include "libi8x-private.h"
 #include "interp-private.h"
+
+#define NOTE_UNHANDLED()						\
+  do {									\
+    return i8x_code_error (code, I8X_NOTE_UNHANDLED, op);		\
+  } while (0)
 
 #define NOTE_NOT_VALID()						\
   do {									\
@@ -396,6 +402,22 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	  ENSURE_TYPE (0, ptrtype);
 	  STACK(0) = inttype;
 	  break;
+
+#define do_I8_OP_cast(type1, type2)				\
+	case I8_OP_cast_ ## type1 ## 2 ## type2:		\
+	  {							\
+	    if (op->arg1.u > INT_MAX)				\
+	      NOTE_UNHANDLED ();				\
+	    ENSURE_DEPTH (op->arg1.u + 1);			\
+	    ENSURE_TYPE ((int) op->arg1.u, type1 ## type);	\
+	    STACK(op->arg1.u) = type2 ## type;			\
+	  }							\
+	  break
+
+	do_I8_OP_cast (int, ptr);
+	do_I8_OP_cast (ptr, int);
+
+#undef do_I8_OP_cast
 
 	case I8X_OP_const:
 	  ADJUST_STACK (1);

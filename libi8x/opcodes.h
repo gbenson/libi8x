@@ -183,6 +183,8 @@
 #define I8_OP_call			0x100
 #define I8_OP_load_external		0x101
 #define I8_OP_deref_int			0x102
+#define I8_OP_cast_int2ptr		0x103
+#define I8_OP_cast_ptr2int		0x104
 
 /* libi8x internal operations.  */
 #define I8X_OP_return			0x140
