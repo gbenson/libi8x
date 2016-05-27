@@ -19,7 +19,6 @@
 
 EXTRA_DIST =
 CLEANFILES =
-noinst_PROGRAMS =
 
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
@@ -28,11 +27,6 @@ AM_CPPFLAGS = \
 AM_CFLAGS = ${my_CFLAGS}
 
 if HAVE_LIBELF
-noinst_PROGRAMS += tlsdump
-tlsdump_SOURCES = tlsdump.c
-tlsdump_CFLAGS = $(LIBELF_CFLAGS)
-tlsdump_LDADD = $(top_builddir)/libi8x/libi8x.la $(LIBELF_LIBS)
-
 # It doesn't seem to be possible to cause automake/libtool to build
 # a noinst shared library, so this is going to get installed and then
 # removed.  I hate this completely.
