@@ -160,6 +160,27 @@ strtobool (const char *str)
 }
 
 static i8x_err_e
+i8x_ctx_make_dispatch_table (struct i8x_ctx *ctx, bool is_debug,
+			     void ***tablep)
+{
+  size_t table_size = i8x_ctx_get_dispatch_table_size (ctx);
+  void **table;
+  i8x_err_e err;
+
+  table = calloc (table_size, sizeof (void *));
+  if (table == NULL)
+    return i8x_out_of_memory (ctx);
+
+  err = i8x_ctx_init_dispatch_table (ctx, table, table_size, is_debug);
+  if (err != I8X_OK)
+    return err;
+
+  *tablep = table;
+
+  return I8X_OK;
+}
+
+static i8x_err_e
 i8x_ctx_init (struct i8x_ctx *ctx)
 {
   i8x_err_e err;
@@ -189,6 +210,14 @@ i8x_ctx_init (struct i8x_ctx *ctx)
     return err;
 
   err = i8x_type_new_coretype (ctx, I8X_TYPE_INTPTR, &ctx->int_or_ptr_type);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_ctx_make_dispatch_table (ctx, false, &ctx->dispatch_std);
+  if (err != I8X_OK)
+    return err;
+
+  err = i8x_ctx_make_dispatch_table (ctx, true, &ctx->dispatch_dbg);
   if (err != I8X_OK)
     return err;
 
@@ -511,6 +540,15 @@ i8x_ctx_get_int_or_ptr_type (struct i8x_ctx *ctx)
   return ctx->int_or_ptr_type;
 }
 
+void
+i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
+			     void ***dispatch_std,
+			     void ***dispatch_dbg)
+{
+  *dispatch_std = ctx->dispatch_std;
+  *dispatch_dbg = ctx->dispatch_dbg;
+}
+
 /* Internal version of i8x_ctx_get_funcref with an extra source note
    argument for error-reporting.  If the source note is not NULL then
    rtypes and ptypes MUST be pointers into the note's buffer or any
@@ -828,56 +866,6 @@ i8x_ctx_import_native (struct i8x_ctx *ctx, const char *provider,
     i8x_func_unref (f);
 
   return err;
-}
-
-static i8x_err_e
-i8x_ctx_make_dispatch_table (struct i8x_ctx *ctx, size_t table_size,
-			     bool is_debug, void ***tablep)
-{
-  void **table;
-  i8x_err_e err;
-
-  table = calloc (table_size, sizeof (void *));
-  if (table == NULL)
-    return i8x_out_of_memory (ctx);
-
-  err = i8x_ctx_init_dispatch_table (ctx, table, table_size, is_debug);
-  if (err != I8X_OK)
-    return err;
-
-  *tablep = table;
-
-  return I8X_OK;
-}
-
-i8x_err_e
-i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
-			     void ***dispatch_std,
-			     void ***dispatch_dbg)
-{
-  size_t table_size = i8x_ctx_get_dispatch_table_size (ctx);
-  i8x_err_e err;
-
-  if (ctx->dispatch_std == NULL)
-    {
-      err = i8x_ctx_make_dispatch_table (ctx, table_size, false,
-					 &ctx->dispatch_std);
-      if (err != I8X_OK)
-	return err;
-    }
-
-  if (ctx->dispatch_dbg == NULL)
-    {
-      err = i8x_ctx_make_dispatch_table (ctx, table_size, true,
-					 &ctx->dispatch_dbg);
-      if (err != I8X_OK)
-	return err;
-    }
-
-  *dispatch_std = ctx->dispatch_std;
-  *dispatch_dbg = ctx->dispatch_dbg;
-
-  return I8X_OK;
 }
 
 I8X_EXPORT void

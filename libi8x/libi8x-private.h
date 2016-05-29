@@ -255,12 +255,12 @@ void i8x_ctx_forget_functype (struct i8x_type *type);
 void i8x_ctx_fire_availability_observer (struct i8x_func *func,
 					 bool is_available);
 size_t i8x_ctx_get_dispatch_table_size (struct i8x_ctx *ctx);
-i8x_err_e i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
-				       void ***dispatch_std,
-				       void ***dispatch_dbg);
 i8x_err_e i8x_ctx_init_dispatch_table (struct i8x_ctx *ctx,
 				       void **table, size_t table_size,
 				       bool is_debug);
+void i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
+				  void ***dispatch_std,
+				  void ***dispatch_dbg);
 
 /* i8x_func private functions.  */
 

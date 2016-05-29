@@ -293,8 +293,8 @@ i8x_ctx_init_dispatch_table (struct i8x_ctx *ctx, void **table,
   struct i8x_funcref r;
   struct i8x_xctx x;
 
-  dbg (ctx, "populating %s dispatch table\n",
-       is_debug == false ? "standard" : "debug");
+  dbg (ctx, "populating dispatch_%s\n",
+       is_debug == false ? "std" : "dbg");
 
   memset (&r, 0, sizeof (r));
   memset (&x, 0, sizeof (x));
