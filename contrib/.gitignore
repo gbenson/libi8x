@@ -1,0 +1,6 @@
+*.os
+*.a
+mapfile-*.txt
+threads-static
+threads-normal
+threads-pie

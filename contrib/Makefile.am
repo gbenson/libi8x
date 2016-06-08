@@ -17,4 +17,7 @@
 # License along with the Infinity Note Execution Library; if not,
 # see <http://www.gnu.org/licenses/>.
 
-EXTRA_DIST = i82c.py
+EXTRA_DIST = \
+	build-threads-example.sh \
+	i82c.py \
+	threads.c
