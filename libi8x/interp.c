@@ -159,6 +159,31 @@ enum
     csp += CS_FRAME_SIZE;						\
   } while (0)
 
+/* Macros to store and restore vsp and csp across native calls.  The
+   non-debug version of RESTORE_VSP_CSP should allow the compiler to
+   avoid maintaining its own copies of vsp and csp as they're dead
+   across the call itself.  */
+
+#define STORE_VSP_CSP()						\
+  do {								\
+    xctx->vsp = vsp;						\
+    xctx->csp = csp;						\
+  } while (0)
+
+#ifdef DEBUG_INTERPRETER
+# define RESTORE_VSP_CSP()					\
+  do {								\
+    i8x_assert (xctx->vsp == vsp);				\
+    i8x_assert (xctx->csp == csp);				\
+  } while (0)
+#else
+# define RESTORE_VSP_CSP()					\
+  do {								\
+    vsp = xctx->vsp;						\
+    csp = xctx->csp;						\
+  } while (0)
+#endif
+
 /* Native calling macros.  */
 
 #define ENTER_NATIVE()						\
@@ -168,12 +193,16 @@ enum
   xctx->wordsize = code->wordsize;				\
   xctx->byte_order = code->byte_order;				\
 								\
+  STORE_VSP_CSP();						\
+								\
   trace (i8x_xctx_get_ctx (xctx), "%s: native call\n",		\
 	 callee->fullname)
 
 #define LEAVE_NATIVE()						\
   trace (i8x_xctx_get_ctx (xctx), "%s: native return\n",	\
 	 callee->fullname);					\
+								\
+  RESTORE_VSP_CSP();						\
 								\
   xctx->wordsize = saved_wordsize;				\
   xctx->byte_order = saved_byte_order
