@@ -109,11 +109,11 @@ td_pdreadstr (struct ps_prochandle *ph, psaddr_t src,
   return PS_ERR;
 }
 
-/* Load and register Infinity notes from an ELF.  */
+/* Helper for td_import_notes.  */
 
 static td_err_e
-td_import_notes (td_thragent_t *ta, const char *filename, Elf *elf,
-		 psaddr_t base_address)
+td_import_notes_1 (td_thragent_t *ta, const char *filename,
+		   psaddr_t base_address, Elf *elf)
 {
   if (elf_kind (elf) != ELF_K_ELF)
     return TD_ERR;
@@ -186,6 +186,25 @@ td_import_notes (td_thragent_t *ta, const char *filename, Elf *elf,
     }
 
   return TD_OK;
+}
+
+/* Load and register Infinity notes from an ELF.  */
+
+static td_err_e
+td_import_notes (td_thragent_t *ta, const char *filename,
+		 psaddr_t base_address)
+{
+  int fd = open (filename, O_RDONLY);
+  if (fd == -1)
+    return TD_OK;  /* Silently skip files we can't read.  */
+
+  Elf *elf = elf_begin (fd, ELF_C_READ_MMAP, NULL);
+  td_err_e err = td_import_notes_1 (ta, filename, base_address, elf);
+
+  elf_end (elf);
+  close (fd);
+
+  return err;
 }
 
 /* Address relocation function.  */
@@ -358,22 +377,30 @@ td_ta_init (td_thragent_t *ta)
       if (filename[0] != '/')
 	continue;
 
-      int fd = open (filename, O_RDONLY);
-      if (fd == -1)
-	continue;
-
-      Elf *elf = elf_begin (fd, ELF_C_READ_MMAP, NULL);
-      td_err_e err = td_import_notes (ta, filename, elf,
-				      (void *) lm.l_addr);
-
-      elf_end (elf);
-      close (fd);
-
+      td_err_e err = td_import_notes (ta, filename, (void *) lm.l_addr);
       if (err != TD_OK)
 	return err;
     }
 
-  /* If we have no context then no notes were found.  */
+  /* If we have no context then no notes were found.  It's possible
+     this is a static executable so we try the main executable to
+     cover that case.  */
+  if (ta->ctx == NULL)
+    {
+      char filename[PATH_MAX];
+      int len = snprintf (filename, sizeof (filename),
+			  "/proc/%d/exe", ps_getpid (ta->ph));
+      if (len <= sizeof (filename))
+	{
+	  td_err_e err = td_import_notes (ta, filename,
+					  (void *) r_debug.r_ldbase);
+	  if (err != TD_OK)
+	    return err;
+	}
+    }
+
+  /* If we still have no context (i.e. no notes) then maybe this
+     process just plain doesn't have any.  */
   if (ta->ctx == NULL)
     return TD_VERSION;
 
