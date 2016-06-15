@@ -497,6 +497,59 @@ td_ps_getpid (struct i8x_xctx *xctx, struct i8x_inf *inf,
   return I8X_OK;
 }
 
+/* Convert DWARF register number to prgregset_t offset.  */
+
+static int
+td_decode_regnum (td_thragent_t *ta, int regnum,
+		  size_t *regset_off, size_t *size_bytes)
+{
+  switch (ta->exec_ehdr->e_machine)
+    {
+    case EM_386:
+      /* REGISTER_THREAD_AREA (32, 10 * 4, 3)
+	 REGISTER_THREAD_AREA (64, 26 * 8, 3)  */
+      if (regnum == 45)  /* %gs */
+	{
+	  *regset_off = (__WORDSIZE == 64 ? 26 : 10) * sizeof (void *);
+	  *size_bytes = sizeof (void *);
+
+	  return 0;
+	}
+      break;
+
+    case EM_PPC:
+    case EM_PPC64:
+      /* REGISTER (32, 32, PT_THREAD_POINTER * 4, I8_TS_REG_BIAS)
+         REGISTER (64, 64, PT_THREAD_POINTER * 8, I8_TS_REG_BIAS)  */
+      if (regnum >= 0 && regnum < 32)  /* GPR.  */
+	{
+	  *regset_off = regnum * sizeof (void *);
+	  *size_bytes = sizeof (void *);
+
+	  return 0;
+	}
+      break;
+
+    case EM_S390:
+      /* REGISTER (32, 32, 18 * 4, I8_TS_REG_BIAS)
+         REGISTER (64, __WORDSIZE, 18 * 8, I8_TS_REG_BIAS)  */
+      if (regnum >= 48 && regnum < 64)  /* Access register.  */
+	{
+	  *regset_off = (2 * sizeof (void *)    /* PSW.  */
+			 + 16 * sizeof (void *) /* GPRs.  */
+			 + (regnum - 48) * sizeof (int));
+	  *size_bytes = sizeof (int);
+
+	  return 0;
+	}
+    }
+
+  fprintf (stderr,
+	   "\nerror: Unknown DWARF register %d for ELF e_machine %d\n",
+	   regnum, ta->exec_ehdr->e_machine);
+  return -1;
+}
+
 /* Infinity native function wrapper for ps_get_register.  */
 
 static i8x_err_e
@@ -504,6 +557,10 @@ td_ps_get_register (struct i8x_xctx *xctx, struct i8x_inf *inf,
 		    union i8x_value *args, union i8x_value *rets)
 {
   td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
+
+  size_t offset, size;
+  if (td_decode_regnum (ta, args[1].i, &offset, &size) != 0)
+    return I8X_NOTE_UNHANDLED;
 
   /* We cannot use prgregset_t here because we may be accessing a
      process on an architecture with a larger prgregset_t than our
@@ -514,12 +571,12 @@ td_ps_get_register (struct i8x_xctx *xctx, struct i8x_inf *inf,
   if (rets[1].i != PS_OK)
     return I8X_OK;
 
-  switch (i8x_xctx_get_wordsize (xctx))
+  switch (size * 8)
     {
 #define CASE(SIZE)							\
     case SIZE:								\
       rets[0].u =							\
-	*(uint ## SIZE ## _t *) ((uint8_t *) regs + args[1].i);		\
+	*(uint ## SIZE ## _t *) ((uint8_t *) regs + offset);		\
       break
 
     CASE(32);
