@@ -55,6 +55,16 @@ struct td_thragent
      callbacks defined in proc_service.h.  */
   struct ps_prochandle *ph;
 
+  /* Process ID of the process we're accessing.  */
+  pid_t pid;
+
+  /* Main executable filename.  */
+  char exec_filename[32];
+
+  /* Main executable ELF header.  */
+  GElf_Ehdr exec_ehdr_mem;
+  GElf_Ehdr *exec_ehdr;
+
   /* libi8x context.  */
   struct i8x_ctx *ctx;
 
@@ -368,16 +378,10 @@ td_import_notes_from_process (td_thragent_t *ta)
      cover that case.  */
   if (ta->ctx == NULL)
     {
-      char filename[PATH_MAX];
-      int len = snprintf (filename, sizeof (filename),
-			  "/proc/%d/exe", ps_getpid (ta->ph));
-      if (len <= sizeof (filename))
-	{
-	  err = td_import_notes_from_file (ta, filename,
-					   (void *) r_debug.r_ldbase);
-	  if (err != TD_OK)
-	    return err;
-	}
+      err = td_import_notes_from_file (ta, ta->exec_filename,
+				       (void *) r_debug.r_ldbase);
+      if (err != TD_OK)
+	return err;
     }
 
   return TD_OK;
@@ -416,7 +420,7 @@ td_ps_getpid (struct i8x_xctx *xctx, struct i8x_inf *inf,
 {
   td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
 
-  rets[0].i = ps_getpid (ta->ph);
+  rets[0].i = ta->pid;
 
   return I8X_OK;
 }
@@ -516,6 +520,30 @@ static td_err_e
 td_ta_init (td_thragent_t *ta)
 {
   td_err_e err;
+
+  /* Store the main process PID.  */
+  ta->pid = ps_getpid (ta->ph);
+
+  /* Build the main executable filename.  */
+  int len = snprintf (ta->exec_filename,
+		      sizeof (ta->exec_filename),
+		      "/proc/%d/exe", ta->pid);
+  if (len > sizeof (ta->exec_filename))
+    return TD_DBERR;  /* Should be enough for longest PID.  */
+
+  /* Read the main executable's ELF header.  */
+  int fd = open (ta->exec_filename, O_RDONLY);
+  if (fd != -1)
+    {
+      Elf *elf = elf_begin (fd, ELF_C_READ_MMAP, NULL);
+      if (elf_kind (elf) == ELF_K_ELF)
+	ta->exec_ehdr = gelf_getehdr (elf, &ta->exec_ehdr_mem);
+
+      elf_end (elf);
+      close (fd);
+    }
+  if (ta->exec_ehdr == NULL)
+    return TD_VERSION;
 
   /* Load and register any Infinity notes from the process we've been
      created on.  This will initialize ta->ctx if notes are found.  */
