@@ -334,6 +334,66 @@ td_ta_new (struct ps_prochandle *ps, td_thragent_t **__ta)
   return err;
 }
 
+/* Self-test callback for td_ta_init.  This checkss that
+   libpthread::thr_get_lwpid and libpthread::map_lwp2thr
+   are the inverse of each other for each thread.  This
+   gives some assurance that the architecture-specific
+   libpthread::__lookup_th_unique is working.  */
+
+static int
+td_ta_selftest_cb (const td_thrhandle_t *th, void *arg)
+{
+  union i8x_value args[1], rets[2];
+  i8x_err_e err;
+
+  fputs ("   ", stderr);
+
+  if (th == NULL)
+    goto fail;
+  fputc ('*', stderr);
+
+  if (th->th_ta_p != arg)
+    goto fail;
+  fprintf (stderr, " %p", th->th_unique);
+
+  args[0].p = th->th_unique;
+  err = i8x_xctx_call (th->th_ta_p->xctx,
+		       th->th_ta_p->thr_get_lwpid,
+		       th->th_ta_p->inf, args, rets);
+  if (err != I8X_OK)
+    goto fail;
+  fputs (" =>", stderr);
+
+  if (rets[1].i != TD_OK)
+    goto fail;
+  lwpid_t lwpid = rets[0].i;
+  fprintf (stderr, " %d", lwpid);
+
+  args[0].i = lwpid;
+  err = i8x_xctx_call (th->th_ta_p->xctx,
+		       th->th_ta_p->map_lwp2thr,
+		       th->th_ta_p->inf, args, rets);
+
+  if (err != I8X_OK)
+    goto fail;
+  fputs (" =>", stderr);
+
+  if (rets[1].i != TD_OK)
+    goto fail;
+  psaddr_t th_unique = rets[0].p;
+  fprintf (stderr, " %p", th_unique);
+
+  if (th_unique != th->th_unique)
+    goto fail;
+
+  fputc ('\n', stderr);
+  return 0;
+
+ fail:
+  fputs (" FAIL!\n", stderr);
+  return -1;
+}
+
 /* Helper for td_ta_new.  */
 
 static td_err_e
@@ -490,12 +550,25 @@ td_ta_init (td_thragent_t *ta)
 "  and ti_state are valid.  Note also that many functions are not\n"
 "  present, and some that are present always return TD_NOCAPAB.\n"
 "\n"
-"  OK HAVE FUN!\n"
+"  SELF-TEST:\n", stderr);
+
+  /* Self-test.  */
+  td_err_e result = td_ta_thr_iter (ta, td_ta_selftest_cb, ta,
+				    TD_THR_ANY_STATE,
+				    TD_THR_LOWEST_PRIORITY,
+				    TD_SIGNO_MASK,
+				    TD_THR_ANY_USER_FLAGS);
+  if (result == TD_OK)
+    fputs ("\n  OK HAVE FUN!\n", stderr);
+  else
+    result = TD_DBERR;
+
+  fputs (
 "\n"
 "==================================================================\n",
 	 stderr);
 
-  return TD_OK;
+  return result;
 }
 
 /* Free resources allocated for TA.  */
