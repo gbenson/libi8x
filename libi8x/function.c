@@ -240,6 +240,9 @@ i8x_func_get_externals (struct i8x_func *func)
 I8X_EXPORT struct i8x_list *
 i8x_func_get_relocs (struct i8x_func *func)
 {
+  if (func->code == NULL)
+    return NULL;
+
   return i8x_code_get_relocs (func->code);
 }
 
