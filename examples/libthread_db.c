@@ -39,6 +39,7 @@
 #endif
 
 static td_err_e td_ta_init (td_thragent_t *ta);
+static td_err_e td_ta_init_libi8x (td_thragent_t *ta);
 static i8x_err_e td_ta_thr_iter_cb (struct i8x_xctx *xctx,
 				    struct i8x_inf *inf,
 				    union i8x_value *args,
@@ -73,6 +74,105 @@ struct td_thragent
   struct i8x_funcref *thr_iter_cb;
   td_thr_iter_f *thr_iter_cb_impl;
 };
+
+/* Callback for td_ta_self_test.  */
+
+static int
+td_ta_selftest_cb (const td_thrhandle_t *th, void *arg)
+{
+  union i8x_value args[1], rets[2];
+  i8x_err_e err;
+
+  fputs ("   ", stderr);
+
+  if (th == NULL)
+    goto fail;
+  fputc ('*', stderr);
+
+  if (th->th_ta_p != arg)
+    goto fail;
+  fprintf (stderr, " %p", th->th_unique);
+
+  args[0].p = th->th_unique;
+  err = i8x_xctx_call (th->th_ta_p->xctx,
+		       th->th_ta_p->thr_get_lwpid,
+		       th->th_ta_p->inf, args, rets);
+  if (err != I8X_OK)
+    goto fail;
+  fputs (" =>", stderr);
+
+  if (rets[1].i != TD_OK)
+    goto fail;
+  lwpid_t lwpid = rets[0].i;
+  fprintf (stderr, " %d", lwpid);
+
+  args[0].i = lwpid;
+  err = i8x_xctx_call (th->th_ta_p->xctx,
+		       th->th_ta_p->map_lwp2thr,
+		       th->th_ta_p->inf, args, rets);
+
+  if (err != I8X_OK)
+    goto fail;
+  fputs (" =>", stderr);
+
+  if (rets[1].i != TD_OK)
+    goto fail;
+  psaddr_t th_unique = rets[0].p;
+  fprintf (stderr, " %p", th_unique);
+
+  if (th_unique != th->th_unique)
+    goto fail;
+
+  fputc ('\n', stderr);
+  return 0;
+
+ fail:
+  fputs (" FAIL!\n", stderr);
+  return -1;
+}
+
+/* Check that libpthread::thr_get_lwpid and libpthread::map_lwp2thr
+   are the inverse of each other for each thread.  This gives some
+   assurance that the platform-specific libpthread::__lookup_th_unique
+   is working.  */
+
+static td_err_e
+td_ta_self_test (td_thragent_t *ta)
+{
+  td_err_e result;
+
+  fputs (
+"==================================================================\n"
+"\n"
+"  WELCOME to INFINITY!\n"
+"\n"
+"  >>> This libthread_db is a DEMONSTRATION,\n"
+"  >>> DO NOT USE IN PRODUCTION IT WILL EAT YOUR BABIES!!!\n"
+"\n"
+"  Note that td_thr_get_info does not fill in all the fields that\n"
+"  glibc's libthread_db fills in -- only ti_ta_p, ti_tid, ti_lid\n"
+"  and ti_state are valid.  Note also that many functions are not\n"
+"  present, and some that are present always return TD_NOCAPAB.\n"
+"\n"
+"  SELF-TEST:\n", stderr);
+
+  result = td_ta_thr_iter (ta, td_ta_selftest_cb, ta,
+			   TD_THR_ANY_STATE,
+			   TD_THR_LOWEST_PRIORITY,
+			   TD_SIGNO_MASK,
+			   TD_THR_ANY_USER_FLAGS);
+  if (result == TD_OK)
+    fputs ("\n  OK HAVE FUN!\n", stderr);
+  else
+    result = TD_DBERR;
+
+  fputs (
+"\n"
+"==================================================================\n",
+	 stderr);
+
+  return result;
+}
 
 /* Map an i8x error code to a libthread_db one.  */
 
@@ -214,6 +314,75 @@ td_import_notes_from_file (td_thragent_t *ta, const char *filename,
   return err;
 }
 
+/* Load and register Infinity notes from a local process.  */
+
+static td_err_e
+td_import_notes_from_process (td_thragent_t *ta)
+{
+  struct r_debug r_debug;
+  struct link_map lm;
+  psaddr_t addr;
+  td_err_e err;
+
+  /* GDB tries to load libthread_db every time a new object file is
+     added to the inferior until td_ta_new completes successfully.
+     It expects these early calls to fail with TD_NOLIBTHREAD or
+     TD_VERSION, two errors which it silently ignores, which is why
+     this function returns those codes for the first few failures.  */
+
+  if (ps_pglobal_lookup (ta->ph, LD_SO, "_r_debug", &addr) != PS_OK)
+    return TD_NOLIBTHREAD;
+
+  if (ps_pdread (ta->ph, addr, &r_debug, sizeof (r_debug)) != PS_OK)
+    return TD_NOLIBTHREAD;
+
+  if (r_debug.r_version != 1)
+    return TD_VERSION;
+
+  /* Scan each ELF in the link map for notes.  */
+  for (addr = r_debug.r_map; addr != NULL; addr = lm.l_next)
+    {
+      if (ps_pdread (ta->ph, addr, &lm, sizeof (lm)) != PS_OK)
+	return TD_ERR;
+
+      /* No idea if this might happen.  */
+      if (lm.l_name == NULL)
+	continue;
+
+      char filename[PATH_MAX];
+      if (td_pdreadstr (ta->ph, lm.l_name, filename,
+			sizeof (filename)) != PS_OK)
+	return TD_ERR;
+
+      /* Skip both empty filenames and linux-vdso.so.1.  */
+      if (filename[0] != '/')
+	continue;
+
+      err = td_import_notes_from_file (ta, filename, (void *) lm.l_addr);
+      if (err != TD_OK)
+	return err;
+    }
+
+  /* If we have no context then no notes were found.  It's possible
+     this is a static executable so we try the main executable to
+     cover that case.  */
+  if (ta->ctx == NULL)
+    {
+      char filename[PATH_MAX];
+      int len = snprintf (filename, sizeof (filename),
+			  "/proc/%d/exe", ps_getpid (ta->ph));
+      if (len <= sizeof (filename))
+	{
+	  err = td_import_notes_from_file (ta, filename,
+					   (void *) r_debug.r_ldbase);
+	  if (err != TD_OK)
+	    return err;
+	}
+    }
+
+  return TD_OK;
+}
+
 /* Address relocation function.  */
 
 static i8x_err_e
@@ -341,137 +510,39 @@ td_ta_new (struct ps_prochandle *ps, td_thragent_t **__ta)
   return err;
 }
 
-/* Self-test callback for td_ta_init.  This checkss that
-   libpthread::thr_get_lwpid and libpthread::map_lwp2thr
-   are the inverse of each other for each thread.  This
-   gives some assurance that the architecture-specific
-   libpthread::__lookup_th_unique is working.  */
-
-static int
-td_ta_selftest_cb (const td_thrhandle_t *th, void *arg)
-{
-  union i8x_value args[1], rets[2];
-  i8x_err_e err;
-
-  fputs ("   ", stderr);
-
-  if (th == NULL)
-    goto fail;
-  fputc ('*', stderr);
-
-  if (th->th_ta_p != arg)
-    goto fail;
-  fprintf (stderr, " %p", th->th_unique);
-
-  args[0].p = th->th_unique;
-  err = i8x_xctx_call (th->th_ta_p->xctx,
-		       th->th_ta_p->thr_get_lwpid,
-		       th->th_ta_p->inf, args, rets);
-  if (err != I8X_OK)
-    goto fail;
-  fputs (" =>", stderr);
-
-  if (rets[1].i != TD_OK)
-    goto fail;
-  lwpid_t lwpid = rets[0].i;
-  fprintf (stderr, " %d", lwpid);
-
-  args[0].i = lwpid;
-  err = i8x_xctx_call (th->th_ta_p->xctx,
-		       th->th_ta_p->map_lwp2thr,
-		       th->th_ta_p->inf, args, rets);
-
-  if (err != I8X_OK)
-    goto fail;
-  fputs (" =>", stderr);
-
-  if (rets[1].i != TD_OK)
-    goto fail;
-  psaddr_t th_unique = rets[0].p;
-  fprintf (stderr, " %p", th_unique);
-
-  if (th_unique != th->th_unique)
-    goto fail;
-
-  fputc ('\n', stderr);
-  return 0;
-
- fail:
-  fputs (" FAIL!\n", stderr);
-  return -1;
-}
-
 /* Helper for td_ta_new.  */
 
 static td_err_e
 td_ta_init (td_thragent_t *ta)
 {
-  struct r_debug r_debug;
-  struct link_map lm;
-  psaddr_t addr;
+  td_err_e err;
 
-  /* GDB tries to load libthread_db every time a new object file is
-     added to the inferior until td_ta_new completes successfully.
-     It expects these early calls to fail with TD_NOLIBTHREAD or
-     TD_VERSION, two errors which it silently ignores, which is why
-     this function returns those codes for the first few failures.  */
-
-  if (ps_pglobal_lookup (ta->ph, LD_SO, "_r_debug", &addr) != PS_OK)
-    return TD_NOLIBTHREAD;
-
-  if (ps_pdread (ta->ph, addr, &r_debug, sizeof (r_debug)) != PS_OK)
-    return TD_NOLIBTHREAD;
-
-  if (r_debug.r_version != 1)
-    return TD_VERSION;
-
-  /* Scan each ELF in the link map for notes.  */
-  for (addr = r_debug.r_map; addr != NULL; addr = lm.l_next)
-    {
-      if (ps_pdread (ta->ph, addr, &lm, sizeof (lm)) != PS_OK)
-	return TD_ERR;
-
-      /* No idea if this might happen.  */
-      if (lm.l_name == NULL)
-	continue;
-
-      char filename[PATH_MAX];
-      if (td_pdreadstr (ta->ph, lm.l_name, filename,
-			sizeof (filename)) != PS_OK)
-	return TD_ERR;
-
-      /* Skip both empty filenames and linux-vdso.so.1.  */
-      if (filename[0] != '/')
-	continue;
-
-      td_err_e err = td_import_notes_from_file (ta, filename,
-						(void *) lm.l_addr);
-      if (err != TD_OK)
-	return err;
-    }
-
-  /* If we have no context then no notes were found.  It's possible
-     this is a static executable so we try the main executable to
-     cover that case.  */
+  /* Load and register any Infinity notes from the process we've been
+     created on.  This will initialize ta->ctx if notes are found.  */
+  err = td_import_notes_from_process (ta);
+  if (err != TD_OK)
+    return err;
   if (ta->ctx == NULL)
-    {
-      char filename[PATH_MAX];
-      int len = snprintf (filename, sizeof (filename),
-			  "/proc/%d/exe", ps_getpid (ta->ph));
-      if (len <= sizeof (filename))
-	{
-	  td_err_e err = td_import_notes_from_file (ta, filename,
-						    (void *) r_debug.r_ldbase);
-	  if (err != TD_OK)
-	    return err;
-	}
-    }
+    return TD_VERSION;  /* The process contained no notes.  */
 
-  /* If we still have no context (i.e. no notes) then maybe this
-     process just plain doesn't have any.  */
-  if (ta->ctx == NULL)
-    return TD_VERSION;
+  /* Initialize all libi8x bits except ta->ctx which is done already.  */
+  err = td_ta_init_libi8x (ta);
+  if (err != TD_OK)
+    return err;
 
+  /* Run a quick self-test and print the warning banner.  */
+  err = td_ta_self_test (ta);
+  if (err != TD_OK)
+    return err;
+
+  return TD_OK;
+}
+
+/* Helper for td_ta_init.  */
+
+static td_err_e
+td_ta_init_libi8x (td_thragent_t *ta)
+{
   i8x_err_e err;
 
   /* Register the native functions we provide.  */
@@ -544,39 +615,7 @@ td_ta_init (td_thragent_t *ta)
   if (err != I8X_OK)
     return td_err_from_i8x_err (err);
 
-  /* Print a warning.  */
-  fputs (
-"==================================================================\n"
-"\n"
-"  WELCOME to INFINITY!\n"
-"\n"
-"  >>> This libthread_db is a DEMONSTRATION,\n"
-"  >>> DO NOT USE IN PRODUCTION IT WILL EAT YOUR BABIES!!!\n"
-"\n"
-"  Note that td_thr_get_info does not fill in all the fields that\n"
-"  glibc's libthread_db fills in -- only ti_ta_p, ti_tid, ti_lid\n"
-"  and ti_state are valid.  Note also that many functions are not\n"
-"  present, and some that are present always return TD_NOCAPAB.\n"
-"\n"
-"  SELF-TEST:\n", stderr);
-
-  /* Self-test.  */
-  td_err_e result = td_ta_thr_iter (ta, td_ta_selftest_cb, ta,
-				    TD_THR_ANY_STATE,
-				    TD_THR_LOWEST_PRIORITY,
-				    TD_SIGNO_MASK,
-				    TD_THR_ANY_USER_FLAGS);
-  if (result == TD_OK)
-    fputs ("\n  OK HAVE FUN!\n", stderr);
-  else
-    result = TD_DBERR;
-
-  fputs (
-"\n"
-"==================================================================\n",
-	 stderr);
-
-  return result;
+  return TD_OK;
 }
 
 /* Free resources allocated for TA.  */
