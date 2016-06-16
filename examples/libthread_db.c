@@ -109,15 +109,12 @@ td_pdreadstr (struct ps_prochandle *ph, psaddr_t src,
   return PS_ERR;
 }
 
-/* Helper for td_import_notes.  */
+/* Load and register Infinity notes from an ELF.  */
 
 static td_err_e
-td_import_notes_1 (td_thragent_t *ta, const char *filename,
-		   psaddr_t base_address, Elf *elf)
+td_import_notes_from_elf (td_thragent_t *ta, const char *filename,
+			  psaddr_t base_address, Elf *elf)
 {
-  if (elf_kind (elf) != ELF_K_ELF)
-    return TD_ERR;
-
   Elf_Scn *scn = NULL;
 
   while ((scn = elf_nextscn (elf, scn)) != NULL)
@@ -188,18 +185,28 @@ td_import_notes_1 (td_thragent_t *ta, const char *filename,
   return TD_OK;
 }
 
-/* Load and register Infinity notes from an ELF.  */
+/* Load and register Infinity notes from a local file.  */
 
 static td_err_e
-td_import_notes (td_thragent_t *ta, const char *filename,
-		 psaddr_t base_address)
+td_import_notes_from_file (td_thragent_t *ta, const char *filename,
+			   psaddr_t base_address)
 {
   int fd = open (filename, O_RDONLY);
   if (fd == -1)
     return TD_OK;  /* Silently skip files we can't read.  */
 
   Elf *elf = elf_begin (fd, ELF_C_READ_MMAP, NULL);
-  td_err_e err = td_import_notes_1 (ta, filename, base_address, elf);
+  td_err_e err;
+
+  switch (elf_kind (elf))
+    {
+    case ELF_K_ELF:
+      err = td_import_notes_from_elf (ta, filename, base_address, elf);
+      break;
+
+    default:
+      err = TD_ERR;
+    }
 
   elf_end (elf);
   close (fd);
@@ -437,7 +444,8 @@ td_ta_init (td_thragent_t *ta)
       if (filename[0] != '/')
 	continue;
 
-      td_err_e err = td_import_notes (ta, filename, (void *) lm.l_addr);
+      td_err_e err = td_import_notes_from_file (ta, filename,
+						(void *) lm.l_addr);
       if (err != TD_OK)
 	return err;
     }
@@ -452,8 +460,8 @@ td_ta_init (td_thragent_t *ta)
 			  "/proc/%d/exe", ps_getpid (ta->ph));
       if (len <= sizeof (filename))
 	{
-	  td_err_e err = td_import_notes (ta, filename,
-					  (void *) r_debug.r_ldbase);
+	  td_err_e err = td_import_notes_from_file (ta, filename,
+						    (void *) r_debug.r_ldbase);
 	  if (err != TD_OK)
 	    return err;
 	}
