@@ -147,7 +147,7 @@ static i8x_err_e
 i8x_code_read_opcode (struct i8x_readbuf *rb, i8x_opcode_t *opcode)
 {
   const char *location = i8x_rb_get_ptr (rb);
-  uintmax_t tmp;
+  uintptr_t tmp;
   uint8_t byte;
   i8x_opcode_t result;
   i8x_err_e err;
@@ -158,7 +158,7 @@ i8x_code_read_opcode (struct i8x_readbuf *rb, i8x_opcode_t *opcode)
 
   if (byte == DW_OP_GNU_wide_op)
     {
-      uintmax_t wide;
+      uintptr_t wide;
 
       err = i8x_rb_read_uleb128 (rb, &wide);
       if (err != I8X_OK)
@@ -186,8 +186,8 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
 		       union i8x_value *operand)
 {
   const char *location = i8x_rb_get_ptr (rb);
-  intmax_t signed_result;
-  uintmax_t unsigned_result;
+  intptr_t signed_result;
+  uintptr_t unsigned_result;
   union i8x_value result;
   bool is_signed;
   i8x_err_e err;

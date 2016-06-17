@@ -191,7 +191,7 @@ i8x_note_get_chunks (struct i8x_note *note)
 }
 
 I8X_EXPORT i8x_err_e
-i8x_note_get_unique_chunk (struct i8x_note *note, uintmax_t type_id,
+i8x_note_get_unique_chunk (struct i8x_note *note, uintptr_t type_id,
 			   bool must_exist, struct i8x_chunk **chunkp)
 {
   struct i8x_chunk *found = NULL;

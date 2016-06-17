@@ -184,8 +184,8 @@ I8X_COMMON_OBJECT_FUNCTIONS (chunk);
 I8X_LISTABLE_OBJECT_FUNCTIONS (chunk);
 
 struct i8x_note *i8x_chunk_get_note (struct i8x_chunk *chunk);
-uintmax_t i8x_chunk_get_type_id (struct i8x_chunk *chunk);
-uintmax_t i8x_chunk_get_version (struct i8x_chunk *chunk);
+uintptr_t i8x_chunk_get_type_id (struct i8x_chunk *chunk);
+uintptr_t i8x_chunk_get_version (struct i8x_chunk *chunk);
 size_t i8x_chunk_get_encoded_size (struct i8x_chunk *chunk);
 const char *i8x_chunk_get_encoded (struct i8x_chunk *chunk);
 
@@ -336,7 +336,7 @@ size_t i8x_note_get_encoded_size (struct i8x_note *note);
 const char *i8x_note_get_encoded (struct i8x_note *note);
 struct i8x_list *i8x_note_get_chunks (struct i8x_note *note);
 i8x_err_e i8x_note_get_unique_chunk (struct i8x_note *note,
-				     uintmax_t type_id, bool must_exist,
+				     uintptr_t type_id, bool must_exist,
 				     struct i8x_chunk **chunk);
 
 /*
@@ -363,8 +363,8 @@ i8x_err_e i8x_rb_read_int32_t (struct i8x_readbuf *rb, int32_t *result);
 i8x_err_e i8x_rb_read_uint32_t (struct i8x_readbuf *rb, uint32_t *result);
 i8x_err_e i8x_rb_read_int64_t (struct i8x_readbuf *rb, int64_t *result);
 i8x_err_e i8x_rb_read_uint64_t (struct i8x_readbuf *rb, uint64_t *result);
-i8x_err_e i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intmax_t *result);
-i8x_err_e i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintmax_t *result);
+i8x_err_e i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intptr_t *result);
+i8x_err_e i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintptr_t *result);
 i8x_err_e i8x_rb_read_bytes (struct i8x_readbuf *rb, size_t nbytes,
 			     const char **result);
 i8x_err_e i8x_rb_read_offset_string (struct i8x_readbuf *rb,

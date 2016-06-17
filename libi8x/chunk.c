@@ -23,8 +23,8 @@ struct i8x_chunk
 {
   I8X_OBJECT_FIELDS;
 
-  uintmax_t type_id;
-  uintmax_t version;
+  uintptr_t type_id;
+  uintptr_t version;
 
   const char *type_id_ptr;	/* For i8x_chunk_unhandled_error.  */
   const char *version_ptr;	/* For i8x_chunk_version_error.  */
@@ -46,7 +46,7 @@ i8x_chunk_new (struct i8x_readbuf *rb, struct i8x_chunk **chunk)
 {
   struct i8x_note *note = i8x_rb_get_note (rb);
   struct i8x_ctx *ctx = i8x_note_get_ctx (note);
-  uintmax_t type_id, version;
+  uintptr_t type_id, version;
   const char *type_id_ptr;
   const char *version_ptr;
   size_t encoded_size;
@@ -98,13 +98,13 @@ i8x_chunk_get_note (struct i8x_chunk *chunk)
     i8x_ob_get_parent ((struct i8x_object *) chunk);
 }
 
-I8X_EXPORT uintmax_t
+I8X_EXPORT uintptr_t
 i8x_chunk_get_type_id (struct i8x_chunk *chunk)
 {
   return chunk->type_id;
 }
 
-I8X_EXPORT uintmax_t
+I8X_EXPORT uintptr_t
 i8x_chunk_get_version (struct i8x_chunk *chunk)
 {
   return chunk->version;
