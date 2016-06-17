@@ -36,7 +36,8 @@ static void i8x_xctx_trace (struct i8x_xctx *xctx,
 #define SLOT_TO_STR(buf, slot)					\
   do {								\
     if (STACK_DEPTH () > slot)					\
-      snprintf (buf, sizeof (buf), "0x%08lx", STACK (slot).u);	\
+      snprintf (buf, sizeof (buf),				\
+		"0x%08" LONG_FMT "x", STACK (slot).u);		\
     else							\
       strncpy (buf, "----------", sizeof (buf));		\
     buf [sizeof (buf) - 1] = '\0';				\
@@ -55,8 +56,8 @@ i8x_xctx_trace (struct i8x_xctx *xctx,  struct i8x_funcref *ref,
 
   char offset[32], depth[32], stack0[32], stack1[32];
 
-  snprintf (offset, sizeof (offset), "0x%lx", ip_to_so (code, op));
-  snprintf (depth, sizeof (depth), "[%ld]", STACK_DEPTH ());
+  snprintf (offset, sizeof (offset), "" LHEX "", ip_to_so (code, op));
+  snprintf (depth, sizeof (depth), "[" LDEC "]", STACK_DEPTH ());
 
   SLOT_TO_STR (stack0, 0);
   SLOT_TO_STR (stack1, 1);

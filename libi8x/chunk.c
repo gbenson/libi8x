@@ -68,7 +68,7 @@ i8x_chunk_new (struct i8x_readbuf *rb, struct i8x_chunk **chunk)
   if (err != I8X_OK)
     return err;
 
-  dbg (ctx, "found type_id %ld, version %ld, size %ld\n",
+  dbg (ctx, "found type_id " LDEC ", version " LDEC ", size " LDEC "\n",
        type_id, version, encoded_size);
 
   err = i8x_rb_read_bytes (rb, encoded_size, &encoded);

@@ -76,7 +76,8 @@ i8x_reloc_new (struct i8x_code *code, uintptr_t unrelocated,
       return err;
     }
 
-  dbg (i8x_code_get_ctx (code), "reloc %p is 0x%lx\n", r, unrelocated);
+  dbg (i8x_code_get_ctx (code),
+       "reloc %p is " LHEX "\n", r, unrelocated);
 
   *reloc = r;
 

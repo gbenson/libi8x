@@ -504,7 +504,7 @@ i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
   xsnprintf (&ptr, limit, "%s", prefix);
 
   if (offset >= 0)
-    xsnprintf (&ptr, limit, "[0x%lx]", offset);
+    xsnprintf (&ptr, limit, "[" LHEX "]", offset);
 
   xsnprintf (&ptr, limit, ": ");
 

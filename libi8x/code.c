@@ -356,7 +356,7 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
 
       if (op->desc == NULL || op->desc->name == NULL)
 	{
-	  notice (ctx, "opcode 0x%lx not in optable\n", op->code);
+	  notice (ctx, "opcode " LHEX " not in optable\n", op->code);
 	  err = i8x_code_error (code, I8X_NOTE_UNHANDLED, op);
 	  break;
 	}
@@ -741,7 +741,7 @@ i8x_code_init (struct i8x_code *code)
     {
       struct i8x_note *note = i8x_func_get_note (func);
 
-      info (ctx, "%s[0x%lx]: %s\n",
+      info (ctx, "%s[" LHEX "]: %s\n",
 	    i8x_note_get_src_name (note),
 	    i8x_note_get_src_offset (note),
 	    i8x_funcref_get_fullname (ref));
@@ -879,20 +879,20 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
 	continue;
 
       if (op->desc->arg1 != I8X_OPR_NONE)
-	snprintf (arg1, sizeof (arg1), " %ld", op->arg1.u);
+	snprintf (arg1, sizeof (arg1), " " LDEC "", op->arg1.u);
 
       if (op->desc->arg2 != I8X_OPR_NONE)
-	snprintf (arg2, sizeof (arg2), ", %ld", op->arg2.u);
+	snprintf (arg2, sizeof (arg2), ", " LDEC "", op->arg2.u);
 
       snprintf (insn, sizeof (insn),
 		"%s%s%s", op->desc->name, arg1, arg2);
 
       if (op->code != I8X_OP_return)
-	snprintf (fnext, sizeof (fnext), "=> 0x%lx",
+	snprintf (fnext, sizeof (fnext), "=> " LHEX "",
 		  ip_to_so (code, op->fall_through));
 
       if (op->code == DW_OP_bra)
-	snprintf (bnext, sizeof (bnext), ", 0x%lx",
+	snprintf (bnext, sizeof (bnext), ", " LHEX "",
 		  ip_to_so (code, op->branch_next));
 
       if (op->ext1 != NULL)
@@ -903,7 +903,7 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
       else
 	fname = "";
 
-      info (ctx, "  0x%lx: %-24s %s%s%s\n",
+      info (ctx, "  " LHEX ": %-24s %s%s%s\n",
 	    ip_to_so (code, op), insn, fnext, bnext, fname);
     }
   info (ctx, "\n");

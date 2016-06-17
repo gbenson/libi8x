@@ -116,7 +116,7 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
     {
       if (trace_prefix != NULL)
 	{
-	  trace (ctx, "%s\t0x%lx\t%-20s [%ld]\t%-16s%-16s\n",
+	  trace (ctx, "%s\t" LHEX "\t%-20s [" LDEC "]\t%-16s%-16s\n",
 		 trace_prefix, ip_to_so (code, op), op->desc->name,
 		 STACK_DEPTH (), SLOT_TO_STR (0), SLOT_TO_STR (1));
 	}
