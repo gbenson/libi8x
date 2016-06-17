@@ -83,6 +83,7 @@ AS_IF([ test $have_libelf = maybe ], [
 AM_CONDITIONAL([HAVE_LIBELF], [test x$have_libelf = xyes])
 
 my_CFLAGS="\
+-Werror \
 -Wall \
 -Wchar-subscripts \
 -Wformat-security \
