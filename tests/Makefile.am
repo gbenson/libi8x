@@ -31,6 +31,7 @@ AM_LDFLAGS = \
 
 check_PROGRAMS = \
 	exec/test-deref \
-	exec/test-factorial
+	exec/test-factorial \
+	valid/test-corpus
 
 TESTS = $(check_PROGRAMS)
