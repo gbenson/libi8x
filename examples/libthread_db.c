@@ -23,6 +23,7 @@
 #include "proc_service.h"
 
 #include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -64,6 +65,9 @@ struct td_thragent
   /* Main executable ELF header.  */
   GElf_Ehdr exec_ehdr_mem;
   GElf_Ehdr *exec_ehdr;
+
+  /* Main executable wordsize.  */
+  size_t ptrbytes;
 
   /* libi8x context.  */
   struct i8x_ctx *ctx;
@@ -202,23 +206,6 @@ td_err_from_i8x_err (i8x_err_e err)
     }
 }
 
-/* Read a NUL-terminated string from the inferior.  */
-
-static ps_err_e
-td_pdreadstr (struct ps_prochandle *ph, psaddr_t src,
-	      char *dst, size_t len)
-{
-  for (char *limit = dst + len; dst < limit; dst++, src++)
-    {
-      ps_err_e err = ps_pdread (ph, src, dst, sizeof (char));
-
-      if (err != PS_OK || *dst == '\0')
-	return err;
-    }
-
-  return PS_ERR;
-}
-
 /* Load and register Infinity notes from an ELF.  */
 
 static td_err_e
@@ -324,13 +311,94 @@ td_import_notes_from_file (td_thragent_t *ta, const char *filename,
   return err;
 }
 
+/* Word offsets into r_debug and link_map.  */
+
+#define WORD_OFFSET(strct, field) \
+  (offsetof (struct strct, field) / sizeof (void *))
+
+#define R_VERSION_WORD	WORD_OFFSET (r_debug, r_version)
+#define R_MAP_WORD	WORD_OFFSET (r_debug, r_map)
+#define R_LDBASE_WORD	WORD_OFFSET (r_debug, r_ldbase)
+
+#define L_NEXT_WORD	WORD_OFFSET (link_map, l_next)
+#define L_NAME_WORD	WORD_OFFSET (link_map, l_name)
+#define L_ADDR_WORD	WORD_OFFSET (link_map, l_addr)
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+#define R_DEBUG_WORDS \
+  (MAX (MAX (R_VERSION_WORD, R_MAP_WORD), R_LDBASE_WORD) + 1)
+
+#define LINK_MAP_WORDS \
+  (MAX (MAX (L_NEXT_WORD, L_NAME_WORD), L_ADDR_WORD) + 1)
+
+/* Read an array of words from the inferior.  */
+
+static ps_err_e
+td_pdread_words (td_thragent_t *ta, psaddr_t src, char *dst, size_t nw)
+{
+  return ps_pdread (ta->ph, src, dst, nw * ta->ptrbytes);
+}
+
+/* Access word arrays.  */
+
+static int
+td_int_at (td_thragent_t *ta, const char *buf, size_t word)
+{
+  return *(int *) (buf + word * ta->ptrbytes);
+}
+
+static psaddr_t
+td_ptr_at (td_thragent_t *ta, const char *buf, size_t word)
+{
+  intptr_t result;
+
+  buf += word * ta->ptrbytes;
+  switch (ta->ptrbytes * 8)
+    {
+#define CASE(SIZE)							\
+    case SIZE:								\
+      result = *(uint ## SIZE ## _t *) buf;				\
+      break
+
+    CASE(32);
+#if __WORDSIZE >= 64
+    CASE(64);
+#endif /* __WORDSIZE >= 64 */
+
+#undef CASE
+
+    default:
+      /* td_ta_init ta->ptrbytes check broken.  */
+      abort ();
+    }
+
+  return (psaddr_t) result;
+}
+
+/* Read a NUL-terminated string from the inferior.  */
+
+static ps_err_e
+td_pdreadstr (td_thragent_t *ta, psaddr_t src, char *dst, size_t len)
+{
+  for (char *limit = dst + len; dst < limit; dst++, src++)
+    {
+      ps_err_e err = ps_pdread (ta->ph, src, dst, sizeof (char));
+
+      if (err != PS_OK || *dst == '\0')
+	return err;
+    }
+
+  return PS_ERR;
+}
+
 /* Load and register Infinity notes from a local process.  */
 
 static td_err_e
 td_import_notes_from_process (td_thragent_t *ta)
 {
-  struct r_debug r_debug;
-  struct link_map lm;
+  char r_debug[R_DEBUG_WORDS * sizeof(void *)];
+  char lm[LINK_MAP_WORDS * sizeof(void *)];
   psaddr_t addr;
   td_err_e err;
 
@@ -343,32 +411,35 @@ td_import_notes_from_process (td_thragent_t *ta)
   if (ps_pglobal_lookup (ta->ph, LD_SO, "_r_debug", &addr) != PS_OK)
     return TD_NOLIBTHREAD;
 
-  if (ps_pdread (ta->ph, addr, &r_debug, sizeof (r_debug)) != PS_OK)
+  if (td_pdread_words (ta, addr, r_debug, R_DEBUG_WORDS) != PS_OK)
     return TD_NOLIBTHREAD;
 
-  if (r_debug.r_version != 1)
+  if (td_int_at (ta, r_debug, R_VERSION_WORD) != 1)
     return TD_VERSION;
 
   /* Scan each ELF in the link map for notes.  */
-  for (addr = r_debug.r_map; addr != NULL; addr = lm.l_next)
+  for (addr = td_ptr_at (ta, r_debug, R_MAP_WORD);
+       addr != NULL;
+       addr = td_ptr_at (ta, lm, L_NEXT_WORD))
     {
-      if (ps_pdread (ta->ph, addr, &lm, sizeof (lm)) != PS_OK)
+      if (td_pdread_words (ta, addr, lm, LINK_MAP_WORDS) != PS_OK)
 	return TD_ERR;
 
       /* No idea if this might happen.  */
-      if (lm.l_name == NULL)
+      addr = td_ptr_at (ta, lm, L_NAME_WORD);
+      if (addr == NULL)
 	continue;
 
       char filename[PATH_MAX];
-      if (td_pdreadstr (ta->ph, lm.l_name, filename,
-			sizeof (filename)) != PS_OK)
+      if (td_pdreadstr (ta, addr, filename, sizeof (filename)) != PS_OK)
 	return TD_ERR;
 
       /* Skip both empty filenames and linux-vdso.so.1.  */
       if (filename[0] != '/')
 	continue;
 
-      err = td_import_notes_from_file (ta, filename, (void *) lm.l_addr);
+      err = td_import_notes_from_file (ta, filename,
+				       td_ptr_at (ta, lm, L_ADDR_WORD));
       if (err != TD_OK)
 	return err;
     }
@@ -379,7 +450,8 @@ td_import_notes_from_process (td_thragent_t *ta)
   if (ta->ctx == NULL)
     {
       err = td_import_notes_from_file (ta, ta->exec_filename,
-				       (void *) r_debug.r_ldbase);
+				       td_ptr_at (ta, r_debug,
+						  R_LDBASE_WORD));
       if (err != TD_OK)
 	return err;
     }
@@ -451,10 +523,11 @@ td_ps_get_register (struct i8x_xctx *xctx, struct i8x_inf *inf,
       break
 
     CASE(32);
-
 #if __WORDSIZE >= 64
     CASE(64);
 #endif /* __WORDSIZE >= 64 */
+
+#undef CASE
 
     default:
       rets[1].i = PS_ERR;
@@ -544,6 +617,23 @@ td_ta_init (td_thragent_t *ta)
     }
   if (ta->exec_ehdr == NULL)
     return TD_VERSION;
+
+  /* Set the wordsize we'll use.  */
+  switch (ta->exec_ehdr->e_ident[EI_CLASS])
+    {
+    case ELFCLASS32:
+      ta->ptrbytes = 4;
+      break;
+
+#if __WORDSIZE >= 64
+    case ELFCLASS64:
+      ta->ptrbytes = 8;
+      break;
+#endif /* __WORDSIZE >= 64 */
+
+    default:
+      return TD_VERSION;
+    }
 
   /* Load and register any Infinity notes from the process we've been
      created on.  This will initialize ta->ctx if notes are found.  */
