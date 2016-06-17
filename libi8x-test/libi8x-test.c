@@ -60,6 +60,8 @@ i8x_byte_order_name (bool bytes_reversed)
 void
 i8x_execution_test_main (void)
 {
+  CHECK (i8x_execution_test != NULL);
+
   /* Run the test with the debug allocator and interpreter, to
      catch any assertion failures or reference-counting errors,
      and then run it with the regular setup.  */
@@ -95,6 +97,25 @@ i8x_execution_test_main (void)
       i8x_xctx_unref (xctx);
       i8x_ctx_unref (ctx);
     }
+
+  exit (EXIT_SUCCESS);
+}
+
+void
+i8x_validation_test_main (void)
+{
+  struct i8x_ctx *ctx;
+  i8x_err_e err;
+
+  CHECK (i8x_validation_test != NULL);
+
+  /* Run with the debug allocator.  */
+  err = i8x_ctx_new (I8X_DBG_MEM, NULL, &ctx);
+  CHECK_CALL (NULL, err);
+
+  i8x_validation_test (ctx);
+
+  i8x_ctx_unref (ctx);
 
   exit (EXIT_SUCCESS);
 }

@@ -31,4 +31,5 @@ noinst_LTLIBRARIES = libi8x-test.la
 libi8x_test_la_SOURCES = \
 	libi8x-test.h \
 	libi8x-test.c \
-	execution-test.h
+	execution-test.h \
+	validation-test.h
