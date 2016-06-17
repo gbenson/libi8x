@@ -19,16 +19,6 @@
 
 #include "execution-test.h"
 
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <unistd.h>
-
 #define NUM_TESTS 2
 static const char *tests[NUM_TESTS] = {
   /* Iterative */
@@ -66,32 +56,18 @@ static intptr_t factorials[] =
 #endif // __WORDSIZE >= 64
   };
 
-static i8x_err_e
+static void
 load_and_register (struct i8x_ctx *ctx, const char *filename,
 		   struct i8x_func **func)
 {
-  struct stat sb;
-  char *buf;
-  int fd;
-  i8x_err_e err;
+  struct i8x_sized_buf buf;
+  i8x_test_mmap (filename, &buf);
 
-  fd = open (filename, O_RDONLY);
-  CHECK (fd != -1);
-
-  CHECK (fstat (fd, &sb) != -1);
-
-  buf = mmap (0, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
-  CHECK (buf != MAP_FAILED);
-
-  CHECK (close (fd) != -1);
-
-  err = i8x_ctx_import_bytecode (ctx, buf, sb.st_size, filename, 0, func);
-
-  CHECK (munmap (buf, sb.st_size) != -1);
-
+  i8x_err_e err = i8x_ctx_import_bytecode (ctx, buf.ptr, buf.size,
+					   filename, 0, func);
   CHECK_CALL (ctx, err);
 
-  return I8X_OK;
+  i8x_test_munmap (&buf);
 }
 
 static void
@@ -110,8 +86,7 @@ do_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
 		  test_note, wordsize, byte_order_name);
   CHECK ((size_t) len < sizeof (filename));
 
-  err = load_and_register (ctx, filename, &func);
-  CHECK_CALL (ctx, err);
+  load_and_register (ctx, filename, &func);
 
   ref = i8x_func_get_funcref (func);
   for (int i = 0; i <= max_input; i++)

@@ -45,6 +45,15 @@ void __i8x_test_fail (const char *file, int line,
 
 const char *i8x_byte_order_name (bool bytes_reversed);
 
+struct i8x_sized_buf
+{
+  char *ptr;
+  size_t size;
+};
+
+void i8x_test_mmap (const char *filename, struct i8x_sized_buf *buf);
+void i8x_test_munmap (struct i8x_sized_buf *buf);
+
 void i8x_execution_test_main (void) __attribute__ ((__noreturn__));
 
 #pragma weak i8x_execution_test

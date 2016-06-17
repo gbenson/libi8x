@@ -19,7 +19,6 @@
 
 #include "execution-test.h"
 
-#include <libi8x.h>
 #include <opcodes.h>
 #include <string.h>
 

@@ -19,6 +19,11 @@
 
 #include <stdio.h>
 #include <byteswap.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
 #include <libi8x-test.h>
 
 void
@@ -55,6 +60,28 @@ i8x_byte_order_name (bool bytes_reversed)
     tmp = bswap_16 (tmp);
 
   return names[*((unsigned char *) &tmp)];
+}
+
+void
+i8x_test_mmap (const char *filename, struct i8x_sized_buf *buf)
+{
+  int fd = open (filename, O_RDONLY);
+  CHECK (fd != -1);
+
+  struct stat sb;
+  CHECK (fstat (fd, &sb) != -1);
+  buf->size = sb.st_size;
+
+  buf->ptr = mmap (0, buf->size, PROT_READ, MAP_SHARED, fd, 0);
+  CHECK (buf->ptr != MAP_FAILED);
+
+  CHECK (close (fd) != -1);
+}
+
+void
+i8x_test_munmap (struct i8x_sized_buf *buf)
+{
+  CHECK (munmap (buf->ptr, buf->size) != -1);
 }
 
 void
