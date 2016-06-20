@@ -828,7 +828,7 @@ i8x_ctx_import_bytecode (struct i8x_ctx *ctx,
     return err;
 
   err = i8x_func_new_bytecode (note, &f);
-  i8x_note_unref (note);
+  note = i8x_note_unref (note);
   if (err != I8X_OK)
     return err;
 
@@ -836,7 +836,7 @@ i8x_ctx_import_bytecode (struct i8x_ctx *ctx,
   if (err == I8X_OK && func != NULL)
     *func = f;
   else
-    i8x_func_unref (f);
+    f = i8x_func_unref (f);
 
   return err;
 }
@@ -858,7 +858,7 @@ i8x_ctx_import_native (struct i8x_ctx *ctx, const char *provider,
     return err;
 
   err = i8x_func_new_native (ctx, sig, impl_fn, &f);
-  i8x_funcref_unref (sig);
+  sig = i8x_funcref_unref (sig);
   if (err != I8X_OK)
     return err;
 
@@ -866,7 +866,7 @@ i8x_ctx_import_native (struct i8x_ctx *ctx, const char *provider,
   if (err == I8X_OK && func != NULL)
     *func = f;
   else
-    i8x_func_unref (f);
+    f = i8x_func_unref (f);
 
   return err;
 }
