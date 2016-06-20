@@ -239,6 +239,7 @@ enum
     DTABLE_ADD (DW_OP_addr);			\
     DTABLE_ADD (DW_OP_dup);			\
     DTABLE_ADD (DW_OP_drop);			\
+    DTABLE_ADD (DW_OP_over);			\
     DTABLE_ADD (DW_OP_pick);			\
     DTABLE_ADD (DW_OP_swap);			\
     DTABLE_ADD (DW_OP_rot);			\
@@ -443,21 +444,22 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       CONTINUE;
     }
 
-  OPERATION (DW_OP_dup):
-    ENSURE_DEPTH (1);
-    ADJUST_STACK (1);
-    STACK(0) = STACK(1);
-    CONTINUE;
+#define OPERATION_DW_OP_pick(name, slot)	\
+  OPERATION (DW_OP_ ## name):			\
+    ENSURE_DEPTH ((slot) + 1);			\
+    ADJUST_STACK (1);				\
+    STACK(0) = STACK((slot) + 1);		\
+    CONTINUE
+
+  OPERATION_DW_OP_pick(dup, 0);
+  OPERATION_DW_OP_pick(over, 1);
+  OPERATION_DW_OP_pick(pick, op->arg1.u);
+
+#undef OPERATION_DW_OP_pick
 
   OPERATION (DW_OP_drop):
     ENSURE_DEPTH (1);
     ADJUST_STACK (-1);
-    CONTINUE;
-
-  OPERATION (DW_OP_pick):
-    ENSURE_DEPTH (op->arg1.u + 1);
-    ADJUST_STACK (1);
-    STACK(0) = STACK(op->arg1.u + 1);
     CONTINUE;
 
   OPERATION (DW_OP_swap):
@@ -576,7 +578,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   OPERATION_DW_OP_lit (30);
   OPERATION_DW_OP_lit (31);
 
-#undef DO_DW_OP_lit
+#undef OPERATION_DW_OP_lit
 
   OPERATION (I8_OP_call):
     {

@@ -207,21 +207,22 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	  STACK(0) = ptrtype;
 	  break;
 
-	case DW_OP_dup:
-	  ENSURE_DEPTH (1);
-	  ADJUST_STACK (1);
-	  STACK(0) = STACK(1);
-	  break;
+#define case_DW_OP_pick(name, slot)		\
+	case DW_OP_ ## name:			\
+	  ENSURE_DEPTH ((slot) + 1);		\
+	  ADJUST_STACK (1);			\
+	  STACK(0) = STACK((slot) + 1);		\
+	  break
+
+	case_DW_OP_pick(dup, 0);
+	case_DW_OP_pick(over, 1);
+	case_DW_OP_pick(pick, op->arg1.u);
+
+#undef case_DW_OP_pick
 
 	case DW_OP_drop:
 	  ENSURE_DEPTH (1);
 	  ADJUST_STACK (-1);
-	  break;
-
-	case DW_OP_pick:
-	  ENSURE_DEPTH (op->arg1.u + 1);
-	  ADJUST_STACK (1);
-	  STACK(0) = STACK(op->arg1.u + 1);
 	  break;
 
 	case DW_OP_swap:
@@ -403,7 +404,7 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	  STACK(0) = inttype;
 	  break;
 
-#define do_I8_OP_cast(type1, type2)				\
+#define case_I8_OP_cast(type1, type2)				\
 	case I8_OP_cast_ ## type1 ## 2 ## type2:		\
 	  {							\
 	    if (op->arg1.u > INT_MAX)				\
@@ -414,10 +415,10 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 	  }							\
 	  break
 
-	do_I8_OP_cast (int, ptr);
-	do_I8_OP_cast (ptr, int);
+	case_I8_OP_cast (int, ptr);
+	case_I8_OP_cast (ptr, int);
 
-#undef do_I8_OP_cast
+#undef case_I8_OP_cast
 
 	case I8X_OP_const:
 	  ADJUST_STACK (1);
