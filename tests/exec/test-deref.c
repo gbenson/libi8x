@@ -19,7 +19,6 @@
 
 #include "execution-test.h"
 
-#include <opcodes.h>
 #include <string.h>
 
 /* define test::test_deref returns int
@@ -189,15 +188,6 @@ read_memory (struct i8x_inf *inf, uintptr_t addr, size_t len,
 
   return I8X_OK;
 }
-
-/* Copied from libi8x/code.c.  */
-
-#define ARCHSPEC_1(msb, lsb, wordsize)			\
-  ((((msb) ^ (wordsize)) << 8) | ((lsb) ^ (wordsize)))
-
-#define ARCHSPEC(wordsize, is_swapped)			\
-  (!(is_swapped) ? ARCHSPEC_1 ('i', '8', wordsize)	\
-		 : ARCHSPEC_1 ('8', 'i', wordsize))
 
 void
 i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,

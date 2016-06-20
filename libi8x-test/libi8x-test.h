@@ -21,6 +21,8 @@
 #define _LIBI8X_TEST_H_
 
 #include <libi8x.h>
+#include <archspec.h>
+#include <opcodes.h>
 #include <stdio.h>
 
 #ifdef __cplusplus

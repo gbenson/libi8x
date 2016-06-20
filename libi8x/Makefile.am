@@ -59,6 +59,7 @@ libi8x_la_SOURCES = \
 	inferior-private.h \
 	reloc-private.h \
 	xctx-private.h \
+	archspec.h \
 	opcodes.h \
 	chunk.c \
 	code.c \

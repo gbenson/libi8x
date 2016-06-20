@@ -21,6 +21,7 @@
 #include <string.h>
 #include "libi8x-private.h"
 #include "interp-private.h"
+#include "archspec.h"
 #include "optable.c"
 
 static struct i8x_func *
@@ -58,15 +59,6 @@ i8x_code_reset_is_visited (struct i8x_code *code)
   i8x_code_foreach_op (code, op)
     op->is_visited = false;
 }
-
-/* Architecture specifiers.  */
-
-#define ARCHSPEC_1(msb, lsb, wordsize) \
-  ((((msb) ^ (wordsize)) << 8) | ((lsb) ^ (wordsize)))
-
-#define ARCHSPEC(wordsize, is_swapped)			\
-  (!(is_swapped) ? ARCHSPEC_1 ('i', '8', wordsize)	\
-		 : ARCHSPEC_1 ('8', 'i', wordsize))
 
 static i8x_err_e
 i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
