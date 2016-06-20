@@ -243,6 +243,7 @@ enum
     DTABLE_ADD (DW_OP_pick);			\
     DTABLE_ADD (DW_OP_swap);			\
     DTABLE_ADD (DW_OP_rot);			\
+    DTABLE_ADD (DW_OP_abs);			\
     DTABLE_ADD (DW_OP_and);			\
     DTABLE_ADD (DW_OP_minus);			\
     DTABLE_ADD (DW_OP_mul);			\
@@ -485,6 +486,11 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       STACK(2) = tmp;
       CONTINUE;
     }
+
+  OPERATION (DW_OP_abs):
+    ENSURE_DEPTH (1);
+    STACK(0).i = abs (STACK(0).i);
+    CONTINUE;
 
 #define OPERATION_DW_binary_op(name, operator)		\
   OPERATION (DW_OP_ ## name):				\
