@@ -96,7 +96,7 @@ i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
   i8x_rb_set_byte_order (rb, I8X_BYTE_ORDER_NATIVE);
   err = i8x_rb_read_uint16_t (rb, &archspec);
   if (err != I8X_OK)
-    return err;
+    goto cleanup;
 
   i8x_assert (code->wordsize == 0);
   for (int wordsize = 32; wordsize <= __WORDSIZE; wordsize += 32)
@@ -118,7 +118,10 @@ i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
     }
 
   if (code->wordsize == 0)
-    return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
+    {
+      err = i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
+      goto cleanup;
+    }
 
   /* Read max_stack.  */
   location = i8x_rb_get_ptr (rb);
@@ -127,7 +130,10 @@ i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
     goto cleanup;
 
   if (code->max_stack < num_params)
-    return i8x_rb_error (rb, I8X_NOTE_INVALID, location);
+    {
+      err = i8x_rb_error (rb, I8X_NOTE_INVALID, location);
+      goto cleanup;
+    }
 
  cleanup:
   rb = i8x_rb_unref (rb);
