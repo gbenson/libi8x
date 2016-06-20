@@ -245,7 +245,9 @@ enum
     DTABLE_ADD (DW_OP_rot);			\
     DTABLE_ADD (DW_OP_abs);			\
     DTABLE_ADD (DW_OP_and);			\
+    DTABLE_ADD (DW_OP_div);			\
     DTABLE_ADD (DW_OP_minus);			\
+    DTABLE_ADD (DW_OP_mod);			\
     DTABLE_ADD (DW_OP_mul);			\
     DTABLE_ADD (DW_OP_neg);			\
     DTABLE_ADD (DW_OP_not);			\
@@ -509,6 +511,23 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   OPERATION_DW_binary_op (xor,   ^);
 
 #undef OPERATION_DW_binary_op
+
+#define OPERATION_DW_divmod(name, operator, type)		\
+  OPERATION (DW_OP_ ## name):					\
+    ENSURE_DEPTH (2);						\
+    if (__i8x_unlikely (STACK(0).type == 0))			\
+      {								\
+	err = i8x_code_error (code, I8X_DIVIDE_BY_ZERO, op);	\
+	goto unwind_and_return;					\
+      }								\
+    STACK(1).type = STACK(1).type operator STACK(0).type;	\
+    ADJUST_STACK (-1);						\
+    CONTINUE
+
+  OPERATION_DW_divmod(div, /, i);
+  OPERATION_DW_divmod(mod, %, u);
+
+#undef OPERATION_DW_divmod
 
   OPERATION (DW_OP_neg):
     ENSURE_DEPTH (1);

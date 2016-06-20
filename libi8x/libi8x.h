@@ -45,6 +45,7 @@ typedef enum
   I8X_STACK_OVERFLOW = -299,
   I8X_RELOC_FAILED,
   I8X_READ_MEM_FAILED,
+  I8X_DIVIDE_BY_ZERO,
 }
 i8x_err_e;
 
