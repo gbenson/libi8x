@@ -256,6 +256,7 @@ enum
     DTABLE_ADD (DW_OP_plus_uconst);		\
     DTABLE_ADD (DW_OP_shl);			\
     DTABLE_ADD (DW_OP_shr);			\
+    DTABLE_ADD (DW_OP_shra);			\
     DTABLE_ADD (DW_OP_xor);			\
     DTABLE_ADD (DW_OP_bra);			\
     DTABLE_ADD (DW_OP_eq);			\
@@ -494,21 +495,22 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
     STACK(0).i = abs (STACK(0).i);
     CONTINUE;
 
-#define OPERATION_DW_binary_op(name, operator)		\
+#define OPERATION_DW_binary_op(name, operator, type)	\
   OPERATION (DW_OP_ ## name):				\
     ENSURE_DEPTH (2);					\
-    STACK(1).u = STACK(1).u operator STACK(0).u;	\
+    STACK(1).type = STACK(1).type operator STACK(0).u;	\
     ADJUST_STACK (-1);					\
     CONTINUE
 
-  OPERATION_DW_binary_op (and,   &);
-  OPERATION_DW_binary_op (minus, -);
-  OPERATION_DW_binary_op (mul,   *);
-  OPERATION_DW_binary_op (or,    |);
-  OPERATION_DW_binary_op (plus,  +);
-  OPERATION_DW_binary_op (shl,  <<);
-  OPERATION_DW_binary_op (shr,  >>);
-  OPERATION_DW_binary_op (xor,   ^);
+  OPERATION_DW_binary_op (and,   &, u);
+  OPERATION_DW_binary_op (minus, -, u);
+  OPERATION_DW_binary_op (mul,   *, u);
+  OPERATION_DW_binary_op (or,    |, u);
+  OPERATION_DW_binary_op (plus,  +, u);
+  OPERATION_DW_binary_op (shl,  <<, u);
+  OPERATION_DW_binary_op (shr,  >>, u);
+  OPERATION_DW_binary_op (shra, >>, i);
+  OPERATION_DW_binary_op (xor,   ^, u);
 
 #undef OPERATION_DW_binary_op
 
