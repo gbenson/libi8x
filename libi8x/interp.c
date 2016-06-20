@@ -247,6 +247,7 @@ enum
     DTABLE_ADD (DW_OP_minus);			\
     DTABLE_ADD (DW_OP_mul);			\
     DTABLE_ADD (DW_OP_neg);			\
+    DTABLE_ADD (DW_OP_not);			\
     DTABLE_ADD (DW_OP_or);			\
     DTABLE_ADD (DW_OP_plus);			\
     DTABLE_ADD (DW_OP_plus_uconst);		\
@@ -506,6 +507,11 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   OPERATION (DW_OP_neg):
     ENSURE_DEPTH (1);
     STACK(0).i = -STACK(0).i;
+    CONTINUE;
+
+  OPERATION (DW_OP_not):
+    ENSURE_DEPTH (1);
+    STACK(0).u = ~STACK(0).u;
     CONTINUE;
 
   OPERATION (DW_OP_plus_uconst):
