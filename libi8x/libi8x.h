@@ -89,6 +89,7 @@ struct i8x_note;
 struct i8x_object;
 struct i8x_readbuf;
 struct i8x_reloc;
+struct i8x_type;
 struct i8x_xctx;
 
 /* Runtime values.  */
@@ -278,6 +279,15 @@ I8X_LISTABLE_OBJECT_FUNCTIONS (funcref);
 const char *i8x_funcref_get_fullname (struct i8x_funcref *ref);
 bool i8x_funcref_is_private (struct i8x_funcref *ref);
 bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
+struct i8x_type *i8x_funcref_get_type (struct i8x_funcref *ref);
+size_t i8x_funcref_get_num_params (struct i8x_funcref *ref);
+size_t i8x_funcref_get_num_returns (struct i8x_funcref *ref);
+
+#define i8x_funcref_get_ptypes(ref) \
+  i8x_type_get_ptypes (i8x_funcref_get_type (ref))
+
+#define i8x_funcref_get_rtypes(ref) \
+  i8x_type_get_rtypes (i8x_funcref_get_type (ref))
 
 /*
  * i8x_inf

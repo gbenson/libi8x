@@ -105,13 +105,14 @@ i8x_funcref_is_private (struct i8x_funcref *ref)
   return ref->is_private;
 }
 
-size_t
+I8X_EXPORT size_t
 i8x_funcref_get_num_params (struct i8x_funcref *ref)
 {
   return ref->num_args;
 }
 
-size_t i8x_funcref_get_num_returns (struct i8x_funcref *ref)
+I8X_EXPORT size_t
+i8x_funcref_get_num_returns (struct i8x_funcref *ref)
 {
   return ref->num_rets;
 }
@@ -177,7 +178,7 @@ i8x_funcref_is_resolved (struct i8x_funcref *ref)
   return ref->resolved != NULL;
 }
 
-struct i8x_type *
+I8X_EXPORT struct i8x_type *
 i8x_funcref_get_type (struct i8x_funcref *ref)
 {
   return ref->type;

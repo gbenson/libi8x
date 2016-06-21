@@ -30,6 +30,9 @@ global:
 	i8x_funcref_get_fullname;
 	i8x_funcref_is_private;
 	i8x_funcref_is_resolved;
+	i8x_funcref_get_type;
+	i8x_funcref_get_num_params;
+	i8x_funcref_get_num_returns;
 
 	i8x_inf_new;
 	i8x_inf_set_read_mem_fn;
