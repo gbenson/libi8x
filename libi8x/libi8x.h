@@ -393,6 +393,19 @@ I8X_LISTABLE_OBJECT_FUNCTIONS (reloc);
 uintptr_t i8x_reloc_get_unrelocated (struct i8x_reloc *reloc);
 
 /*
+ * i8x_type
+ *
+ * access to types of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (type);
+I8X_LISTABLE_OBJECT_FUNCTIONS (type);
+
+const char *i8x_type_get_encoded (struct i8x_type *type);
+bool i8x_type_is_functype (struct i8x_type *type);
+struct i8x_list *i8x_type_get_ptypes (struct i8x_type *type);
+struct i8x_list *i8x_type_get_rtypes (struct i8x_type *type);
+
+/*
  * i8x_xctx
  *
  * access to xctxs of i8x

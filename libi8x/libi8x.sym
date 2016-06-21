@@ -80,6 +80,11 @@ global:
 
 	i8x_reloc_get_unrelocated;
 
+	i8x_type_get_encoded;
+	i8x_type_is_functype;
+	i8x_type_get_ptypes;
+	i8x_type_get_rtypes;
+
 	i8x_xctx_new;
 	i8x_xctx_get_use_debug_interpreter;
 	i8x_xctx_set_use_debug_interpreter;

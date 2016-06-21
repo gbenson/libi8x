@@ -200,31 +200,6 @@ I8X_COMMON_OBJECT_FUNCTIONS (code);
 i8x_err_e i8x_code_new (struct i8x_func *func, struct i8x_code **code);
 struct i8x_list *i8x_code_get_relocs (struct i8x_code *code);
 
-/*
- * i8x_type
- *
- * access to types of i8x
- */
-I8X_COMMON_OBJECT_FUNCTIONS (type);
-I8X_LIST_FUNCTIONS (type);
-I8X_LISTABLE_OBJECT_FUNCTIONS (type);
-
-i8x_err_e i8x_type_new_coretype (struct i8x_ctx *ctx,
-				 char encoded,
-				 struct i8x_type **type);
-i8x_err_e i8x_type_new_functype (struct i8x_ctx *ctx,
-				 const char *encoded,
-				 const char *ptypes_start,
-				 const char *ptypes_limit,
-				 const char *rtypes_start,
-				 const char *rtypes_limit,
-				 struct i8x_note *src_note,
-				 struct i8x_type **type);
-const char *i8x_type_get_encoded (struct i8x_type *type);
-bool i8x_type_is_functype (struct i8x_type *type);
-struct i8x_list *i8x_type_get_ptypes (struct i8x_type *type);
-struct i8x_list *i8x_type_get_rtypes (struct i8x_type *type);
-
 /* i8x_chunk private functions.  */
 
 I8X_LIST_FUNCTIONS (chunk);
@@ -327,6 +302,21 @@ i8x_err_e i8x_reloc_new (struct i8x_code *code, uintptr_t unrelocated,
 			 struct i8x_reloc **reloc);
 void i8x_reloc_invalidate_for_inferior (struct i8x_reloc *reloc,
 					struct i8x_inf *inf);
+
+/* i8x_type private functions.  */
+I8X_LIST_FUNCTIONS (type);
+
+i8x_err_e i8x_type_new_coretype (struct i8x_ctx *ctx,
+				 char encoded,
+				 struct i8x_type **type);
+i8x_err_e i8x_type_new_functype (struct i8x_ctx *ctx,
+				 const char *encoded,
+				 const char *ptypes_start,
+				 const char *ptypes_limit,
+				 const char *rtypes_start,
+				 const char *rtypes_limit,
+				 struct i8x_note *src_note,
+				 struct i8x_type **type);
 
 #ifdef __cplusplus
 } /* extern "C" */

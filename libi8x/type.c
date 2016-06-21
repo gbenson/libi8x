@@ -30,13 +30,13 @@ struct i8x_type
   struct i8x_list *ptypes, *rtypes;
 };
 
-bool
+I8X_EXPORT bool
 i8x_type_is_functype (struct i8x_type *type)
 {
   return type->encoded != NULL && type->encoded[0] == I8_TYPE_FUNCTION;
 }
 
-struct i8x_list *
+I8X_EXPORT struct i8x_list *
 i8x_type_get_ptypes (struct i8x_type *type)
 {
   i8x_assert (i8x_type_is_functype (type));
@@ -44,7 +44,7 @@ i8x_type_get_ptypes (struct i8x_type *type)
   return type->ptypes;
 }
 
-struct i8x_list *
+I8X_EXPORT struct i8x_list *
 i8x_type_get_rtypes (struct i8x_type *type)
 {
   i8x_assert (i8x_type_is_functype (type));
@@ -330,7 +330,7 @@ i8x_type_new_functype (struct i8x_ctx *ctx, const char *encoded,
 		       rtypes_start, rtypes_limit, src_note, type);
 }
 
-const char *
+I8X_EXPORT const char *
 i8x_type_get_encoded (struct i8x_type *type)
 {
   return type->encoded;
