@@ -21,11 +21,132 @@
 
 #include "execution-test.h"
 
+#include <string.h>
 #include <ftw.h>
 
+static i8x_err_e
+relocate_addr (struct i8x_inf *inf, struct i8x_note *note,
+	       uintptr_t unrelocated, uintptr_t *result)
+{
+  *result = unrelocated;
+
+  return I8X_OK;
+}
+
+static i8x_err_e
+read_memory (struct i8x_inf *inf, uintptr_t addr, size_t len,
+	     void *result)
+{
+  memset (result, 0, len);
+
+  return I8X_OK;
+}
+
+static i8x_err_e
+call_unresolved (struct i8x_xctx *xctx, struct i8x_inf *inf,
+		 union i8x_value *args, union i8x_value *rets)
+{
+  /* XXX Do something?  */
+
+  return I8X_OK;
+}
+
 static void
-load_and_execute (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
-		  struct i8x_inf *inf, const char *filename)
+resolve_and_execute (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
+		     struct i8x_inf *inf, const char *filename,
+		     struct i8x_func *functions)
+{
+  CHECK (functions != NULL);
+
+  /* Make sure every function is resolved.  */
+  for (struct i8x_func *func = functions;
+       func != NULL;
+       func = (struct i8x_func *) i8x_func_get_userdata (func))
+    {
+      struct i8x_funcref *func_ref = i8x_func_get_funcref (func);
+
+      if (i8x_funcref_is_resolved (func_ref))
+	continue;
+
+      /* Find the first unresolved function.  */
+      struct i8x_listitem *li;
+      struct i8x_funcref *ext_ref = NULL;
+
+      i8x_list_foreach (i8x_func_get_externals (func), li)
+	{
+	  ext_ref = i8x_listitem_get_funcref (li);
+	  if (!i8x_funcref_is_resolved (ext_ref))
+	    break;
+	}
+
+      CHECK (ext_ref != NULL);
+      CHECK (!i8x_funcref_is_resolved (ext_ref));
+
+      /* Create and register a dummy function with that signature.  */
+      struct i8x_func *ext_func;
+      i8x_err_e err
+	= i8x_func_new_native (ctx, ext_ref, call_unresolved,
+			       &ext_func);
+      CHECK_CALL (ctx, err);
+
+      i8x_func_set_userdata (ext_func, functions, NULL);
+
+      err = i8x_ctx_register_func (ctx, ext_func);
+      CHECK_CALL (ctx, err);
+
+      /* Try again.  */
+      resolve_and_execute (ctx, xctx, inf, filename, ext_func);
+
+      i8x_ctx_unregister_func (ctx, ext_func);
+      i8x_func_unref (ext_func);
+
+      return;
+    }
+
+  /* Call every function.  */
+  for (struct i8x_func *func = functions;
+       func != NULL;
+       func = (struct i8x_func *) i8x_func_get_userdata (func))
+    {
+      struct i8x_funcref *ref = i8x_func_get_funcref (func);
+      CHECK (i8x_funcref_is_resolved (ref));
+
+      union i8x_value *args
+	= alloca (i8x_funcref_get_num_params (ref)
+		  * sizeof (union i8x_value));
+      union i8x_value *rets
+	= alloca (i8x_funcref_get_num_returns (ref)
+		  * sizeof (union i8x_value));
+
+      /* XXX.  */
+      memset (args, 0,
+	      i8x_funcref_get_num_params (ref) * sizeof (union i8x_value));
+
+      i8x_err_e expect_err
+	= (strcmp (i8x_funcref_get_fullname (ref),
+		   "test::fold_load_test()") == 0
+	   ? I8X_STACK_OVERFLOW : I8X_OK);
+
+      /* XXX.  */
+      if (strstr (filename,
+		  "/test_binary_ops/test_binary_ops/0076-0001") != NULL
+	  || strstr (filename,
+		     "/test_binary_ops/test_binary_ops/0051-0001") != NULL)
+	expect_err = I8X_DIVIDE_BY_ZERO;
+
+      i8x_err_e err = i8x_xctx_call (xctx, ref, inf, args, rets);
+
+      if (expect_err != I8X_OK)
+	CHECK (err == expect_err);
+      else
+	CHECK_CALL (ctx, err);
+    }
+}
+
+static void
+load_and_execute_1 (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
+		    struct i8x_inf *inf, char *filename,
+		    struct i8x_func *next_func)
 {
   struct i8x_sized_buf buf;
   i8x_test_mmap (filename, &buf);
@@ -39,8 +160,41 @@ load_and_execute (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
   if (err != I8X_OK)
     return;
 
+  /* Build a linked list of loaded notes.  */
+  i8x_func_set_userdata (func, next_func, NULL);
+
+  char *dash = strrchr (filename, '-');
+  CHECK (dash != NULL);
+  CHECK (strlen (dash) == 5);
+  int note_index = atoi (dash + 1);
+  CHECK (note_index > 0);
+
+  if (note_index > 1)
+    {
+      /* Recursively load all lower-numbered notes.  */
+      sprintf (dash, "-%04d", note_index - 1);
+      load_and_execute_1 (ctx, xctx, inf, filename, func);
+    }
+  else
+    {
+      /* All notes loaded, time to run the test.  */
+      resolve_and_execute (ctx, xctx, inf, filename, func);
+    }
+
   i8x_ctx_unregister_func (ctx, func);
   i8x_func_unref (func);
+}
+
+static void
+load_and_execute (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
+		  struct i8x_inf *inf, const char *_filename)
+{
+  char *filename = strdup (_filename);
+  CHECK (filename != NULL);
+
+  load_and_execute_1 (ctx, xctx, inf, filename, NULL);
+
+  free (filename);
 }
 
 static struct i8x_ctx *ftw_ctx;
@@ -72,6 +226,9 @@ i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
      whatever notes it finds, so we only need to run once.  */
   if (bytes_reversed || wordsize != __WORDSIZE)
     return;
+
+  i8x_inf_set_read_mem_fn (inf, read_memory);
+  i8x_inf_set_relocate_fn (inf, relocate_addr);
 
   ftw_ctx = ctx;
   ftw_xctx = xctx;
