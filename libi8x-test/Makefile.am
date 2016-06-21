@@ -29,6 +29,6 @@ AM_LDFLAGS = \
 noinst_LTLIBRARIES = libi8x-test.la
 
 libi8x_test_la_SOURCES = \
-	${top_srcdir}/tests/exec/execution-test.h \
 	libi8x-test.h \
-	libi8x-test.c
+	libi8x-test.c \
+	execution-test.h
