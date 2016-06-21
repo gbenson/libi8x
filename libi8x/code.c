@@ -598,6 +598,9 @@ i8x_code_remove_casts (struct i8x_code *code)
 	  && op1->code != I8_OP_cast_ptr2int)
 	continue;
 
+      if (code->entry_point == op1)
+	code->entry_point = op1->fall_through;
+
       i8x_code_foreach_op (code, op2)
 	{
 	  if (op2->branch_next == op1)
