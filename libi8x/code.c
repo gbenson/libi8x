@@ -665,7 +665,7 @@ i8x_code_rewrite_derefs (struct i8x_code *code)
       shift = i8x_log2 (size);
       if (shift < 3
 	  || (1 << shift) != size
-	  || size > __WORDSIZE)
+	  || size > code->wordsize)
 	return i8x_code_error (code, I8X_NOTE_UNHANDLED, op);
 
       shift -= 3;
