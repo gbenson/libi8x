@@ -30,7 +30,7 @@ AM_LDFLAGS = \
 	$(top_builddir)/libi8x-test/libi8x-test.la
 
 check_PROGRAMS = \
-	exec/test-deref \
+	exec/ops/test-deref \
 	exec/test-factorial \
 	valid/test-corpus
 
