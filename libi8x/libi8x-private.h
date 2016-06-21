@@ -284,7 +284,6 @@ i8x_nat_fn_t *i8x_func_get_native_impl (struct i8x_func *func);
 /* i8x_funcref private functions.  */
 
 I8X_LIST_FUNCTIONS (funcref);
-I8X_LISTABLE_OBJECT_FUNCTIONS (funcref);
 
 i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
 			   struct i8x_type *functype,

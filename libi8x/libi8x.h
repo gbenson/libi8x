@@ -273,6 +273,7 @@ struct i8x_list *i8x_func_get_relocs (struct i8x_func *func);
  * access to funcrefs of i8x
  */
 I8X_COMMON_OBJECT_FUNCTIONS (funcref);
+I8X_LISTABLE_OBJECT_FUNCTIONS (funcref);
 
 const char *i8x_funcref_get_fullname (struct i8x_funcref *ref);
 bool i8x_funcref_is_private (struct i8x_funcref *ref);
