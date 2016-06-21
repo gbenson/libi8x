@@ -24,6 +24,44 @@
 #include <string.h>
 #include <ftw.h>
 
+static struct i8x_func *dummy_function;
+
+static void
+set_dummy_values (struct i8x_list *types, union i8x_value *value)
+{
+  struct i8x_listitem *li;
+
+  i8x_list_foreach (types, li)
+    {
+      struct i8x_type *type = i8x_listitem_get_type (li);
+      const char *encoded = i8x_type_get_encoded (type);
+
+      switch (encoded[0])
+	{
+	case 'i':
+	  value->i = 23;
+	  break;
+
+	case 'p':
+	  value->u = 0xBAD00001;
+	  break;
+
+	case 'o':
+	  value->u = 0xBAD00002;
+	  break;
+
+	case 'F':
+	  value->f = i8x_func_get_funcref (dummy_function);
+	  break;
+
+	default:
+	  FAIL ("unhandled type '%s'", encoded);
+	}
+
+      value++;
+    }
+}
+
 static i8x_err_e
 relocate_addr (struct i8x_inf *inf, struct i8x_note *note,
 	       uintptr_t unrelocated, uintptr_t *result)
@@ -47,7 +85,12 @@ call_unresolved (struct i8x_xctx *xctx, struct i8x_inf *inf,
 		 struct i8x_func *func, union i8x_value *args,
 		 union i8x_value *rets)
 {
-  /* XXX Do something?  */
+  if (func != dummy_function)
+    {
+      struct i8x_funcref *ref = i8x_func_get_funcref (func);
+
+      set_dummy_values (i8x_funcref_get_rtypes(ref), rets);
+    }
 
   return I8X_OK;
 }
@@ -119,21 +162,12 @@ resolve_and_execute (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
 	= alloca (i8x_funcref_get_num_returns (ref)
 		  * sizeof (union i8x_value));
 
-      /* XXX.  */
-      memset (args, 0,
-	      i8x_funcref_get_num_params (ref) * sizeof (union i8x_value));
+      set_dummy_values (i8x_funcref_get_ptypes(ref), args);
 
       i8x_err_e expect_err
 	= (strcmp (i8x_funcref_get_fullname (ref),
 		   "test::fold_load_test()") == 0
 	   ? I8X_STACK_OVERFLOW : I8X_OK);
-
-      /* XXX.  */
-      if (strstr (filename,
-		  "/test_binary_ops/test_binary_ops/0076-0001") != NULL
-	  || strstr (filename,
-		     "/test_binary_ops/test_binary_ops/0051-0001") != NULL)
-	expect_err = I8X_DIVIDE_BY_ZERO;
 
       i8x_err_e err = i8x_xctx_call (xctx, ref, inf, args, rets);
 
@@ -231,9 +265,17 @@ i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
   i8x_inf_set_read_mem_fn (inf, read_memory);
   i8x_inf_set_relocate_fn (inf, relocate_addr);
 
+  i8x_err_e err = i8x_ctx_import_native (ctx,
+					 "smoketest", "dummy_function",
+					 "", "", call_unresolved,
+					 &dummy_function);
+  CHECK_CALL (ctx, err);
+
   ftw_ctx = ctx;
   ftw_xctx = xctx;
   ftw_inf = inf;
 
   CHECK (ftw ("corpus", ftw_callback, 16) == 0);
+
+  i8x_func_unref (dummy_function);
 }
