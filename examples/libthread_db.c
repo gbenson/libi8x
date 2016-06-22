@@ -43,6 +43,7 @@ static td_err_e td_ta_init (td_thragent_t *ta);
 static td_err_e td_ta_init_libi8x (td_thragent_t *ta);
 static i8x_err_e td_ta_thr_iter_cb (struct i8x_xctx *xctx,
 				    struct i8x_inf *inf,
+				    struct i8x_func *func,
 				    union i8x_value *args,
 				    union i8x_value *rets);
 
@@ -488,7 +489,8 @@ td_read_memory (struct i8x_inf *inf, uintptr_t addr, size_t len,
 
 static i8x_err_e
 td_ps_getpid (struct i8x_xctx *xctx, struct i8x_inf *inf,
-	      union i8x_value *args, union i8x_value *rets)
+	      struct i8x_func *func, union i8x_value *args,
+	      union i8x_value *rets)
 {
   td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
 
@@ -554,7 +556,8 @@ td_decode_regnum (td_thragent_t *ta, int regnum,
 
 static i8x_err_e
 td_ps_get_register (struct i8x_xctx *xctx, struct i8x_inf *inf,
-		    union i8x_value *args, union i8x_value *rets)
+		    struct i8x_func *func, union i8x_value *args,
+		    union i8x_value *rets)
 {
   td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
 
@@ -600,7 +603,8 @@ td_ps_get_register (struct i8x_xctx *xctx, struct i8x_inf *inf,
 
 static i8x_err_e
 td_ps_get_thread_area (struct i8x_xctx *xctx, struct i8x_inf *inf,
-		       union i8x_value *args, union i8x_value *rets)
+		       struct i8x_func *func, union i8x_value *args,
+		       union i8x_value *rets)
 {
   td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
 
@@ -895,7 +899,8 @@ td_ta_thr_iter (const td_thragent_t *ta, td_thr_iter_f *callback,
 
 static i8x_err_e
 td_ta_thr_iter_cb (struct i8x_xctx *xctx, struct i8x_inf *inf,
-		   union i8x_value *args, union i8x_value *rets)
+		   struct i8x_func *func, union i8x_value *args,
+		   union i8x_value *rets)
 {
   td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
   struct td_thrhandle th = {ta, args[0].p};

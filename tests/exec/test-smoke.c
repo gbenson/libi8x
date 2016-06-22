@@ -44,7 +44,8 @@ read_memory (struct i8x_inf *inf, uintptr_t addr, size_t len,
 
 static i8x_err_e
 call_unresolved (struct i8x_xctx *xctx, struct i8x_inf *inf,
-		 union i8x_value *args, union i8x_value *rets)
+		 struct i8x_func *func, union i8x_value *args,
+		 union i8x_value *rets)
 {
   /* XXX Do something?  */
 

@@ -368,7 +368,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 {
   /* If this function is native then we're in the wrong place.  */
   if (ref->native_impl != NULL)
-    return ref->native_impl (xctx, inf, args, rets);
+    return ref->native_impl (xctx, inf, ref->resolved, args, rets);
 
   /* Likewise if we should be in the debug interpreter but aren't.  */
 #ifndef DEBUG_INTERPRETER
@@ -645,7 +645,8 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       ADJUST_STACK (callee->num_rets);
 
       ENTER_NATIVE ();
-      err = callee->native_impl (xctx, inf, arg0, ret0);
+      err = callee->native_impl (xctx, inf, callee->resolved,
+				 arg0, ret0);
       LEAVE_NATIVE ();
       if (__i8x_unlikely (err != I8X_OK))
 	goto unwind_and_return;

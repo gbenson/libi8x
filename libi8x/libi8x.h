@@ -205,6 +205,7 @@ typedef void i8x_log_fn_t (struct i8x_ctx *ctx,
 
 typedef i8x_err_e i8x_nat_fn_t (struct i8x_xctx *xctx,
 				struct i8x_inf *inf,
+				struct i8x_func *func,
 				union i8x_value *args,
 				union i8x_value *rets);
 
