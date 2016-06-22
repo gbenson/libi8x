@@ -4,3 +4,4 @@ mapfile-*.txt
 threads-static
 threads-normal
 threads-pie
+*.pyc

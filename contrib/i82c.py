@@ -25,38 +25,10 @@ from __future__ import unicode_literals
 
 # Compile i8 source to object code and emit the notes as a C char array
 
-import struct
+import elfhack
 import subprocess
 import sys
 import tempfile
-
-def extract_notes(data):
-    # Get the byte order from the header
-    HDRFMT = b"4sBB"
-    hdrlen = struct.calcsize(HDRFMT)
-    magic, ei_class, ei_data = struct.unpack(HDRFMT, data[:hdrlen])
-    assert magic == b"\x7fELF"
-    byteorder = {1: b"<", 2: b">"}[ei_data]
-    # This is not a real ELF parser!
-    NOTENAME = b"GNU\0"
-    NT_GNU_INFINITY = 5
-    markerfmt = byteorder + ("I%ds" % len(NOTENAME)).encode("utf-8")
-    marker = struct.pack(markerfmt, NT_GNU_INFINITY, NOTENAME)
-    hdrfmt = byteorder + b"2I"
-    start = hdrsz = struct.calcsize(hdrfmt)
-    while True:
-        start = data.find(marker, start)
-        if start < 0:
-            break
-        start -= hdrsz
-        namesz, descsz = struct.unpack(hdrfmt, data[start:start + hdrsz])
-        if namesz != len(NOTENAME):
-            start += hdrsz + 1 # Spurious match
-            continue
-        descstart = start + hdrsz + struct.calcsize(b"I") + len(NOTENAME)
-        desclimit = descstart + descsz
-        yield data[descstart:desclimit]
-        start = desclimit
 
 def byte2char(byte):
     if byte >= 32 and byte < 127:
@@ -77,7 +49,7 @@ def main():
     with open(srcfile) as fp:
         print(("/* " + "   ".join(fp.readlines())).rstrip() + "\n */")
 
-    for note in extract_notes(elf):
+    for note in elfhack.extract_notes(elf):
         if sys.version_info < (3,):
             note = map(ord, note)
         print("static uint8_t testnote[] = {")

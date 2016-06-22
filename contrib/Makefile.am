@@ -19,5 +19,6 @@
 
 EXTRA_DIST = \
 	build-threads-example.sh \
+	elfhack.py \
 	i82c.py \
 	threads.c
