@@ -1,0 +1,13 @@
+git clone https://gitlab.com/gbenson/glibc.git
+git branch ff+1 infinity-first-flight+1
+git checkout ff+1
+
+"i686" and "x86_64" notes were built on blade.nx:
+  Red Hat Enterprise Linux Workstation release 6.6 (Santiago)
+  with CC="gcc -m32" for 32-bit.
+
+"ppc64" notes were built on ibm-power7r2-02-be01.lab.eng.brq.redhat.com:
+  Fedora release 23 (Twenty Three)
+
+"s390x" notes were built on devel4.s390.bos.redhat.com,
+  which isn't working right now to write down what it is.
