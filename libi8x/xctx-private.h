@@ -55,6 +55,9 @@ struct i8x_xctx
 
   /* Byte order of the current frame.  */
   i8x_byte_order_e byte_order;
+
+  /* Bytecode counter.  Only updated by the debug interpreter.  */
+  int bytecode_count;
 };
 
 #endif /* _XCTX_PRIVATE_H_ */

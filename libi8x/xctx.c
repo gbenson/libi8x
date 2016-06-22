@@ -41,6 +41,16 @@ i8x_xctx_init (struct i8x_xctx *xctx, size_t nslots)
 }
 
 static void
+i8x_xctx_unlink (struct i8x_object *ob)
+{
+  struct i8x_xctx *xctx = (struct i8x_xctx *) ob;
+
+  if (xctx->bytecode_count)
+    dbg (i8x_xctx_get_ctx (xctx), "%d bytecodes executed\n",
+	 xctx->bytecode_count);
+}
+
+static void
 i8x_xctx_free (struct i8x_object *ob)
 {
   struct i8x_xctx *xctx = (struct i8x_xctx *) ob;
@@ -53,7 +63,7 @@ const struct i8x_object_ops i8x_xctx_ops =
   {
     "xctx",			/* Object name.  */
     sizeof (struct i8x_xctx),	/* Object size.  */
-    NULL,			/* Unlink function.  */
+    i8x_xctx_unlink,		/* Unlink function.  */
     i8x_xctx_free,		/* Free function.  */
   };
 

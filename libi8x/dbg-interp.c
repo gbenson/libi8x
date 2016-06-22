@@ -51,6 +51,8 @@ i8x_xctx_trace (struct i8x_xctx *xctx,  struct i8x_funcref *ref,
 {
   struct i8x_ctx *ctx = i8x_xctx_get_ctx (xctx);
 
+  xctx->bytecode_count++;
+
   if (i8x_ctx_get_log_priority (ctx) < LOG_TRACE)
     return;
 
