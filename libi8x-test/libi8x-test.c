@@ -24,6 +24,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <syslog.h>
 #include <libi8x-test.h>
 
 void
@@ -103,6 +104,8 @@ i8x_execution_test_main (void)
       err = i8x_ctx_new (is_debug == 1 ? I8X_DBG_MEM : 0, NULL, &ctx);
       CHECK_CALL (NULL, err);
 
+      i8x_ctx_set_log_priority (ctx, LOG_NOTICE);
+
       err = i8x_xctx_new (ctx, stack_size, &xctx);
       CHECK_CALL (ctx, err);
       i8x_xctx_set_use_debug_interpreter (xctx, is_debug);
@@ -137,7 +140,7 @@ i8x_validation_test_main (void)
   CHECK (i8x_validation_test != NULL);
 
   /* Run with the debug allocator.  */
-  err = i8x_ctx_new (I8X_DBG_MEM, NULL, &ctx);
+  err = i8x_ctx_new (I8X_DBG_MEM | LOG_NOTICE, NULL, &ctx);
   CHECK_CALL (NULL, err);
 
   i8x_validation_test (ctx);
