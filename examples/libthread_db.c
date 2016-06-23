@@ -84,6 +84,8 @@ struct td_thragent
   struct i8x_funcref *thr_iter;
   struct i8x_funcref *thr_get_lwpid;
   struct i8x_funcref *thr_get_state;
+  struct i8x_funcref *thr_tlsbase;
+  struct i8x_funcref *thr_tls_get_addr;
 
   /* Callback for td_ta_thr_iter.  */
   struct i8x_funcref *thr_iter_cb;
@@ -760,6 +762,8 @@ td_ta_init_libi8x (td_thragent_t *ta)
   GET_FUNCREF (thr_iter,	"Fi(po)oi",	"i");
   GET_FUNCREF (thr_get_lwpid,	"p",		"ii");
   GET_FUNCREF (thr_get_state,	"p",		"ii");
+  GET_FUNCREF (thr_tlsbase,	"pi",		"ip");
+  GET_FUNCREF (thr_tls_get_addr,"ppi",		"ip");
 
 #undef GET_FUNCREF
 
@@ -767,7 +771,9 @@ td_ta_init_libi8x (td_thragent_t *ta)
   if (!i8x_funcref_is_resolved (ta->map_lwp2thr)
       && !i8x_funcref_is_resolved (ta->thr_iter)
       && !(i8x_funcref_is_resolved (ta->thr_get_lwpid)
-	   && i8x_funcref_is_resolved (ta->thr_get_state)))
+	   && i8x_funcref_is_resolved (ta->thr_get_state))
+      && !i8x_funcref_is_resolved (ta->thr_tlsbase)
+      && !i8x_funcref_is_resolved (ta->thr_tls_get_addr))
     return TD_VERSION;
 
   /* Register the callback wrapper for td_ta_thr_iter.  */
@@ -809,6 +815,8 @@ td_ta_delete (td_thragent_t *ta)
   i8x_funcref_unref (ta->thr_iter);
   i8x_funcref_unref (ta->thr_get_lwpid);
   i8x_funcref_unref (ta->thr_get_state);
+  i8x_funcref_unref (ta->thr_tlsbase);
+  i8x_funcref_unref (ta->thr_tls_get_addr);
 
   i8x_funcref_unref (ta->thr_iter_cb);
 
@@ -954,6 +962,61 @@ td_thr_get_info (const td_thrhandle_t *th, td_thrinfo_t *infop)
   GET_FIELD (thr_get_state, ti_state, i);
 
 #undef GET_FIELD
+
+  return TD_OK;
+}
+
+/* Get address of the given module's TLS storage area for the given
+   thread.  */
+
+td_err_e
+td_thr_tlsbase (const td_thrhandle_t *th, unsigned long int modid,
+		psaddr_t *base)
+{
+  td_thragent_t *ta = th->th_ta_p;
+
+  union i8x_value args[2], rets[2];
+  i8x_err_e err;
+
+  args[0].p = th->th_unique;
+  args[1].u = modid;
+
+  err = i8x_xctx_call (ta->xctx, ta->thr_tlsbase, ta->inf, args, rets);
+  if (err != I8X_OK)
+    return td_err_from_i8x_err (err);
+
+  if (rets[1].i != TD_OK)
+    return rets[1].i;
+
+  *base = rets[0].p;
+
+  return TD_OK;
+}
+
+/* Get address of thread local variable.  */
+
+extern td_err_e
+td_thr_tls_get_addr (const td_thrhandle_t *th, psaddr_t map_address,
+		     size_t offset, psaddr_t *address)
+{
+  td_thragent_t *ta = th->th_ta_p;
+
+  union i8x_value args[3], rets[2];
+  i8x_err_e err;
+
+  args[0].p = th->th_unique;
+  args[1].p = map_address;
+  args[2].u = offset;
+
+  err = i8x_xctx_call (ta->xctx, ta->thr_tls_get_addr, ta->inf, args,
+		       rets);
+  if (err != I8X_OK)
+    return td_err_from_i8x_err (err);
+
+  if (rets[1].i != TD_OK)
+    return rets[1].i;
+
+  *address = rets[0].p;
 
   return TD_OK;
 }
