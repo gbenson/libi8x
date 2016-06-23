@@ -202,6 +202,9 @@ td_err_from_i8x_err (i8x_err_e err)
     case I8X_ENOMEM:
       return TD_MALLOC;
 
+    case I8X_UNRESOLVED_FUNC:
+      return TD_NOCAPAB;
+
     default:
       return TD_ERR;
     }
@@ -876,9 +879,6 @@ td_ta_thr_iter (const td_thragent_t *ta, td_thr_iter_f *callback,
     return TD_NOCAPAB;
 
   /* We have something glibc's libpthread::thr_iter can handle.  */
-  if (ta->thr_iter == NULL || !i8x_funcref_is_resolved (ta->thr_iter))
-    return TD_NOCAPAB;
-
   union i8x_value args[3], rets[1];
   i8x_err_e err;
 

@@ -395,7 +395,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 
   SETUP_BYTECODE_UNCHECKED (ref);
   if (__i8x_unlikely (code == NULL))
-    return i8x_invalid_argument (i8x_xctx_get_ctx (xctx));
+    return i8x_unresolved_func (i8x_xctx_get_ctx (xctx));
 
   /* Pull the stack pointers into local variables.  */
   union i8x_value *vsp = xctx->vsp;
