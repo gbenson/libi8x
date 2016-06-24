@@ -25,9 +25,14 @@
 #include <unistd.h>
 #include <pthread.h>
 
+static __thread int tlsvar = 23;
+
 void *
 thread_routine (void *arg)
 {
+  tlsvar -= 2;
+  tlsvar *= 2;
+
   printf ("I am PID %d, press Return and I'll exit.\n", getpid ());
   getchar ();
 
