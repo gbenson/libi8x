@@ -221,15 +221,12 @@ i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
 
   do_test (ctx, xctx, inf, wordsize, false, bytes_reversed);
 
-  /* unsized deref int */
+  /* deref int */
   testnote_code[0] = DW_OP_GNU_wide_op;
   testnote_code[1] = I8_OP_deref_int - 0x100;
   testnote_code[2] = 0;
   *testnote_return = 'i';
 
-  do_test (ctx, xctx, inf, wordsize, false, bytes_reversed);
-
-  /* sized deref int */
   for (int size = 8; size <= wordsize; size <<= 1)
     {
       for (int is_signed = 0; is_signed <= 1; is_signed++)

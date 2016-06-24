@@ -649,10 +649,7 @@ i8x_code_rewrite_derefs (struct i8x_code *code)
 
 	case I8_OP_deref_int:
 	  size = op->arg1.i;
-
-	  if (size == 0)
-	    size = code->wordsize;
-	  else if (size < 0)
+	  if (size < 0)
 	    {
 	      size = -size;
 	      is_signed = true;

@@ -59,11 +59,16 @@ do_test (struct i8x_ctx *ctx, const char *filename)
 	}
     }
 
-  /* These two 32-bit notes contain 64-bit dereferences.  */
+  /* test_deref/0003-0001 and test_deref_offset_base/0001-0001
+     both contain "I8_OP_deref_int 0" which is no longer valid;
+     test_deref/0011-0001 and test_deref/0015-0001 contain
+     64-bit dereferences so the 32-bit versions are not valid.  */
   i8x_err_e expect_err
-    = (strstr (filename, "/i8c/0.0.3/32") != NULL
-       && (strstr (filename, "/test_deref/0011-0001") != NULL
-	   || strstr (filename, "/test_deref/0015-0001") != NULL)
+    = (strstr (filename, "/test_deref/test_deref/0003-0001") != NULL
+       || strstr (filename, "/test_deref_offset_base/0001-0001") != NULL
+       || (strstr (filename, "/i8c/0.0.3/32") != NULL
+	   && (strstr (filename, "/test_deref/0011-0001") != NULL
+	       || strstr (filename, "/test_deref/0015-0001") != NULL))
        ? I8X_NOTE_UNHANDLED : I8X_OK);
 
   struct i8x_func *func;
