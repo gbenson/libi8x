@@ -863,7 +863,12 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
   if (i8x_ctx_get_log_priority (ctx) < LOG_INFO)
     return;
 
-  info (ctx, "%s:\n", where);
+  char entry[32] = "";
+  if (code->entry_point != NULL)
+    snprintf (entry, sizeof (entry), " [entry " LHEX "]",
+	      ip_to_so (code, code->entry_point));
+  info (ctx, "%s%s:\n", where, entry);
+
   i8x_code_foreach_op (code, op)
     {
       char arg1[32] = "";  /* Operand 1.  */
