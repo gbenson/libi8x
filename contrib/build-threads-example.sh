@@ -31,12 +31,6 @@ fi
 BUILD="$1"
 cd `dirname $0`
 
-# Rebuild libpthread.a to avoid static linking problems
-# https://sourceware.org/bugzilla/show_bug.cgi?id=5784
-[ -f libpthread.a ] && rm -f libpthread.a
-gcc -r -nostdlib -o libpthread.o -Wl,--whole-archive $BUILD/nptl/libpthread.a
-ar rcs libpthread.a libpthread.o
-
 # The below is copied almost verbatim from
 # https://sourceware.org/glibc/wiki/Testing/Builds
 
@@ -104,7 +98,7 @@ $PROG_NAME_STATIC $CRT1 $CRTI $CRTBEGIN_STATIC \
 -L$GCCINSTALL/../../.. \
 -Map $MAP_STATIC \
 $PROG_OBJ \
-libpthread.a \
+${BUILD}/nptl/libpthread.a \
 --start-group -lgcc -lgcc_eh $BUILD/libc.a --end-group \
 $CRTEND $CRTN
 
