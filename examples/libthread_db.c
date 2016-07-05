@@ -80,12 +80,12 @@ struct td_thragent
   struct i8x_xctx *xctx;
 
   /* References to functions we use.  */
-  struct i8x_funcref *map_lwp2thr;
-  struct i8x_funcref *thr_iter;
+  struct i8x_funcref *thr_from_lwpid;
+  struct i8x_funcref *thr_iterate;
   struct i8x_funcref *thr_get_lwpid;
   struct i8x_funcref *thr_get_state;
-  struct i8x_funcref *thr_tlsbase;
-  struct i8x_funcref *thr_tls_get_addr;
+  struct i8x_funcref *thr_get_tlsbase;
+  struct i8x_funcref *thr_get_tls_addr;
 
   /* Callback for td_ta_thr_iter.  */
   struct i8x_funcref *thr_iter_cb;
@@ -125,7 +125,7 @@ td_ta_selftest_cb (const td_thrhandle_t *th, void *arg)
 
   args[0].i = lwpid;
   err = i8x_xctx_call (th->th_ta_p->xctx,
-		       th->th_ta_p->map_lwp2thr,
+		       th->th_ta_p->thr_from_lwpid,
 		       th->th_ta_p->inf, args, rets);
 
   if (err != I8X_OK)
@@ -148,10 +148,9 @@ td_ta_selftest_cb (const td_thrhandle_t *th, void *arg)
   return -1;
 }
 
-/* Check that libpthread::thr_get_lwpid and libpthread::map_lwp2thr
-   are the inverse of each other for each thread.  This gives some
-   assurance that the platform-specific libpthread::__lookup_th_unique
-   is working.  */
+/* Check that thread::get_lwpid and thread::from_lwpid are the inverse
+   of each other for each thread.  This gives some assurance that the
+   platform-specific libpthread::__lookup_th_unique is working.  */
 
 static td_err_e
 td_ta_self_test (td_thragent_t *ta)
@@ -752,28 +751,28 @@ td_ta_init_libi8x (td_thragent_t *ta)
 #define GET_FUNCREF(name, args, rets)				    \
   do {								    \
     err = i8x_ctx_get_funcref (ta->ctx,				    \
-			       "libpthread", #name, args, rets,     \
-			       &ta->name);			    \
+			       "thread", #name, args, rets,	    \
+			       &ta->thr_ ## name);		    \
     if (err != I8X_OK)						    \
       return td_err_from_i8x_err (err);				    \
   } while (0)
 
-  GET_FUNCREF (map_lwp2thr,	"i",		"ip");
-  GET_FUNCREF (thr_iter,	"Fi(po)oi",	"i");
-  GET_FUNCREF (thr_get_lwpid,	"p",		"ii");
-  GET_FUNCREF (thr_get_state,	"p",		"ii");
-  GET_FUNCREF (thr_tlsbase,	"pi",		"ip");
-  GET_FUNCREF (thr_tls_get_addr,"ppi",		"ip");
+  GET_FUNCREF (from_lwpid,	"i",		"ip");
+  GET_FUNCREF (iterate,		"Fi(po)oi",	"i");
+  GET_FUNCREF (get_lwpid,	"p",		"ii");
+  GET_FUNCREF (get_state,	"p",		"ii");
+  GET_FUNCREF (get_tlsbase,	"pi",		"ip");
+  GET_FUNCREF (get_tls_addr,	"ppi",		"ip");
 
 #undef GET_FUNCREF
 
   /* Check we have at least one resolved function.  */
-  if (!i8x_funcref_is_resolved (ta->map_lwp2thr)
-      && !i8x_funcref_is_resolved (ta->thr_iter)
+  if (!i8x_funcref_is_resolved (ta->thr_from_lwpid)
+      && !i8x_funcref_is_resolved (ta->thr_iterate)
       && !(i8x_funcref_is_resolved (ta->thr_get_lwpid)
 	   && i8x_funcref_is_resolved (ta->thr_get_state))
-      && !i8x_funcref_is_resolved (ta->thr_tlsbase)
-      && !i8x_funcref_is_resolved (ta->thr_tls_get_addr))
+      && !i8x_funcref_is_resolved (ta->thr_get_tlsbase)
+      && !i8x_funcref_is_resolved (ta->thr_get_tls_addr))
     return TD_VERSION;
 
   /* Register the callback wrapper for td_ta_thr_iter.  */
@@ -811,12 +810,12 @@ td_ta_init_libi8x (td_thragent_t *ta)
 td_err_e
 td_ta_delete (td_thragent_t *ta)
 {
-  i8x_funcref_unref (ta->map_lwp2thr);
-  i8x_funcref_unref (ta->thr_iter);
+  i8x_funcref_unref (ta->thr_from_lwpid);
+  i8x_funcref_unref (ta->thr_iterate);
   i8x_funcref_unref (ta->thr_get_lwpid);
   i8x_funcref_unref (ta->thr_get_state);
-  i8x_funcref_unref (ta->thr_tlsbase);
-  i8x_funcref_unref (ta->thr_tls_get_addr);
+  i8x_funcref_unref (ta->thr_get_tlsbase);
+  i8x_funcref_unref (ta->thr_get_tls_addr);
 
   i8x_funcref_unref (ta->thr_iter_cb);
 
@@ -852,7 +851,8 @@ td_ta_map_lwp2thr (const td_thragent_t *ta, lwpid_t lwpid,
 
   args[0].i = lwpid;
 
-  err = i8x_xctx_call (ta->xctx, ta->map_lwp2thr, ta->inf, args, rets);
+  err = i8x_xctx_call (ta->xctx, ta->thr_from_lwpid, ta->inf,
+		       args, rets);
   if (err != I8X_OK)
     return td_err_from_i8x_err (err);
 
@@ -886,7 +886,7 @@ td_ta_thr_iter (const td_thragent_t *ta, td_thr_iter_f *callback,
   if (state != TD_THR_ANY_STATE)
     return TD_NOCAPAB;
 
-  /* We have something glibc's libpthread::thr_iter can handle.  */
+  /* We have something glibc's thread::iterate can handle.  */
   union i8x_value args[3], rets[1];
   i8x_err_e err;
 
@@ -896,7 +896,7 @@ td_ta_thr_iter (const td_thragent_t *ta, td_thr_iter_f *callback,
 
   ((td_thragent_t *) ta)->thr_iter_cb_impl = callback;
 
-  err = i8x_xctx_call (ta->xctx, ta->thr_iter, ta->inf, args, rets);
+  err = i8x_xctx_call (ta->xctx, ta->thr_iterate, ta->inf, args, rets);
   if (err != I8X_OK)
     return td_err_from_i8x_err (err);
 
@@ -981,7 +981,8 @@ td_thr_tlsbase (const td_thrhandle_t *th, unsigned long int modid,
   args[0].p = th->th_unique;
   args[1].u = modid;
 
-  err = i8x_xctx_call (ta->xctx, ta->thr_tlsbase, ta->inf, args, rets);
+  err = i8x_xctx_call (ta->xctx, ta->thr_get_tlsbase, ta->inf,
+		       args, rets);
   if (err != I8X_OK)
     return td_err_from_i8x_err (err);
 
@@ -1008,8 +1009,8 @@ td_thr_tls_get_addr (const td_thrhandle_t *th, psaddr_t map_address,
   args[1].p = map_address;
   args[2].u = offset;
 
-  err = i8x_xctx_call (ta->xctx, ta->thr_tls_get_addr, ta->inf, args,
-		       rets);
+  err = i8x_xctx_call (ta->xctx, ta->thr_get_tls_addr, ta->inf,
+		       args, rets);
   if (err != I8X_OK)
     return td_err_from_i8x_err (err);
 
