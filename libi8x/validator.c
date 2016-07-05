@@ -420,6 +420,9 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
 
 #undef case_I8_OP_cast
 
+	case I8_OP_warn:
+	  break;
+
 	case I8X_OP_const:
 	  ADJUST_STACK (1);
 	  STACK(0) = inttype;

@@ -186,6 +186,7 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
   const char *location = i8x_rb_get_ptr (rb);
   intptr_t signed_result;
   uintptr_t unsigned_result;
+  const char *string_result;
   union i8x_value result;
   bool is_signed;
   i8x_err_e err;
@@ -252,6 +253,10 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
       err = i8x_rb_read_uleb128 (rb, &unsigned_result);
       break;
 
+    case I8X_OPR_STRING:
+      err = i8x_rb_read_offset_string (rb, &string_result);
+      break;
+
     default:
       return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
     }
@@ -260,7 +265,11 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
     return err;
 
   /* Check for overflow.  */
-  if (is_signed)
+  if (type == I8X_OPR_STRING)
+    {
+      result.p = (void *) string_result;
+    }
+  else if (is_signed)
     {
       result.i = signed_result;
       if (result.i != signed_result)
@@ -901,6 +910,11 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
       if (op->ext1 != NULL)
 	{
 	  fname = i8x_funcref_get_fullname (op->ext1);
+	  strncpy (bnext, " / ", sizeof (bnext));
+	}
+      else if (op->code == I8_OP_warn)
+	{
+	  fname = (const char *) op->arg1.p;
 	  strncpy (bnext, " / ", sizeof (bnext));
 	}
       else

@@ -299,6 +299,7 @@ enum
     DTABLE_ADD (DW_OP_lit31);			\
     DTABLE_ADD (I8_OP_call);			\
     DTABLE_ADD (I8_OP_load_external);		\
+    DTABLE_ADD (I8_OP_warn);			\
     DTABLE_ADD (I8X_OP_return);			\
     DTABLE_ADD (I8X_OP_const);			\
     DTABLE_ADD (I8X_OP_deref_u8);		\
@@ -662,6 +663,11 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   OPERATION (I8_OP_load_external):
     ADJUST_STACK (1);
     STACK(0).f = op->ext1;
+    CONTINUE;
+
+  OPERATION (I8_OP_warn):
+    warn (i8x_xctx_get_ctx (xctx), "%s: %s\n",
+	  i8x_funcref_get_fullname (ref), (const char *) op->arg1.p);
     CONTINUE;
 
   OPERATION (I8X_OP_return):

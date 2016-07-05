@@ -43,6 +43,7 @@ typedef enum
   I8X_OPR_UINT64,
   I8X_OPR_SLEB128,
   I8X_OPR_ULEB128,
+  I8X_OPR_STRING,
 }
 i8x_operand_type_e;
 

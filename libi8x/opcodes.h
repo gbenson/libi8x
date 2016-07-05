@@ -185,6 +185,7 @@
 #define I8_OP_deref_int			0x102
 #define I8_OP_cast_int2ptr		0x103
 #define I8_OP_cast_ptr2int		0x104
+#define I8_OP_warn			0x105
 
 /* libi8x internal operations.  */
 #define I8X_OP_return			0x140
