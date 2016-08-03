@@ -124,6 +124,7 @@ void i8x_ctx_log (struct i8x_ctx *ctx,
   __attribute__ ((format (printf, 6, 7)));
 
 /* Formatting.  */
+
 #ifdef __LP64__
 # define LONG_FMT "l"
 #else
