@@ -384,8 +384,10 @@ td_ptr_at (td_thragent_t *ta, const char *buf, size_t word)
 /* Read a NUL-terminated string from the inferior.  */
 
 static ps_err_e
-td_pdreadstr (td_thragent_t *ta, psaddr_t src, char *dst, size_t len)
+td_pdreadstr (td_thragent_t *ta, psaddr_t srcp, char *dst, size_t len)
 {
+  char *src = srcp;
+
   for (char *limit = dst + len; dst < limit; dst++, src++)
     {
       ps_err_e err = ps_pdread (ta->ph, src, dst, sizeof (char));
@@ -663,9 +665,9 @@ td_ta_init (td_thragent_t *ta)
   ta->pid = ps_getpid (ta->ph);
 
   /* Build the main executable filename.  */
-  int len = snprintf (ta->exec_filename,
-		      sizeof (ta->exec_filename),
-		      "/proc/%d/exe", ta->pid);
+  size_t len = snprintf (ta->exec_filename,
+			 sizeof (ta->exec_filename),
+			 "/proc/%d/exe", ta->pid);
   if (len > sizeof (ta->exec_filename))
     return TD_DBERR;  /* Should be enough for longest PID.  */
 
