@@ -34,17 +34,19 @@ def main():
         print("usage: dump-notes ELF... OUTDIR", file=sys.stderr)
         sys.exit(1)
     outdir = sys.argv[-1]
-    index = 0
+    index_s = 0
     for srcfile in sys.argv[1:-1]:
+        index_s += 1
         with open(srcfile, "rb") as fp:
             elf = fp.read()
-    for note in elfhack.extract_notes(elf):
-        index += 1
-        dstfile = os.path.join(outdir, "0001-%04d" % index)
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
-        with open(dstfile, "wb") as fp:
-            fp.write(note)
+        index_n = 0
+        for note in elfhack.extract_notes(elf):
+            index_n += 1
+            dstfile = os.path.join(outdir, "%04d-%04d" % (index_s, index_n))
+            if not os.path.exists(outdir):
+                os.makedirs(outdir)
+            with open(dstfile, "wb") as fp:
+                fp.write(note)
 
 if __name__ == "__main__":
     main()
