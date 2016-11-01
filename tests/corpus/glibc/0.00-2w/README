@@ -7,5 +7,8 @@ python /path/to/libi8x/contrib/dump-notes.py \
   elf/ld.so \
   /path/to/libi8x/tests/corpus/glibc/0.00-2w/$(uname -m)
 
-"s390x" notes were built on devel4.s390.bos.redhat.com:
+"ppc64" notes built on ibm-p8-generic-02-fedora-be:
+  Fedora release 24 (Twenty Four)
+
+"s390x" notes built on devel4.s390.bos.redhat.com:
   Fedora release 24 (Twenty Four)
