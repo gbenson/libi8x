@@ -1,0 +1,11 @@
+git clone https://gitlab.com/gbenson/glibc.git
+git branch second-wind infinity-second-wind
+git checkout second-wind
+ ... build it
+python /path/to/libi8x/contrib/dump-notes.py \
+  nptl/libpthread.so \
+  elf/ld.so \
+  /path/to/libi8x/tests/corpus/glibc/0.00-2w/$(uname -m)
+
+"s390x" notes were built on devel4.s390.bos.redhat.com:
+  Fedora release 24 (Twenty Four)
