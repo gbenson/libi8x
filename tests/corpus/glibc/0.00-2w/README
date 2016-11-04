@@ -7,6 +7,9 @@ python /path/to/libi8x/contrib/dump-notes.py \
   elf/ld.so \
   /path/to/libi8x/tests/corpus/glibc/0.00-2w/$(uname -m)
 
+"aarch64" notes built on apm-mustang-ev3-05.lab.eng.brq.redhat.com:
+  Fedora release 24 (Twenty Four)
+
 "ppc64" notes built on ibm-p8-generic-02-fedora-be:
   Fedora release 24 (Twenty Four)
 
