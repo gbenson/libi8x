@@ -12,3 +12,6 @@ python /path/to/libi8x/contrib/dump-notes.py \
 
 "s390x" notes built on devel4.s390.bos.redhat.com:
   Fedora release 24 (Twenty Four)
+
+"x86_64" notes built on blade.nx:
+  Red Hat Enterprise Linux Server release 7.3 Beta (Maipo)
