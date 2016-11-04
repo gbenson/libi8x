@@ -10,6 +10,9 @@ python /path/to/libi8x/contrib/dump-notes.py \
 "aarch64" notes built on apm-mustang-ev3-05.lab.eng.brq.redhat.com:
   Fedora release 24 (Twenty Four)
 
+"i686" notes built on blade.nx:
+  Red Hat Enterprise Linux Server release 7.3 Beta (Maipo)
+
 "ppc64" notes built on ibm-p8-generic-02-fedora-be:
   Fedora release 24 (Twenty Four)
 
