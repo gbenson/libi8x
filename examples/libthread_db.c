@@ -1023,3 +1023,10 @@ td_thr_tls_get_addr (const td_thrhandle_t *th, psaddr_t map_address,
 
   return TD_OK;
 }
+
+/* Enable reporting for EVENT for thread TH.  */
+extern td_err_e
+td_thr_event_enable (const td_thrhandle_t *th, int event)
+{
+  return TD_NOCAPAB;
+}
