@@ -550,6 +550,7 @@ td_decode_regnum (td_thragent_t *ta, int regnum,
 
 	  return 0;
 	}
+      break;
     }
 
   fprintf (stderr,
@@ -560,15 +561,31 @@ td_decode_regnum (td_thragent_t *ta, int regnum,
 
 /* Infinity native function wrapper for ps_get_register.  */
 
+#pragma weak ps_get_thread_area
+
 static i8x_err_e
 td_ps_get_register (struct i8x_xctx *xctx, struct i8x_inf *inf,
 		    struct i8x_func *func, union i8x_value *args,
 		    union i8x_value *rets)
 {
   td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
+  lwpid_t lwpid = args[0].i;
+  int regnum = args[1].i;
+
+  /* GDB currently does not fill in fs_base or gs_base on x86_64,
+     though it might in future and other clients might right now.
+     If possible We'll use ps_get_thread_area to access these.  */
+  if (ta->exec_ehdr->e_machine == EM_X86_64
+      && (regnum == 58 || regnum == 59)
+      && &ps_get_thread_area != NULL)
+    {
+      rets[1].i = ps_get_thread_area (ta->ph, lwpid, regnum - 33,
+				      &rets[0].p);
+      return I8X_OK;
+    }
 
   size_t offset, size;
-  if (td_decode_regnum (ta, args[1].i, &offset, &size) != 0)
+  if (td_decode_regnum (ta, regnum, &offset, &size) != 0)
     return I8X_NOTE_UNHANDLED;
 
   /* We cannot use prgregset_t here because we may be accessing a
@@ -576,7 +593,7 @@ td_ps_get_register (struct i8x_xctx *xctx, struct i8x_inf *inf,
      own.  I will probably eat my words later, but here goes: 1024
      registers should be suitably vast.  */
   elf_greg_t regs[1024];
-  rets[1].i = ps_lgetregs (ta->ph, args[0].i, regs);
+  rets[1].i = ps_lgetregs (ta->ph, lwpid, regs);
   if (rets[1].i != PS_OK)
     return I8X_OK;
 
@@ -604,8 +621,6 @@ td_ps_get_register (struct i8x_xctx *xctx, struct i8x_inf *inf,
 }
 
 /* Infinity native function wrapper for ps_get_thread_area.  */
-
-#pragma weak ps_get_thread_area
 
 static i8x_err_e
 td_ps_get_thread_area (struct i8x_xctx *xctx, struct i8x_inf *inf,
