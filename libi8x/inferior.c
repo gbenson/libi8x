@@ -34,7 +34,7 @@ no_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
 
 static i8x_err_e
 no_relocate_fn (struct i8x_inf *inf, struct i8x_note *note,
-		uintptr_t unresolved, uintptr_t *result)
+		uintptr_t unrelocated, uintptr_t *result)
 {
   error (i8x_inf_get_ctx (inf),
 	 "inferior %p has no relocate function\n", inf);
