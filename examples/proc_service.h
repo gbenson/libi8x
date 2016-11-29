@@ -89,3 +89,36 @@ extern ps_err_e ps_pcontinue (const struct ps_prochandle *);
 /* Stop or continue the given LWP alone.  */
 extern ps_err_e ps_lstop (const struct ps_prochandle *, lwpid_t);
 extern ps_err_e ps_lcontinue (const struct ps_prochandle *, lwpid_t);
+
+/* Callback to relocate addresses in Infinity notes.  */
+typedef ps_err_e ps_infinity_reloc_f (void *rf_arg,
+				      psaddr_t unrelocated,
+				      psaddr_t *result);
+
+/* Callback for iteration over Infinity notes.  Should return PS_OK to
+   indicate success, or any other value to indicate failure.  CB_ARG
+   is whatever was passed as CB_ARG to ps_foreach_infinity_note.  BUF
+   is is a pointer to a buffer of BUFSIZ bytes containing the encoded
+   note.  SRCNAME is an identifier used to construct error messages,
+   typically a filename, and may be NULL if unset.  SRCOFFSET is the
+   offset into SRCNAME of the start of BUF, and may be -1 if unset.
+   RF is a function that should be used to relocate addresses in this
+   notes, and RF_ARG is an argument that should be passed as to RF.  */
+typedef ps_err_e ps_visit_infinity_note_f (void *cb_arg,
+					   const char *buf,
+					   size_t bufsiz,
+					   const char *srcname,
+					   ssize_t srcoffset,
+					   ps_infinity_reloc_f *rf,
+					   void *rf_arg);
+
+/* Call the callback CB for each Infinity note in the process.  The
+   callback should return PS_OK to indicate that iteration should
+   continue, or any other value to indicate that iteration should stop
+   and that ps_foreach_infinity_note should return the non-PS_OK value
+   that the callback returned.  Return PS_OK if the callback returned
+   PS_OK for all Infinity notes, or if there are no Infinity notes in
+   the process.  */
+extern ps_err_e ps_foreach_infinity_note (struct ps_prochandle *ph,
+					  ps_visit_infinity_note_f *cb,
+					  void *cb_arg);
