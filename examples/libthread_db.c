@@ -205,6 +205,28 @@ td_err_from_i8x_err (i8x_err_e err)
     }
 }
 
+/* Relocation information for a note.  */
+
+struct td_relocinfo
+{
+  ps_infinity_reloc_f *reloc_func;
+  void *reloc_func_arg;
+};
+
+/* Basic relocation function that adds a base address.  */
+
+static ps_err_e
+td_basic_relocate (void *base_addr_p, psaddr_t unrelocated_p,
+		   psaddr_t *result)
+{
+  uintptr_t base_addr = (uintptr_t) (psaddr_t) base_addr_p;
+  uintptr_t unrelocated = (uintptr_t) (psaddr_t) unrelocated_p;
+
+  *result = (psaddr_t) (base_addr + unrelocated);
+
+  return PS_OK;
+}
+
 /* Load and register Infinity notes from an ELF.  */
 
 static td_err_e
@@ -255,6 +277,10 @@ td_import_notes_from_elf (td_thragent_t *ta, const char *filename,
 		return td_err_from_i8x_err (err);
 	    }
 
+	  struct td_relocinfo *ri = calloc (1, sizeof (struct td_relocinfo));
+	  if (ri == NULL)
+	    return TD_MALLOC;
+
 	  struct i8x_func *func;
 	  err = i8x_ctx_import_bytecode (ta->ctx,
 					 desc, nhdr.n_descsz,
@@ -263,6 +289,8 @@ td_import_notes_from_elf (td_thragent_t *ta, const char *filename,
 					 &func);
 	  if (err != I8X_OK)
 	    {
+	      free (ri);
+
 	      if (err == I8X_NOTE_CORRUPT
 		  || err == I8X_NOTE_UNHANDLED
 		  || err == I8X_NOTE_INVALID)
@@ -271,8 +299,9 @@ td_import_notes_from_elf (td_thragent_t *ta, const char *filename,
 	      return td_err_from_i8x_err (err);
 	    }
 
-	  i8x_note_set_userdata (i8x_func_get_note (func),
-				 base_address, NULL);
+	  ri->reloc_func = td_basic_relocate;
+	  ri->reloc_func_arg = base_address;
+	  i8x_note_set_userdata (i8x_func_get_note (func), ri, free);
 
 	  func = i8x_func_unref (func);
 	}
@@ -505,7 +534,13 @@ static i8x_err_e
 td_relocate_address (struct i8x_inf *inf, struct i8x_note *note,
 		     uintptr_t unrelocated, uintptr_t *result)
 {
-  *result = (uintptr_t) i8x_note_get_userdata (note) + unrelocated;
+  struct td_relocinfo *ri
+    = (struct td_relocinfo *) i8x_note_get_userdata (note);
+
+  if (ri->reloc_func (ri->reloc_func_arg,
+		      (psaddr_t) unrelocated,
+		      (psaddr_t *) result) != PS_OK)
+    return I8X_RELOC_FAILED;
 
   return I8X_OK;
 }
