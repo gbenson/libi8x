@@ -57,11 +57,10 @@ struct td_thragent
      callbacks defined in proc_service.h.  */
   struct ps_prochandle *ph;
 
-  /* Main executable ELF header.  */
+  /* Main executable ELF header and wordsize.
+     Only filled in if we initialized via r_debug.  */
   GElf_Ehdr exec_ehdr_mem;
   GElf_Ehdr *exec_ehdr;
-
-  /* Main executable wordsize.  */
   size_t ptrbytes;
 
   /* libi8x context.  */
@@ -662,6 +661,16 @@ td_ps_get_register (struct i8x_xctx *xctx, struct i8x_inf *inf,
       return I8X_OK;
     }
 
+  /* The remainder of this function is a semi-hacky fallback case for
+     clients without ps_get_register.  We can only use it if we know
+     what hardware the target process is running on.  */
+  if (ta->exec_ehdr == NULL)
+    {
+      rets[1].i = PS_ERR;
+
+      return I8X_OK;
+    }
+
   /* GDB currently does not fill in fs_base or gs_base on x86_64,
      though it might in future and other clients might right now.
      If possible We'll use ps_get_thread_area to access these.  */
@@ -761,6 +770,8 @@ td_ta_new (struct ps_prochandle *ps, td_thragent_t **__ta)
 
 /* Helper for td_ta_new.  */
 
+#pragma weak ps_foreach_infinity_note
+
 static td_err_e
 td_ta_init (td_thragent_t *ta)
 {
@@ -768,9 +779,17 @@ td_ta_init (td_thragent_t *ta)
 
   /* Load and register any Infinity notes from the process we've been
      created on.  This will initialize ta->ctx if notes are found.  */
-  err = td_import_notes_from_r_debug (ta);
-  if (err != TD_OK)
-    return err;
+  if (&ps_foreach_infinity_note != NULL)
+    {
+      if (ps_foreach_infinity_note (ta->ph, td_import_note, ta) != PS_OK)
+	return TD_ERR;
+    }
+  else
+    {
+      err = td_import_notes_from_r_debug (ta);
+      if (err != TD_OK)
+	return err;
+    }
 
   if (ta->ctx == NULL)
     return TD_VERSION;  /* The process contained no notes.  */
