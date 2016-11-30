@@ -666,13 +666,11 @@ td_ta_new (struct ps_prochandle *ps, td_thragent_t **__ta)
   return err;
 }
 
-/* Helper for td_ta_new.  */
+/* Helper for td_ta_init.  */
 
 static td_err_e
-td_ta_init (td_thragent_t *ta)
+td_import_notes_from_r_debug (td_thragent_t *ta)
 {
-  td_err_e err;
-
   /* Build the main executable filename.  */
   size_t len = snprintf (ta->exec_filename,
 			 sizeof (ta->exec_filename),
@@ -711,11 +709,22 @@ td_ta_init (td_thragent_t *ta)
       return TD_VERSION;
     }
 
+  return td_import_notes_from_process (ta);
+}
+
+/* Helper for td_ta_new.  */
+
+static td_err_e
+td_ta_init (td_thragent_t *ta)
+{
+  td_err_e err;
+
   /* Load and register any Infinity notes from the process we've been
      created on.  This will initialize ta->ctx if notes are found.  */
-  err = td_import_notes_from_process (ta);
+  err = td_import_notes_from_r_debug (ta);
   if (err != TD_OK)
     return err;
+
   if (ta->ctx == NULL)
     return TD_VERSION;  /* The process contained no notes.  */
 
