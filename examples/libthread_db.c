@@ -470,9 +470,9 @@ td_import_notes_from_process (td_thragent_t *ta)
 
 static i8x_err_e
 td_relocate_address (struct i8x_inf *inf, struct i8x_note *note,
-		     uintptr_t unresolved, uintptr_t *result)
+		     uintptr_t unrelocated, uintptr_t *result)
 {
-  *result = (uintptr_t) i8x_note_get_userdata (note) + unresolved;
+  *result = (uintptr_t) i8x_note_get_userdata (note) + unrelocated;
 
   return I8X_OK;
 }
