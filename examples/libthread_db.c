@@ -57,9 +57,6 @@ struct td_thragent
      callbacks defined in proc_service.h.  */
   struct ps_prochandle *ph;
 
-  /* Process ID of the process we're accessing.  */
-  pid_t pid;
-
   /* Main executable filename.  */
   char exec_filename[32];
 
@@ -500,7 +497,7 @@ td_ps_getpid (struct i8x_xctx *xctx, struct i8x_inf *inf,
 {
   td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
 
-  rets[0].i = ta->pid;
+  rets[0].i = ps_getpid (ta->ph);
 
   return I8X_OK;
 }
@@ -676,13 +673,10 @@ td_ta_init (td_thragent_t *ta)
 {
   td_err_e err;
 
-  /* Store the main process PID.  */
-  ta->pid = ps_getpid (ta->ph);
-
   /* Build the main executable filename.  */
   size_t len = snprintf (ta->exec_filename,
 			 sizeof (ta->exec_filename),
-			 "/proc/%d/exe", ta->pid);
+			 "/proc/%d/exe", ps_getpid (ta->ph));
   if (len > sizeof (ta->exec_filename))
     return TD_DBERR;  /* Should be enough for longest PID.  */
 
