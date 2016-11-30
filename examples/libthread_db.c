@@ -399,12 +399,50 @@ td_pdreadstr (td_thragent_t *ta, psaddr_t srcp, char *dst, size_t len)
 /* Load and register Infinity notes from a local process.  */
 
 static td_err_e
-td_import_notes_from_process (td_thragent_t *ta)
+td_import_notes_from_r_debug (td_thragent_t *ta)
 {
   char r_debug[R_DEBUG_WORDS * sizeof(void *)];
   char lm[LINK_MAP_WORDS * sizeof(void *)];
   psaddr_t addr;
   td_err_e err;
+
+  /* Build the main executable filename.  */
+  size_t len = snprintf (ta->exec_filename,
+			 sizeof (ta->exec_filename),
+			 "/proc/%d/exe", ps_getpid (ta->ph));
+  if (len > sizeof (ta->exec_filename))
+    return TD_DBERR;  /* Should be enough for longest PID.  */
+
+  /* Read the main executable's ELF header.  */
+  int fd = open (ta->exec_filename, O_RDONLY);
+  if (fd != -1)
+    {
+      Elf *elf = elf_begin (fd, ELF_C_READ_MMAP, NULL);
+      if (elf_kind (elf) == ELF_K_ELF)
+	ta->exec_ehdr = gelf_getehdr (elf, &ta->exec_ehdr_mem);
+
+      elf_end (elf);
+      close (fd);
+    }
+  if (ta->exec_ehdr == NULL)
+    return TD_VERSION;
+
+  /* Set the wordsize we'll use.  */
+  switch (ta->exec_ehdr->e_ident[EI_CLASS])
+    {
+    case ELFCLASS32:
+      ta->ptrbytes = 4;
+      break;
+
+#if __WORDSIZE >= 64
+    case ELFCLASS64:
+      ta->ptrbytes = 8;
+      break;
+#endif /* __WORDSIZE >= 64 */
+
+    default:
+      return TD_VERSION;
+    }
 
   /* GDB tries to load libthread_db every time a new object file is
      added to the inferior until td_ta_new completes successfully.
@@ -664,52 +702,6 @@ td_ta_new (struct ps_prochandle *ps, td_thragent_t **__ta)
     td_ta_delete (ta);
 
   return err;
-}
-
-/* Helper for td_ta_init.  */
-
-static td_err_e
-td_import_notes_from_r_debug (td_thragent_t *ta)
-{
-  /* Build the main executable filename.  */
-  size_t len = snprintf (ta->exec_filename,
-			 sizeof (ta->exec_filename),
-			 "/proc/%d/exe", ps_getpid (ta->ph));
-  if (len > sizeof (ta->exec_filename))
-    return TD_DBERR;  /* Should be enough for longest PID.  */
-
-  /* Read the main executable's ELF header.  */
-  int fd = open (ta->exec_filename, O_RDONLY);
-  if (fd != -1)
-    {
-      Elf *elf = elf_begin (fd, ELF_C_READ_MMAP, NULL);
-      if (elf_kind (elf) == ELF_K_ELF)
-	ta->exec_ehdr = gelf_getehdr (elf, &ta->exec_ehdr_mem);
-
-      elf_end (elf);
-      close (fd);
-    }
-  if (ta->exec_ehdr == NULL)
-    return TD_VERSION;
-
-  /* Set the wordsize we'll use.  */
-  switch (ta->exec_ehdr->e_ident[EI_CLASS])
-    {
-    case ELFCLASS32:
-      ta->ptrbytes = 4;
-      break;
-
-#if __WORDSIZE >= 64
-    case ELFCLASS64:
-      ta->ptrbytes = 8;
-      break;
-#endif /* __WORDSIZE >= 64 */
-
-    default:
-      return TD_VERSION;
-    }
-
-  return td_import_notes_from_process (ta);
 }
 
 /* Helper for td_ta_new.  */
