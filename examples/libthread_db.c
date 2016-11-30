@@ -227,6 +227,52 @@ td_basic_relocate (void *base_addr_p, psaddr_t unrelocated_p,
   return PS_OK;
 }
 
+/* Import a single note, creating the context if necessary.  */
+
+static ps_err_e
+td_import_note (void *ta_p, const char *buf, size_t bufsiz,
+		const char *srcname, ssize_t srcoffset,
+		ps_infinity_reloc_f *rf, void *rf_arg)
+{
+  td_thragent_t *ta = (td_thragent_t *) ta_p;
+  i8x_err_e err;
+
+  if (ta->ctx == NULL)
+    {
+      err = i8x_ctx_new (0, NULL, &ta->ctx);
+
+      if (err != I8X_OK)
+	return PS_ERR;
+    }
+
+  struct td_relocinfo *ri = calloc (1, sizeof (struct td_relocinfo));
+  if (ri == NULL)
+    return PS_ERR;
+
+  struct i8x_func *func;
+  err = i8x_ctx_import_bytecode (ta->ctx, buf, bufsiz, srcname,
+				 srcoffset, &func);
+  if (err != I8X_OK)
+    {
+      free (ri);
+
+      if (err == I8X_NOTE_CORRUPT
+	  || err == I8X_NOTE_UNHANDLED
+	  || err == I8X_NOTE_INVALID)
+	return PS_OK;
+
+      return PS_ERR;
+    }
+
+  ri->reloc_func = rf;
+  ri->reloc_func_arg = rf_arg;
+  i8x_note_set_userdata (i8x_func_get_note (func), ri, free);
+
+  func = i8x_func_unref (func);
+
+  return PS_OK;
+}
+
 /* Load and register Infinity notes from an ELF.  */
 
 static td_err_e
@@ -266,44 +312,12 @@ td_import_notes_from_elf (td_thragent_t *ta, const char *filename,
 
 	  /* We have an Infinity note!  */
 
-	  const char *desc = (const char *) data->d_buf + desc_offset;
-
-	  i8x_err_e err;
-	  if (ta->ctx == NULL)
-	    {
-	      err = i8x_ctx_new (0, NULL, &ta->ctx);
-
-	      if (err != I8X_OK)
-		return td_err_from_i8x_err (err);
-	    }
-
-	  struct td_relocinfo *ri = calloc (1, sizeof (struct td_relocinfo));
-	  if (ri == NULL)
-	    return TD_MALLOC;
-
-	  struct i8x_func *func;
-	  err = i8x_ctx_import_bytecode (ta->ctx,
-					 desc, nhdr.n_descsz,
-					 filename,
-					 shdr->sh_offset + desc_offset,
-					 &func);
-	  if (err != I8X_OK)
-	    {
-	      free (ri);
-
-	      if (err == I8X_NOTE_CORRUPT
-		  || err == I8X_NOTE_UNHANDLED
-		  || err == I8X_NOTE_INVALID)
-		continue;
-
-	      return td_err_from_i8x_err (err);
-	    }
-
-	  ri->reloc_func = td_basic_relocate;
-	  ri->reloc_func_arg = base_address;
-	  i8x_note_set_userdata (i8x_func_get_note (func), ri, free);
-
-	  func = i8x_func_unref (func);
+	  if (td_import_note (ta,
+			      (const char *) data->d_buf + desc_offset,
+			      nhdr.n_descsz, filename,
+			      shdr->sh_offset + desc_offset,
+			      td_basic_relocate, base_address) != PS_OK)
+	    return TD_ERR;
 	}
     }
 
