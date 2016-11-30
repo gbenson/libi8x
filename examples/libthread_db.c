@@ -594,6 +594,7 @@ td_decode_regnum (td_thragent_t *ta, int regnum,
 
 /* Infinity native function wrapper for ps_get_register.  */
 
+#pragma weak ps_get_register
 #pragma weak ps_get_thread_area
 
 static i8x_err_e
@@ -604,6 +605,13 @@ td_ps_get_register (struct i8x_xctx *xctx, struct i8x_inf *inf,
   td_thragent_t *ta = (td_thragent_t *) i8x_inf_get_userdata (inf);
   lwpid_t lwpid = args[0].i;
   int regnum = args[1].i;
+
+  if (&ps_get_register != NULL)
+    {
+      rets[1].i = ps_get_register (ta->ph, lwpid, regnum, &rets[0].p);
+
+      return I8X_OK;
+    }
 
   /* GDB currently does not fill in fs_base or gs_base on x86_64,
      though it might in future and other clients might right now.
@@ -750,6 +758,8 @@ td_ta_init_libi8x (td_thragent_t *ta)
   } while (0)
 
   REGISTER (getpid,       "",   "i",  td_ps_getpid);
+  /* XXX this should be "if (&ps_get_register != NULL)"
+     once the ELF and r_debug fallback code is removed. */
   REGISTER (get_register, "ii", "ii", td_ps_get_register);
 
   if (&ps_get_thread_area != NULL)
