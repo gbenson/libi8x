@@ -58,6 +58,11 @@ extern ps_err_e ps_lgetfpregs (struct ps_prochandle *,
 extern ps_err_e ps_lsetfpregs (struct ps_prochandle *,
 			       lwpid_t, const prfpregset_t *);
 
+/* Get the contents of a single register.  */
+extern ps_err_e ps_get_register (struct ps_prochandle *ph,
+				 lwpid_t lwpid, int dwarf_regnum,
+				 psaddr_t *result);
+
 /* Return the PID of the process.  */
 extern pid_t ps_getpid (struct ps_prochandle *);
 
