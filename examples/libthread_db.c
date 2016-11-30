@@ -57,9 +57,6 @@ struct td_thragent
      callbacks defined in proc_service.h.  */
   struct ps_prochandle *ph;
 
-  /* Main executable filename.  */
-  char exec_filename[32];
-
   /* Main executable ELF header.  */
   GElf_Ehdr exec_ehdr_mem;
   GElf_Ehdr *exec_ehdr;
@@ -401,20 +398,21 @@ td_pdreadstr (td_thragent_t *ta, psaddr_t srcp, char *dst, size_t len)
 static td_err_e
 td_import_notes_from_r_debug (td_thragent_t *ta)
 {
+  char exec_filename[32];
   char r_debug[R_DEBUG_WORDS * sizeof(void *)];
   char lm[LINK_MAP_WORDS * sizeof(void *)];
   psaddr_t addr;
   td_err_e err;
 
   /* Build the main executable filename.  */
-  size_t len = snprintf (ta->exec_filename,
-			 sizeof (ta->exec_filename),
+  size_t len = snprintf (exec_filename,
+			 sizeof (exec_filename),
 			 "/proc/%d/exe", ps_getpid (ta->ph));
-  if (len > sizeof (ta->exec_filename))
+  if (len > sizeof (exec_filename))
     return TD_DBERR;  /* Should be enough for longest PID.  */
 
   /* Read the main executable's ELF header.  */
-  int fd = open (ta->exec_filename, O_RDONLY);
+  int fd = open (exec_filename, O_RDONLY);
   if (fd != -1)
     {
       Elf *elf = elf_begin (fd, ELF_C_READ_MMAP, NULL);
@@ -491,7 +489,7 @@ td_import_notes_from_r_debug (td_thragent_t *ta)
      cover that case.  */
   if (ta->ctx == NULL)
     {
-      err = td_import_notes_from_file (ta, ta->exec_filename,
+      err = td_import_notes_from_file (ta, exec_filename,
 				       td_ptr_at (ta, r_debug,
 						  R_LDBASE_WORD));
       if (err != TD_OK)
