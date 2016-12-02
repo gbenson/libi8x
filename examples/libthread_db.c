@@ -1036,14 +1036,15 @@ td_thr_get_info (const td_thrhandle_t *th, td_thrinfo_t *infop)
   /* Fill in information.  */
   infop->ti_tid = (thread_t) th->th_unique;
   infop->ti_ta_p = th->th_ta_p;
+  infop->ti_type = TD_THR_USER;
 
   /* Fill in the fields we handle.  */
-  union i8x_value args[1], rets[2];
+  union i8x_value args[2], rets[2];
   i8x_err_e err;
 
   args[0].p = th->th_unique;
 
-#define GET_FIELD(fn, field, itype)				    \
+#define GET_FIELD(fn, field, rtype)				    \
   do {								    \
     err = i8x_xctx_call (ta->xctx, ta->fn, ta->inf, args, rets);    \
     if (err != I8X_OK)						    \
@@ -1052,13 +1053,32 @@ td_thr_get_info (const td_thrhandle_t *th, td_thrinfo_t *infop)
     if (rets[1].i != TD_OK)					    \
       return rets[1].i;						    \
 								    \
-    infop->field = (typeof (infop->field)) rets[0].itype;	    \
+    infop->field = (typeof (infop->field)) rets[0].rtype;	    \
   } while (0)
 
   GET_FIELD (thr_get_lwpid, ti_lid, i);
+  GET_FIELD (thr_get_priority, ti_pri, i);
+  GET_FIELD (thr_get_report_events, ti_traceme, u);
+  GET_FIELD (thr_get_specific, ti_tls, p);
+  GET_FIELD (thr_get_start_routine, ti_startfunc, p);
   GET_FIELD (thr_get_state, ti_state, i);
 
 #undef GET_FIELD
+
+  for (int i = 0; i < TD_EVENTSIZE; i++)
+    {
+      args[1].i = i;
+
+      err = i8x_xctx_call (ta->xctx, ta->thr_get_event, ta->inf,
+			   args, rets);
+      if (err != I8X_OK)
+	return td_err_from_i8x_err (err);
+
+      if (rets[1].i != TD_OK)
+	return err;
+
+      infop->ti_events.event_bits[i] = rets[0].u;
+    }
 
   return TD_OK;
 }
