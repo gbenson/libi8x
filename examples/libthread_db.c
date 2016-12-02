@@ -848,6 +848,9 @@ td_ta_init_libi8x (td_thragent_t *ta)
 			       &ta->thr_ ## name);		    \
     if (err != I8X_OK)						    \
       return td_err_from_i8x_err (err);				    \
+								    \
+    if (!i8x_funcref_is_resolved (ta->thr_ ## name))		    \
+      return TD_VERSION;					    \
   } while (0)
 
   GET_FUNCREF (from_lwpid,		"i",		"ip");
@@ -863,15 +866,6 @@ td_ta_init_libi8x (td_thragent_t *ta)
   GET_FUNCREF (get_tls_addr,		"ppi",		"ip");
 
 #undef GET_FUNCREF
-
-  /* Check we have at least one resolved function.  */
-  if (!i8x_funcref_is_resolved (ta->thr_from_lwpid)
-      && !i8x_funcref_is_resolved (ta->thr_iterate)
-      && !(i8x_funcref_is_resolved (ta->thr_get_lwpid)
-	   && i8x_funcref_is_resolved (ta->thr_get_state))
-      && !i8x_funcref_is_resolved (ta->thr_get_tlsbase)
-      && !i8x_funcref_is_resolved (ta->thr_get_tls_addr))
-    return TD_VERSION;
 
   /* Register the callback wrapper for td_ta_thr_iter.  */
   struct i8x_func *func;
