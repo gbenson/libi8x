@@ -163,10 +163,8 @@ td_ta_self_test (td_thragent_t *ta)
 "  >>> This libthread_db is a DEMONSTRATION,\n"
 "  >>> DO NOT USE IN PRODUCTION IT WILL EAT YOUR BABIES!!!\n"
 "\n"
-"  Note that td_thr_get_info does not fill in all the fields that\n"
-"  glibc's libthread_db fills in -- only ti_ta_p, ti_tid, ti_lid\n"
-"  and ti_state are valid.  Note also that many functions are not\n"
-"  present, and some that are present always return TD_NOCAPAB.\n"
+"  Note that many functions in this library are not present,\n"
+"  and some functions that are present always return TD_NOCAPAB.\n"
 "\n"
 "  SELF-TEST:\n", stderr);
 
