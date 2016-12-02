@@ -75,7 +75,12 @@ struct td_thragent
   /* References to functions we use.  */
   struct i8x_funcref *thr_from_lwpid;
   struct i8x_funcref *thr_iterate;
+  struct i8x_funcref *thr_get_event;
   struct i8x_funcref *thr_get_lwpid;
+  struct i8x_funcref *thr_get_priority;
+  struct i8x_funcref *thr_get_report_events;
+  struct i8x_funcref *thr_get_specific;
+  struct i8x_funcref *thr_get_start_routine;
   struct i8x_funcref *thr_get_state;
   struct i8x_funcref *thr_get_tlsbase;
   struct i8x_funcref *thr_get_tls_addr;
@@ -845,12 +850,17 @@ td_ta_init_libi8x (td_thragent_t *ta)
       return td_err_from_i8x_err (err);				    \
   } while (0)
 
-  GET_FUNCREF (from_lwpid,	"i",		"ip");
-  GET_FUNCREF (iterate,		"Fi(po)oi",	"i");
-  GET_FUNCREF (get_lwpid,	"p",		"ii");
-  GET_FUNCREF (get_state,	"p",		"ii");
-  GET_FUNCREF (get_tlsbase,	"pi",		"ip");
-  GET_FUNCREF (get_tls_addr,	"ppi",		"ip");
+  GET_FUNCREF (from_lwpid,		"i",		"ip");
+  GET_FUNCREF (iterate,			"Fi(po)oi",	"i");
+  GET_FUNCREF (get_event,		"pi",		"ii");
+  GET_FUNCREF (get_lwpid,		"p",		"ii");
+  GET_FUNCREF (get_priority,		"p",		"ii");
+  GET_FUNCREF (get_report_events,	"p",		"ii");
+  GET_FUNCREF (get_specific,		"p",		"ip");
+  GET_FUNCREF (get_start_routine,	"p",		"ip");
+  GET_FUNCREF (get_state,		"p",		"ii");
+  GET_FUNCREF (get_tlsbase,		"pi",		"ip");
+  GET_FUNCREF (get_tls_addr,		"ppi",		"ip");
 
 #undef GET_FUNCREF
 
@@ -900,7 +910,12 @@ td_ta_delete (td_thragent_t *ta)
 {
   i8x_funcref_unref (ta->thr_from_lwpid);
   i8x_funcref_unref (ta->thr_iterate);
+  i8x_funcref_unref (ta->thr_get_event);
   i8x_funcref_unref (ta->thr_get_lwpid);
+  i8x_funcref_unref (ta->thr_get_priority);
+  i8x_funcref_unref (ta->thr_get_report_events);
+  i8x_funcref_unref (ta->thr_get_specific);
+  i8x_funcref_unref (ta->thr_get_start_routine);
   i8x_funcref_unref (ta->thr_get_state);
   i8x_funcref_unref (ta->thr_get_tlsbase);
   i8x_funcref_unref (ta->thr_get_tls_addr);
