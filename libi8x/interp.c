@@ -49,8 +49,10 @@
 # define NOT_DEBUG(expr) expr
 # undef i8x_assert
 # undef dbg
+# undef trace
 # define i8x_assert(expr)
 # define dbg(ctx, arg...)
+# define trace(ctx, arg...)
 # define i8x_xctx_trace(...)
 #endif
 
