@@ -73,6 +73,7 @@ struct td_thragent
   struct i8x_xctx *xctx;
 
   /* References to functions we use.  */
+  struct i8x_funcref *link_map_get_tls_modid;
   struct i8x_funcref *thread_from_lwpid;
   struct i8x_funcref *thread_iterate;
   struct i8x_funcref *thread_get_event;
@@ -83,7 +84,6 @@ struct td_thragent
   struct i8x_funcref *thread_get_start_routine;
   struct i8x_funcref *thread_get_state;
   struct i8x_funcref *thread_get_tlsbase;
-  struct i8x_funcref *thread_get_tls_addr;
 
   /* Callback for td_ta_thr_iter.  */
   struct i8x_funcref *thr_iter_cb;
@@ -851,6 +851,7 @@ td_ta_init_libi8x (td_thragent_t *ta)
       return TD_VERSION;					    \
   } while (0)
 
+  GET_FUNCREF (link_map, get_tls_modid,		"p",		"i");
   GET_FUNCREF (thread, from_lwpid,		"i",		"ip");
   GET_FUNCREF (thread, iterate,			"Fi(po)oi",	"i");
   GET_FUNCREF (thread, get_event,		"pi",		"ii");
@@ -861,7 +862,6 @@ td_ta_init_libi8x (td_thragent_t *ta)
   GET_FUNCREF (thread, get_start_routine,	"p",		"ip");
   GET_FUNCREF (thread, get_state,		"p",		"ii");
   GET_FUNCREF (thread, get_tlsbase,		"pi",		"ip");
-  GET_FUNCREF (thread, get_tls_addr,		"ppi",		"ip");
 
 #undef GET_FUNCREF
 
@@ -900,6 +900,7 @@ td_ta_init_libi8x (td_thragent_t *ta)
 td_err_e
 td_ta_delete (td_thragent_t *ta)
 {
+  i8x_funcref_unref (ta->link_map_get_tls_modid);
   i8x_funcref_unref (ta->thread_from_lwpid);
   i8x_funcref_unref (ta->thread_iterate);
   i8x_funcref_unref (ta->thread_get_event);
@@ -910,7 +911,6 @@ td_ta_delete (td_thragent_t *ta)
   i8x_funcref_unref (ta->thread_get_start_routine);
   i8x_funcref_unref (ta->thread_get_state);
   i8x_funcref_unref (ta->thread_get_tlsbase);
-  i8x_funcref_unref (ta->thread_get_tls_addr);
 
   i8x_funcref_unref (ta->thr_iter_cb);
 
@@ -1117,24 +1117,22 @@ td_thr_tls_get_addr (const td_thrhandle_t *th, psaddr_t map_address,
 {
   td_thragent_t *ta = th->th_ta_p;
 
-  union i8x_value args[3], rets[2];
+  union i8x_value arg, ret;
   i8x_err_e err;
 
-  args[0].p = th->th_unique;
-  args[1].p = map_address;
-  args[2].u = offset;
+  arg.p = map_address;
 
-  err = i8x_xctx_call (ta->xctx, ta->thread_get_tls_addr, ta->inf,
-		       args, rets);
+  err = i8x_xctx_call (ta->xctx, ta->link_map_get_tls_modid, ta->inf,
+		       &arg, &ret);
+
   if (err != I8X_OK)
     return td_err_from_i8x_err (err);
 
-  if (rets[1].i != TD_OK)
-    return rets[1].i;
+  err = td_thr_tlsbase (th, ret.u, address);
+  if (err == TD_OK)
+    *address += offset;
 
-  *address = rets[0].p;
-
-  return TD_OK;
+  return err;
 }
 
 /* Enable reporting for EVENT for thread TH.  */
