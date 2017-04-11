@@ -36,7 +36,7 @@ def extract_notes(data):
     byteorder = {1: b"<", 2: b">"}[ei_data]
     # This is not a real ELF parser!
     NOTENAME = b"GNU\0"
-    NT_GNU_INFINITY = 5
+    NT_GNU_INFINITY = 8995 # XXX not final!
     markerfmt = byteorder + ("I%ds" % len(NOTENAME)).encode("utf-8")
     marker = struct.pack(markerfmt, NT_GNU_INFINITY, NOTENAME)
     hdrfmt = byteorder + b"2I"

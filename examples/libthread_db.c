@@ -36,7 +36,7 @@
 #include <link.h>
 
 #ifndef NT_GNU_INFINITY
-# define NT_GNU_INFINITY 5
+# define NT_GNU_INFINITY 8995  /* XXX NOT FINAL!  */
 #endif
 
 static td_err_e td_ta_init (td_thragent_t *ta);
