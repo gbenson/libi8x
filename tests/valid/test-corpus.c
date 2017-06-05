@@ -61,20 +61,23 @@ do_test (struct i8x_ctx *ctx, const char *filename)
 
   i8x_err_e expect_err = I8X_OK;
 
-  if (strstr (filename, "/i8c/0.0.3/") != NULL)
+  /* test_deref/0003-0001 and test_deref_offset_base/0001-0001
+     both contain "I8_OP_deref_int 0" which is no longer valid.  */
+  if (strstr (filename, "/i8c/0.0.3/") != NULL
+      && (strstr (filename, "/test_deref/test_deref/0003-0001") != NULL
+	  || strstr (filename, "/test_deref_offset_base/0001-0001") != NULL))
     {
-      /* test_deref/0003-0001 and test_deref_offset_base/0001-0001
-	 both contain "I8_OP_deref_int 0" which is no longer valid.  */
-      if (strstr (filename, "/test_deref/test_deref/0003-0001") != NULL
-	  || strstr (filename, "/test_deref_offset_base/0001-0001") != NULL)
-	expect_err = I8X_NOTE_UNHANDLED;
+      expect_err = I8X_NOTE_UNHANDLED;
+    }
 
-      /* test_deref/0011-0001 and test_deref/0015-0001 contain
-	 64-bit dereferences which we do not support on 32-bit.  */
-      if (__WORDSIZE == 32
-	  && strstr (filename, "/i8c/0.0.3/32") != NULL
-	  && (strstr (filename, "/test_deref/0011-0001") != NULL
-	      || strstr (filename, "/test_deref/0015-0001") != NULL))
+  /* test_deref/0011-0001 and test_deref/0015-0001 contain
+     64-bit dereferences which we do not support on 32-bit.  */
+  if (__WORDSIZE == 32
+      && (strstr (filename, "/32be/") != NULL
+	  || strstr (filename, "/32el/") != NULL)
+      && (strstr (filename, "/test_deref/0011-0001") != NULL
+	  || strstr (filename, "/test_deref/0015-0001") != NULL))
+    {
 	expect_err = I8X_NOTE_UNHANDLED;
     }
 
