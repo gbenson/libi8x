@@ -1,4 +1,4 @@
-dnl Copyright (C) 2016 Red Hat, Inc.
+dnl Copyright (C) 2016-17 Red Hat, Inc.
 dnl This file is part of the Infinity Note Execution Library.
 dnl
 dnl The Infinity Note Execution Library is free software; you can
@@ -19,7 +19,7 @@ dnl see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.60)
 AC_INIT([libi8x],
-        [0.0.4],
+        [0.0.5],
         [infinity@sourceware.org],
         [libi8x],
         [https://sourceware.org/gdb/wiki/Infinity])
