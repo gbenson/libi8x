@@ -1,0 +1,158 @@
+/* Copyright (C) 2017 Red Hat, Inc.
+   This file is part of the Infinity Note Execution Library.
+
+   The Infinity Note Execution Library is free software; you can
+   redistribute it and/or modify it under the terms of the GNU Lesser
+   General Public License as published by the Free Software
+   Foundation; either version 2.1 of the License, or (at your option)
+   any later version.
+
+   The Infinity Note Execution Library is distributed in the hope that
+   it will be useful, but WITHOUT ANY WARRANTY; without even the
+   implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+   PURPOSE.  See the GNU Lesser General Public License for more
+   details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with the Infinity Note Execution Library; if not, see
+   <http://www.gnu.org/licenses/>.  */
+
+#include <py3c.h>
+#include <libi8x.h>
+
+#define PY8X_STRINGIZE(x) PY8X_STRINGIZE_1(x)
+#define PY8X_STRINGIZE_1(x) #x
+
+#define py8x_not_implemented()						\
+  do {									\
+    PyErr_SetString (PyExc_NotImplementedError,				\
+		     __FILE__ ":" PY8X_STRINGIZE (__LINE__));		\
+    return NULL;							\
+  } while (0)
+
+/* PyCapsule_Destructor suitable for all libi8x objects.  */
+
+static void
+py8x_ob_unref (PyObject *ob)
+{
+  i8x_ob_unref ((struct i8x_object *) PyCapsule_GetPointer (ob, NULL));
+}
+
+/* Context (i8x_ctx) userdata.  */
+
+struct py8x_ctx_userdata
+{
+  /* Logging function.  */
+  PyObject *log_fn;
+};
+
+/* Userdata for the context currently being created by i8x_ctx_new.
+   i8x_ctx_new can log before we have a chance to set the context's
+   userdata; this static global exists so that py8x_log can access
+   the Python log function it needs in this case.  */
+
+static struct py8x_ctx_userdata *py8x_new_context_ud;
+
+/* Logging function set for all i8x_ctx objects we create.  */
+
+static void
+py8x_log (struct i8x_ctx *ctx,
+	  int pri, const char *file, int line, const char *fn,
+	  const char *format, va_list args)
+{
+  struct py8x_ctx_userdata *ud =
+    (struct py8x_ctx_userdata *) i8x_ctx_get_userdata (ctx);
+  char *msg;
+  int count;
+  PyObject *arglist;
+  PyObject *result;
+
+  /* No userdata means we're in i8x_ctx_new, before
+     py8x_ctx_new has had chance to set it.  */
+  if (ud == NULL)
+    ud = py8x_new_context_ud;
+  if (ud == NULL)
+    abort ();
+
+  if (ud->log_fn == Py_None)
+    return;
+
+  count = vasprintf (&msg, format, args);
+  if (count < 0)
+    msg = "vasprintf failed";
+
+  arglist = Py_BuildValue("isiss", pri, file, line, fn, msg);
+
+  if (count >= 0)
+    free (msg);
+
+  result = PyEval_CallObject(ud->log_fn, arglist);
+  Py_DECREF(arglist);
+
+  Py_DECREF(result);
+}
+
+/* Python binding for i8x_ctx_new.  */
+
+static PyObject *
+py8x_ctx_new (PyObject *self, PyObject *args)
+{
+  int flags;
+  PyObject *log_fn;
+  struct i8x_ctx *ctx = NULL;
+  i8x_err_e err = I8X_ENOMEM;
+
+  if (!PyArg_ParseTuple (args, "iO", &flags, &log_fn))
+    return NULL;
+
+  py8x_new_context_ud = calloc (1, sizeof (struct py8x_ctx_userdata));
+  if (py8x_new_context_ud != NULL)
+    {
+      Py_INCREF (log_fn);
+      py8x_new_context_ud->log_fn = log_fn;
+
+      err = i8x_ctx_new (flags, py8x_log, &ctx);
+
+      if (err == I8X_OK)
+	i8x_ctx_set_userdata (ctx, py8x_new_context_ud, free);
+      else
+	free (py8x_new_context_ud);
+
+      py8x_new_context_ud = NULL;
+    }
+
+  if (err != I8X_OK)
+    py8x_not_implemented ();
+
+  return PyCapsule_New (ctx, NULL, py8x_ob_unref);
+}
+
+/* Module-level functions table.  */
+
+static PyMethodDef libi8x_methods[] = {
+  {"ctx_new", py8x_ctx_new, METH_VARARGS, NULL},
+  {NULL, NULL, 0, NULL}
+};
+
+/* Module definition.  */
+
+static struct PyModuleDef libi8x_moduledef =
+  {
+    PyModuleDef_HEAD_INIT,
+    .m_name = "_libi8x",
+    .m_doc = PyDoc_STR ("Python bindings for libi8x."),
+    .m_size = -1,
+    .m_methods = libi8x_methods,
+  };
+
+/* Module initialization function.  */
+
+MODULE_INIT_FUNC (_libi8x)
+{
+  PyObject *m = PyModule_Create (&libi8x_moduledef);
+  PyObject *v;
+
+#pragma libi8x_api_constants
+
+  return m;
+}

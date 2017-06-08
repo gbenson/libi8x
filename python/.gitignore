@@ -1,0 +1,9 @@
+/libi8x.c
+*.pyc
+*.so
+
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
