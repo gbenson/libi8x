@@ -24,10 +24,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import _libi8x as py8x
+from . import common
 import syslog
-import unittest
 
-class TestPy8xCtxNew(unittest.TestCase):
+class TestPy8xCtxNew(common.TestCase):
     def test_basic(self):
         """Test py8x_ctx_new with no flags or log function."""
         ctx = py8x.ctx_new(0, None)

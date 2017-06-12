@@ -25,24 +25,17 @@ from __future__ import unicode_literals
 
 import _libi8x as py8x
 from . import common
-import sys
-import syslog
 
-class TestPy8xCtxSetLogFn(common.TestCase):
-    def setUp(self):
-        self.saved_stderr = sys.stderr
-        self.null_stderr = open("/dev/null", "w")
-        sys.stderr = self.null_stderr
+class TestPy8xCtxImportBytecode(common.TestCase):
+    def test_success(self):
+        """Test py8x_ctx_import_bytecode on a good note."""
+        ctx = self.ctx_new()
+        func = py8x.ctx_import_bytecode(ctx, self.GOOD_NOTE, "testnote", 0)
+        self.assertIsNot(func, None)
+        del func
 
-    def tearDown(self):
-        sys.stderr = self.saved_stderr
-        self.null_stderr.close()
-
-    def test_basic(self):
-        """Test py8x_ctx_set_log_fn."""
-        ctx = py8x.ctx_new(syslog.LOG_DEBUG, None)
-        messages = []
-        def log_func(*args):
-            messages.append(args)
-        py8x.ctx_set_log_fn(ctx, log_func)
-        raise NotImplementedError # XXX how to make a msg?
+    def test_failure(self):
+        """Test py8x_ctx_import_bytecode on a corrupt note."""
+        ctx = self.ctx_new()
+        func = py8x.ctx_import_bytecode(ctx, self.CORRUPT_NOTE, "testnote", 0)
+        # XXX will fail, should be assertRaises

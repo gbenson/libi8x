@@ -23,26 +23,29 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import _libi8x as py8x
-from . import common
+import os
 import sys
-import syslog
 
-class TestPy8xCtxSetLogFn(common.TestCase):
-    def setUp(self):
-        self.saved_stderr = sys.stderr
-        self.null_stderr = open("/dev/null", "w")
-        sys.stderr = self.null_stderr
+def logalyze(fp):
+    senses = {"created": 1, "released": -1}
+    counts = {}
+    for line in fp.readlines():
+        line = line.rstrip().split()
+        sense = senses.get(line[-1], None)
+        if sense is not None:
+            what = " ".join(line[-3:-1])
+            counts[what] = counts.get(what, 0) + sense
+    for item, count in sorted(counts.items()):
+        if count != 0:
+            print(item, count)
 
-    def tearDown(self):
-        sys.stderr = self.saved_stderr
-        self.null_stderr.close()
+def main():
+    if len(sys.argv) != 2:
+        print("usage: %s LOGFILE" % os.path.basename(sys.argv[0]),
+              fp=sys.stderr)
+        sys.exit(1)
+    with open(sys.argv[1]) as fp:
+        logalyze(fp)
 
-    def test_basic(self):
-        """Test py8x_ctx_set_log_fn."""
-        ctx = py8x.ctx_new(syslog.LOG_DEBUG, None)
-        messages = []
-        def log_func(*args):
-            messages.append(args)
-        py8x.ctx_set_log_fn(ctx, log_func)
-        raise NotImplementedError # XXX how to make a msg?
+if __name__ == "__main__":
+    main()

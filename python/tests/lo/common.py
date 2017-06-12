@@ -24,25 +24,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import _libi8x as py8x
-from . import common
-import sys
-import syslog
+from .. import common
 
-class TestPy8xCtxSetLogFn(common.TestCase):
-    def setUp(self):
-        self.saved_stderr = sys.stderr
-        self.null_stderr = open("/dev/null", "w")
-        sys.stderr = self.null_stderr
-
-    def tearDown(self):
-        sys.stderr = self.saved_stderr
-        self.null_stderr.close()
-
-    def test_basic(self):
-        """Test py8x_ctx_set_log_fn."""
-        ctx = py8x.ctx_new(syslog.LOG_DEBUG, None)
-        messages = []
-        def log_func(*args):
-            messages.append(args)
-        py8x.ctx_set_log_fn(ctx, log_func)
-        raise NotImplementedError # XXX how to make a msg?
+class TestCase(common.TestCase):
+    def ctx_new(self):
+        """Standard way to create an i8x_ctx for tests."""
+        return py8x.ctx_new(py8x.I8X_DBG_MEM, None)
