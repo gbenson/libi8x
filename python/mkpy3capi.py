@@ -129,7 +129,8 @@ class ASTVisitor(NodeVisitor):
             assert name.startswith("i8x_")
             if not (name.startswith("i8x_ob_")
                     or name in ("i8x_listitem_get_object",
-                                "i8x_ctx_strerror_r")):
+                                "i8x_ctx_strerror_r",
+                                "i8x_ctx_set_log_fn")):
                 self.api.add_function(name)
 
 class EnumVisitor(NodeVisitor):

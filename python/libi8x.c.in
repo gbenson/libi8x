@@ -108,8 +108,8 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   py8x_new_context_ud = calloc (1, sizeof (struct py8x_ctx_userdata));
   if (py8x_new_context_ud != NULL)
     {
-      Py_INCREF (log_fn);
       py8x_new_context_ud->log_fn = log_fn;
+      Py_INCREF (log_fn);
 
       err = i8x_ctx_new (flags, py8x_log, &ctx);
 
@@ -127,10 +127,34 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   return PyCapsule_New (ctx, NULL, py8x_ob_unref);
 }
 
+/* Python binding for i8x_ctx_set_log_fn.  */
+
+static PyObject *
+py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
+{
+  PyObject *ctxc, *log_fn;
+  if (!PyArg_ParseTuple (args, "OO", &ctxc, &log_fn))
+    return NULL;
+
+  struct i8x_ctx *ctx =
+    (struct i8x_ctx *) PyCapsule_GetPointer (ctxc, NULL);
+
+  struct py8x_ctx_userdata *ud =
+    (struct py8x_ctx_userdata *) i8x_ctx_get_userdata (ctx);
+
+  Py_DECREF (ud->log_fn);
+  ud->log_fn = log_fn;
+  Py_INCREF (log_fn);
+
+  Py_INCREF (Py_None);
+  return Py_None;
+}
+
 /* Module-level functions table.  */
 
 static PyMethodDef libi8x_methods[] = {
   {"ctx_new", py8x_ctx_new, METH_VARARGS, NULL},
+  {"ctx_set_log_fn", py8x_ctx_set_log_fn, METH_VARARGS, NULL},
   {NULL, NULL, 0, NULL}
 };
 
