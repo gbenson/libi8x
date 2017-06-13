@@ -34,6 +34,7 @@ class API(object):
             src = fp.read()
         self.__constants = {}
         self.__extract_cpp_constants(src)
+        self.__types = {}
         self.__extract_everything_else(src, include_path)
 
     def add_constant(self, name, value):
@@ -46,6 +47,17 @@ class API(object):
   PyObject_SetAttrString(m, "%s", v);
   Py_DECREF(v);
 """ % (value, name) for name, value in sorted(self.__constants.items())))
+
+    def add_type(self, name):
+        self.__types[name] = True
+
+    TYPE_PREFIXES = {"object": "ob", "readbuf": "rb"}
+
+    def emit_object_functions(self, fp):
+        for name in sorted(self.__types):
+            print("PY8X_OBJECT_FUNCTIONS (%s, %s);"
+                  % (name, self.TYPE_PREFIXES.get(name, name)),
+                  file=fp)
 
     def add_function(self, name):
         pass
@@ -154,6 +166,11 @@ class DeclVisitor(NodeVisitor):
     def visit_Decl(self, node):
         self.is_function = False
         self.generic_visit(node)
+
+    def visit_Struct(self, node, PREFIX="i8x_"):
+        assert not self.is_function
+        assert node.name.startswith(PREFIX)
+        self.api.add_type(node.name[len(PREFIX):])
 
     def visit_FuncDecl(self, node):
         assert not self.is_function

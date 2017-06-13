@@ -30,12 +30,23 @@
     return NULL;							\
   } while (0)
 
+/* Helpers for each libi8x object.  */
+
+#define PY8X_OBJECT_FUNCTIONS(TYPE, PREFIX)				\
+  static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
+  py8x_ ## PREFIX ## _from_capsule (PyObject *c)			\
+  {									\
+    return (struct i8x_ ## TYPE *) PyCapsule_GetPointer (c, NULL);	\
+  }
+
+#pragma libi8x_api_object_functions
+
 /* PyCapsule_Destructor suitable for all libi8x objects.  */
 
 static void
 py8x_ob_unref (PyObject *ob)
 {
-  i8x_ob_unref ((struct i8x_object *) PyCapsule_GetPointer (ob, NULL));
+  i8x_ob_unref (py8x_ob_from_capsule (ob));
 }
 
 /* Context (i8x_ctx) userdata.  */
@@ -136,9 +147,7 @@ py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "OO", &ctxc, &log_fn))
     return NULL;
 
-  struct i8x_ctx *ctx =
-    (struct i8x_ctx *) PyCapsule_GetPointer (ctxc, NULL);
-
+  struct i8x_ctx *ctx = py8x_ctx_from_capsule (ctxc);
   struct py8x_ctx_userdata *ud =
     (struct py8x_ctx_userdata *) i8x_ctx_get_userdata (ctx);
 
