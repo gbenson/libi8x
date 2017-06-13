@@ -140,6 +140,10 @@ class ASTVisitor(NodeVisitor):
             name = node.name
             assert name.startswith("i8x_")
             if not (name.startswith("i8x_ob_")
+                    or name.endswith("_ref")
+                    or name.endswith("_unref")
+                    or name.find("_new") != -1
+                    or name.startswith("i8x_ctx_import_")
                     or name in ("i8x_listitem_get_object",
                                 "i8x_ctx_strerror_r",
                                 "i8x_ctx_set_log_fn")):
