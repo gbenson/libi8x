@@ -30,6 +30,16 @@
     return NULL;							\
   } while (0)
 
+/* Turn libi8x errors into Python exceptions.  */
+
+#define PY8X_CHECK_CALL(ctx, err)					\
+  do {									\
+    if (err == I8X_ENOMEM)						\
+      return PyErr_NoMemory ();						\
+    else if (err != I8X_OK)						\
+      py8x_not_implemented ();						\
+  } while (0)
+
 /* Helpers for each libi8x object.  */
 
 #define PY8X_OBJECT_FUNCTIONS(TYPE, PREFIX)				\
@@ -141,8 +151,7 @@ py8x_ctx_new (PyObject *self, PyObject *args)
 
   py8x_new_context_ud = NULL;
 
-  if (err != I8X_OK)
-    py8x_not_implemented ();
+  PY8X_CHECK_CALL (NULL, err);
 
   return PyCapsule_New (ctx, NULL, py8x_ob_unref);
 }
