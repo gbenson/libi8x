@@ -111,26 +111,26 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   int flags;
   PyObject *log_fn;
   struct i8x_ctx *ctx = NULL;
-  i8x_err_e err = I8X_ENOMEM;
+  i8x_err_e err;
 
   if (!PyArg_ParseTuple (args, "iO", &flags, &log_fn))
     return NULL;
 
   py8x_new_context_ud = calloc (1, sizeof (struct py8x_ctx_userdata));
-  if (py8x_new_context_ud != NULL)
-    {
-      py8x_new_context_ud->log_fn = log_fn;
-      Py_INCREF (log_fn);
+  if (py8x_new_context_ud == NULL)
+    return PyErr_NoMemory ();
 
-      err = i8x_ctx_new (flags, py8x_log, &ctx);
+  py8x_new_context_ud->log_fn = log_fn;
+  Py_INCREF (log_fn);
 
-      if (err == I8X_OK)
-	i8x_ctx_set_userdata (ctx, py8x_new_context_ud, free);
-      else
-	free (py8x_new_context_ud);
+  err = i8x_ctx_new (flags, py8x_log, &ctx);
 
-      py8x_new_context_ud = NULL;
-    }
+  if (err == I8X_OK)
+    i8x_ctx_set_userdata (ctx, py8x_new_context_ud, free);
+  else
+    free (py8x_new_context_ud);
+
+  py8x_new_context_ud = NULL;
 
   if (err != I8X_OK)
     py8x_not_implemented ();
@@ -144,6 +144,7 @@ static PyObject *
 py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
 {
   PyObject *ctxc, *log_fn;
+
   if (!PyArg_ParseTuple (args, "OO", &ctxc, &log_fn))
     return NULL;
 
