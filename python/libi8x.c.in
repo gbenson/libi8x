@@ -85,22 +85,31 @@ py8x_log (struct i8x_ctx *ctx,
   if (ud == NULL)
     abort ();
 
-  if (ud->log_fn == Py_None)
-    return;
-
   count = vasprintf (&msg, format, args);
   if (count < 0)
     msg = "vasprintf failed";
 
-  arglist = Py_BuildValue("isiss", pri, file, line, fn, msg);
+  if (ud->log_fn == Py_None)
+    {
+      /* PySys_WriteStderr wants 1000 bytes max.  */
+      char buf[1000];
+
+      snprintf (buf, sizeof (buf), "py8x: %s: %s", fn, msg);
+      buf[sizeof (buf) - 1] = '\0';
+      PySys_WriteStderr ("%s", buf);
+    }
+  else
+    {
+      arglist = Py_BuildValue ("isiss", pri, file, line, fn, msg);
+
+      result = PyEval_CallObject (ud->log_fn, arglist);
+      Py_DECREF (arglist);
+
+      Py_DECREF (result);
+    }
 
   if (count >= 0)
     free (msg);
-
-  result = PyEval_CallObject(ud->log_fn, arglist);
-  Py_DECREF(arglist);
-
-  Py_DECREF(result);
 }
 
 /* Python binding for i8x_ctx_new.  */

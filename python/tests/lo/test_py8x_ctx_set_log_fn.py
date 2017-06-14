@@ -24,10 +24,20 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import _libi8x as py8x
+import sys
 import syslog
 import unittest
 
 class TestPy8xCtxSetLogFn(unittest.TestCase):
+    def setUp(self):
+        self.saved_stderr = sys.stderr
+        self.null_stderr = open("/dev/null", "w")
+        sys.stderr = self.null_stderr
+
+    def tearDown(self):
+        sys.stderr = self.saved_stderr
+        self.null_stderr.close()
+
     def test_basic(self):
         """Test py8x_ctx_set_log_fn."""
         ctx = py8x.ctx_new(syslog.LOG_DEBUG, None)
