@@ -42,11 +42,8 @@ class API(object):
         self.__constants[name] = value
 
     def emit_constants(self, fp):
-        fp.write("\n".join("""\
-  v = PyInt_FromLong(%s);
-  PyObject_SetAttrString(m, "%s", v);
-  Py_DECREF(v);
-""" % (value, name) for name, value in sorted(self.__constants.items())))
+        for name in sorted(self.__constants):
+            print('  PY8X_CONSTANT (m, %s);' % name, file=fp)
 
     def add_type(self, name):
         self.__types[name] = True

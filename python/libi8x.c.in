@@ -231,10 +231,11 @@ static struct PyModuleDef libi8x_moduledef =
 
 /* Module initialization function.  */
 
+#define PY8X_CONSTANT(mod, name) PyModule_AddIntConstant (mod, #name, name)
+
 MODULE_INIT_FUNC (_libi8x)
 {
   PyObject *m = PyModule_Create (&libi8x_moduledef);
-  PyObject *v;
 
 #pragma libi8x_api_constants
 
