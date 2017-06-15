@@ -35,6 +35,7 @@ class API(object):
         self.__constants = {}
         self.__extract_cpp_constants(src)
         self.__types = {}
+        self.__functions = {}
         self.__extract_everything_else(src, include_path)
 
     def add_constant(self, name):
@@ -56,11 +57,17 @@ class API(object):
                   % (name, self.TYPE_PREFIXES.get(name, name)),
                   file=fp)
 
-    def add_function(self, name):
-        pass
+    def add_function(self, type, name, params):
+        assert name not in self.__functions
+        self.__functions[name] = (type, params)
 
     def emit_functions(self, fp):
-        pass
+        for name, type_and_params in sorted(self.__functions.items()):
+            self.__emit_function(fp, name, *type_and_params)
+
+    def __emit_function(self, fp, name, type, params):
+        print("%s: %s, %s" % (name, repr(type), params))
+        # XXX print traffic-light of tested or no
 
     def __parse_pragma(self, line, prefix="libi8x_api_"):
         if line.startswith("#"):
@@ -122,14 +129,9 @@ class API(object):
     def __extract_everything_else(self, src, include_path):
         ASTVisitor(self).visit(self.__parse(src, include_path))
 
-class NodeVisitor(pycparser.c_ast.NodeVisitor):
+class ASTVisitor(pycparser.c_ast.NodeVisitor):
     def __init__(self, api):
         self.api = api
-
-class ASTVisitor(NodeVisitor):
-    def visit_Struct(self, node, PREFIX="i8x_"):
-        if node.name.startswith(PREFIX):
-            self.api.add_type(node.name[len(PREFIX):])
 
     def visit_Enum(self, node):
         for enumerator in node.values.enumerators:
@@ -137,33 +139,114 @@ class ASTVisitor(NodeVisitor):
 
     def visit_Decl(self, node):
         name = node.name
-        if name is None:
-            self.generic_visit(node)
-            return
+        if (name is None
+            or (name.startswith("i8x_")
+                and not (name.startswith("i8x_ob_")
+                         or name.endswith("_ref")
+                         or name.endswith("_unref")
+                         or name.endswith("_userdata")
+                         or name.find("_new") != -1
+                         or name.startswith("i8x_ctx_import_")
+                         or name in ("i8x_ctx_get_funcref",
+                                     "i8x_ctx_set_log_fn",
+                                     "i8x_ctx_strerror_r",
+                                     "i8x_listitem_get_object",
+                                     "i8x_note_get_unique_chunk",
+                                     "i8x_rb_read_bytes",
+                                     "i8x_rb_read_offset_string")))):
+            TopLevelDeclVisitor(self.api).visit(node.type)
 
-        dv = DeclVisitor(self.api)
-        dv.visit(node)
-        if dv.is_function:
-            assert name.startswith("i8x_")
-            if not (name.startswith("i8x_ob_")
-                    or name.endswith("_ref")
-                    or name.endswith("_unref")
-                    or name.find("_new") != -1
-                    or name.startswith("i8x_ctx_import_")
-                    or name in ("i8x_listitem_get_object",
-                                "i8x_ctx_strerror_r",
-                                "i8x_ctx_set_log_fn")):
-                self.api.add_function(name)
+class TopLevelDeclVisitor(pycparser.c_ast.NodeVisitor):
+    def __init__(self, api):
+        self.api = api
 
-class DeclVisitor(NodeVisitor):
-    def visit_Decl(self, node):
-        self.is_function = False
-        self.generic_visit(node)
+    def visit_Struct(self, node, PREFIX="i8x_"):
+        if node.name.startswith(PREFIX):
+            self.api.add_type(node.name[len(PREFIX):])
 
     def visit_FuncDecl(self, node):
-        assert not self.is_function
-        self.is_function = True
-        #self.generic_visit(node)
+        plv = ParamListVisitor()
+        plv.visit(node.args)
+        tv = TypeVisitor()
+        tv.visit(node.type)
+        self.api.add_function(tv.type, tv.name, plv.params)
+
+class ParamListVisitor(pycparser.c_ast.NodeVisitor):
+    def visit_ParamList(self, node):
+        assert not hasattr(self, "params")
+        self.params = []
+        for param in node.params:
+            self.visit(param)
+
+    def visit_Decl(self, node):
+        tv = TypeVisitor()
+        tv.visit(node.type)
+        self.params.append((tv.type, tv.name))
+
+class TypeVisitor(pycparser.c_ast.NodeVisitor):
+    def __init__(self):
+        self.__is_const = False
+        self.__nonatomic = None # struct or union
+        self.__basetype = None
+        self.__is_pointer = False
+        self.name = None
+
+    @property
+    def type(self):
+        result = []
+        if self.__is_const:
+            result.append("const")
+        if self.__nonatomic is not None:
+            result.append(self.__nonatomic)
+        assert self.__basetype is not None
+        result.append(self.__basetype)
+        if self.__is_pointer:
+            result.append("*")
+        return " ".join(result)
+
+    def generic_visit(self, node):
+        node.show()
+        print(dir(node))
+        raise NotImplementedError
+
+    def visit_PtrDecl(self, node):
+        assert not self.__is_pointer
+        self.__is_pointer = True
+        assert not node.quals
+        self.visit(node.type)
+
+    def visit_TypeDecl(self, node):
+        assert self.name is None
+        self.name = node.declname
+        assert self.name is not None
+        if len(node.quals) == 1:
+            assert node.quals[0] == "const"
+            assert not self.__is_const
+            self.__is_const = True
+        else:
+            assert not node.quals
+        self.visit(node.type)
+
+    def visit_IdentifierType(self, node):
+        assert self.__nonatomic is None
+        assert self.__basetype is None
+        assert len(node.names) == 1
+        [self.__basetype] = node.names
+        assert self.__basetype is not None
+
+    def visit_Struct(self, node):
+        self.__visit_Struct_or_Union(node, "struct")
+
+    def visit_Union(self, node):
+        self.__visit_Struct_or_Union(node, "union")
+
+    def __visit_Struct_or_Union(self, node, type):
+        assert self.__nonatomic is None
+        assert self.__basetype is None
+        assert node.decls is None
+        self.__basetype = node.name
+        assert self.__basetype is not None
+        self.__nonatomic = type
 
 def main():
     if len(sys.argv) != 2:
