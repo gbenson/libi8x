@@ -127,15 +127,23 @@ class NodeVisitor(pycparser.c_ast.NodeVisitor):
         self.api = api
 
 class ASTVisitor(NodeVisitor):
+    def visit_Struct(self, node, PREFIX="i8x_"):
+        if node.name.startswith(PREFIX):
+            self.api.add_type(node.name[len(PREFIX):])
+
     def visit_Enum(self, node):
         for enumerator in node.values.enumerators:
             self.api.add_constant(enumerator.name)
 
     def visit_Decl(self, node):
+        name = node.name
+        if name is None:
+            self.generic_visit(node)
+            return
+
         dv = DeclVisitor(self.api)
         dv.visit(node)
         if dv.is_function:
-            name = node.name
             assert name.startswith("i8x_")
             if not (name.startswith("i8x_ob_")
                     or name.endswith("_ref")
@@ -151,11 +159,6 @@ class DeclVisitor(NodeVisitor):
     def visit_Decl(self, node):
         self.is_function = False
         self.generic_visit(node)
-
-    def visit_Struct(self, node, PREFIX="i8x_"):
-        assert not self.is_function
-        assert node.name.startswith(PREFIX)
-        self.api.add_type(node.name[len(PREFIX):])
 
     def visit_FuncDecl(self, node):
         assert not self.is_function
