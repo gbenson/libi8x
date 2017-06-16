@@ -37,9 +37,9 @@ class API(object):
         self.__types = {}
         self.__extract_everything_else(src, include_path)
 
-    def add_constant(self, name, value):
+    def add_constant(self, name):
         assert name not in self.__constants
-        self.__constants[name] = value
+        self.__constants[name] = True
 
     def emit_constants(self, fp):
         for name in sorted(self.__constants):
@@ -112,7 +112,7 @@ class API(object):
             if (len(line) == 3
                   and line[0] == "#define"
                   and "(" not in line[1]):
-                self.add_constant(line[1], eval(line[2]))
+                self.add_constant(line[1])
 
     def __parse(self, src, include_path):
         src = src.replace("__attribute__ ((always_inline))", "")
@@ -128,7 +128,8 @@ class NodeVisitor(pycparser.c_ast.NodeVisitor):
 
 class ASTVisitor(NodeVisitor):
     def visit_Enum(self, node):
-        EnumVisitor(self.api).visit(node)
+        for enumerator in node.values.enumerators:
+            self.api.add_constant(enumerator.name)
 
     def visit_Decl(self, node):
         dv = DeclVisitor(self.api)
@@ -145,23 +146,6 @@ class ASTVisitor(NodeVisitor):
                                 "i8x_ctx_strerror_r",
                                 "i8x_ctx_set_log_fn")):
                 self.api.add_function(name)
-
-class EnumVisitor(NodeVisitor):
-    def visit_EnumeratorList(self, node):
-        self.value = 0
-        self.generic_visit(node)
-
-    def visit_Enumerator(self, node):
-        self.generic_visit(node)
-        self.api.add_constant(node.name, self.value)
-        self.value += 1
-
-    def visit_Constant(self, node):
-        self.value = eval(node.value)
-
-    def visit_UnaryOp(self, node):
-        self.generic_visit(node)
-        self.value = eval(node.op + str(self.value))
 
 class DeclVisitor(NodeVisitor):
     def visit_Decl(self, node):
