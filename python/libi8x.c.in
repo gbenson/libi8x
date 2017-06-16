@@ -211,10 +211,12 @@ py8x_ctx_import_bytecode (PyObject *self, PyObject *args)
 
 /* Module-level functions table.  */
 
+#define PY8X_FUNCTION(name) {#name, py8x_ ## name, METH_VARARGS, NULL}
+
 static PyMethodDef libi8x_methods[] = {
-  {"ctx_new", py8x_ctx_new, METH_VARARGS, NULL},
-  {"ctx_set_log_fn", py8x_ctx_set_log_fn, METH_VARARGS, NULL},
-  {"ctx_import_bytecode", py8x_ctx_import_bytecode, METH_VARARGS, NULL},
+  PY8X_FUNCTION (ctx_new),
+  PY8X_FUNCTION (ctx_set_log_fn),
+  PY8X_FUNCTION (ctx_import_bytecode),
   {NULL, NULL, 0, NULL}
 };
 
