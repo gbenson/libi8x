@@ -48,7 +48,6 @@
   {									\
     return (struct i8x_ ## TYPE *) PyCapsule_GetPointer (c, NULL);	\
   }
-
 #pragma libi8x_api_object_functions
 
 /* PyCapsule_Destructor suitable for all libi8x objects.  */
@@ -209,6 +208,8 @@ py8x_ctx_import_bytecode (PyObject *self, PyObject *args)
   return PyCapsule_New (func, NULL, py8x_ob_unref);
 }
 
+#pragma libi8x_api_functions
+
 /* Module-level functions table.  */
 
 #define PY8X_FUNCTION(name) {#name, py8x_ ## name, METH_VARARGS, NULL}
@@ -217,6 +218,7 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (ctx_new),
   PY8X_FUNCTION (ctx_set_log_fn),
   PY8X_FUNCTION (ctx_import_bytecode),
+#pragma libi8x_api_function_table
   {NULL, NULL, 0, NULL}
 };
 

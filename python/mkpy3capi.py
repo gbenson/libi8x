@@ -62,12 +62,61 @@ class API(object):
         self.__functions[name] = (type, params)
 
     def emit_functions(self, fp):
+        self.__ftable = []
         for name, type_and_params in sorted(self.__functions.items()):
             self.__emit_function(fp, name, *type_and_params)
 
-    def __emit_function(self, fp, name, type, params):
-        print("%s: %s, %s" % (name, repr(type), params))
-        # XXX print traffic-light of tested or no
+    def emit_function_table(self, fp):
+        for name in sorted(self.__ftable):
+            assert name.startswith("i8x_")
+            print("  PY8X_FUNCTION (%s)," % name[4:], file=fp)
+
+    def __emit_function(self, fp, name, rtype, params):
+        XXXlog = "%s %s %s" % (name, rtype, params)
+        try:
+            rtype = PyType.from_ctype(rtype)
+            params = [(PyType.from_ctype(t), n) for t, n in params]
+        except NotImplementedError:
+            print("\x1B[31m%s\x1B[0m" % XXXlog)
+            return
+        print("\x1B[32m%s\x1B[0m" % XXXlog)
+        assert name.startswith("i8x_")
+        self.__ftable.append(name)
+
+        print("""\
+/* Python binding for %s.  */
+
+static PyObject *
+py%s (PyObject *self, PyObject *args)
+{""" % (name, name[1:]), file=fp)
+
+        fmts, args = [], []
+        for ptype, pname in params:
+            tmp = ptype.argtype
+            if not tmp.endswith(" *"):
+                tmp += " "
+            print("  %s%s;" % (tmp, ptype.argname(pname)), file=fp)
+            args.append("&" + ptype.argname(pname))
+            fmts.append(ptype.argfmt)
+        print("""
+  if (!PyArg_ParseTuple (args, "%s", %s))
+    return NULL;
+""" % ("".join(fmts), ", ".join(args)), file=fp)
+
+        for ptype, pname in params:
+            unwrap = ptype.unwrap_arg(pname)
+            if unwrap is not None:
+                unwraps = True
+                print("  %s;" % unwrap, file=fp)
+
+        tmp = rtype.ctype
+        if not tmp.endswith(" *"):
+            tmp += " "
+        print("  %sresult = %s (%s);" % (
+            tmp, name,
+            ", ".join(pname for ptype, pname in params)), file=fp)
+        print(file=fp)
+        print("  %s;\n}\n" % rtype.do_return(), file=fp)
 
     def __parse_pragma(self, line, prefix="libi8x_api_"):
         if line.startswith("#"):
@@ -129,6 +178,80 @@ class API(object):
     def __extract_everything_else(self, src, include_path):
         ASTVisitor(self).visit(self.__parse(src, include_path))
 
+class PyType(object):
+    @classmethod
+    def __cinit(cls):
+        cls.CLASSES = {}
+        #"const char *": CString,
+        #"i8x_err_e": I8xError,
+        #"void": CVoid}
+        for ctype in CInt.CTYPES:
+            cls.CLASSES[ctype] = CInt
+
+    @classmethod
+    def from_ctype(cls, ctype):
+        if not hasattr(cls, "CLASSES"):
+            cls.__cinit()
+        tmp = cls.CLASSES.get(ctype, None)
+        if (tmp is None
+              and ctype.startswith(I8xObject.OPREFIX)
+              and ctype.endswith(I8xObject.OSUFFIX)):
+            tmp = I8xObject
+        if tmp is None:
+            raise NotImplementedError(ctype)
+        cls = tmp
+        return cls(ctype)
+
+    def __init__(self, ctype):
+        self.ctype = ctype
+
+class CInt(PyType):
+    CREATORS = {}
+    #"i8x_byte_order_e": "PyInt_FromLong",
+    #"int": "PyInt_FromLong"}
+
+    CTYPES = list(CREATORS.keys())
+
+    @property
+    def argtype(self):
+        return self.ctype
+
+    def argname(self, name):
+        return name
+
+class CString(PyType):
+    pass
+
+class CVoid(PyType):
+    pass
+
+class I8xError(PyType):
+    pass
+
+class I8xObject(PyType):
+    OPREFIX, OSUFFIX = "struct i8x_", " *"
+
+    argtype = "PyObject *"
+    argfmt = "O"
+
+    def argname(self, name):
+        return name + "c"
+
+    SHORT_PREFIXES = {"readbuf": "rb"}
+
+    @property
+    def func_prefix(self):
+        prefix = self.ctype[len(self.OPREFIX):-len(self.OSUFFIX)]
+        prefix = self.SHORT_PREFIXES.get(prefix, prefix)
+        return prefix
+
+    def unwrap_arg(self, name):
+        return "%s%s = py8x_%s_from_capsule (%s)" % (
+            self.ctype, name, self.func_prefix, self.argname(name))
+
+    def do_return(self):
+        return "return PyCapsule_New (result, NULL, py8x_ob_unref)"
+
 class ASTVisitor(pycparser.c_ast.NodeVisitor):
     def __init__(self, api):
         self.api = api
@@ -145,15 +268,16 @@ class ASTVisitor(pycparser.c_ast.NodeVisitor):
                          or name.endswith("_ref")
                          or name.endswith("_unref")
                          or name.endswith("_userdata")
+                         or name.endswith("_fn")
+                         or name.endswith("_cb")
                          or name.find("_new") != -1
                          or name.startswith("i8x_ctx_import_")
+                         or name.startswith("i8x_rb_read_")
                          or name in ("i8x_ctx_get_funcref",
-                                     "i8x_ctx_set_log_fn",
                                      "i8x_ctx_strerror_r",
                                      "i8x_listitem_get_object",
                                      "i8x_note_get_unique_chunk",
-                                     "i8x_rb_read_bytes",
-                                     "i8x_rb_read_offset_string")))):
+                                     "i8x_xctx_call")))):
             TopLevelDeclVisitor(self.api).visit(node.type)
 
 class TopLevelDeclVisitor(pycparser.c_ast.NodeVisitor):
