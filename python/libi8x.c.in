@@ -198,14 +198,36 @@ py8x_ctx_import_bytecode (PyObject *self, PyObject *args)
 
   struct i8x_ctx *ctx = py8x_ctx_from_capsule (ctxc);
   struct i8x_func *func;
-  i8x_err_e err;
-
-  err = i8x_ctx_import_bytecode (ctx, buffer.buf, buffer.len,
-				 srcname, srcoff, &func);
+  i8x_err_e err = i8x_ctx_import_bytecode (ctx,
+					   buffer.buf, buffer.len,
+					   srcname, srcoff,
+					   &func);
   PyBuffer_Release (&buffer);
   PY8X_CHECK_CALL (ctx, err);
 
   return PyCapsule_New (func, NULL, py8x_ob_unref);
+}
+
+/* Python binding for i8x_ctx_get_funcref.  */
+
+static PyObject *
+py8x_ctx_get_funcref (PyObject *self, PyObject *args)
+{
+  PyObject *ctxc;
+  const char *provider, *name, *ptypes, *rtypes;
+
+  if (!PyArg_ParseTuple (args, "Ossss", &ctxc,
+			 &provider, &name, &ptypes, &rtypes))
+    return NULL;
+
+  struct i8x_ctx *ctx = py8x_ctx_from_capsule (ctxc);
+  struct i8x_funcref *ref;
+  i8x_err_e err = i8x_ctx_get_funcref (ctx,
+				       provider, name, ptypes, rtypes,
+				       &ref);
+  PY8X_CHECK_CALL (ctx, err);
+
+  return PyCapsule_New (ref, NULL, py8x_ob_unref);
 }
 
 #pragma libi8x_api_functions
@@ -218,6 +240,7 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (ctx_new),
   PY8X_FUNCTION (ctx_set_log_fn),
   PY8X_FUNCTION (ctx_import_bytecode),
+  PY8X_FUNCTION (ctx_get_funcref),
 #pragma libi8x_api_function_table
   {NULL, NULL, 0, NULL}
 };

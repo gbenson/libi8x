@@ -24,16 +24,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import _libi8x as py8x
-from .. import common
+from . import common
 
-class TestCase(common.TestCase):
-    def ctx_new(self):
-        """Standard way to create an i8x_ctx for tests."""
-        return py8x.ctx_new(py8x.I8X_DBG_MEM, None)
+class TestPy8xCtxGetFuncref(common.PopulatedTestCase):
+    def test_exists(self):
+        """Test py8x_ctx_get_funcref on existing function."""
+        ref = py8x.ctx_get_funcref (self.ctx, "example", "factorial", "i", "i")
+        self.assertIsNot(ref, None)
 
-class PopulatedTestCase(TestCase):
-    """A testcase with a context and a loaded function."""
-
-    def setUp(self):
-        self.ctx = self.ctx_new()
-        py8x.ctx_import_bytecode(self.ctx, self.GOOD_NOTE, "testnote", 0)
+    def test_new(self):
+        """Test py8x_ctx_get_funcref on nonexistent function."""
+        ctx = self.ctx_new()
+        ref = py8x.ctx_get_funcref (self.ctx, "exmapel", "factorial", "i", "i")
+        self.assertIsNot(ref, None)
