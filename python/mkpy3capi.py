@@ -181,7 +181,7 @@ py%s (PyObject *self, PyObject *args)
 class PyType(object):
     @classmethod
     def __cinit(cls):
-        cls.CLASSES = {}
+        cls.CLASSES = {"bool": CBool}
         #"const char *": CString,
         #"i8x_err_e": I8xError,
         #"void": CVoid}
@@ -204,6 +204,14 @@ class PyType(object):
 
     def __init__(self, ctype):
         self.ctype = ctype
+
+class CBool(PyType):
+    def do_return(self):
+        return """\
+if (result)
+    Py_RETURN_TRUE;
+  else
+    Py_RETURN_FALSE"""
 
 class CInt(PyType):
     CREATORS = {"i8x_byte_order_e": "PyInt_FromLong",
