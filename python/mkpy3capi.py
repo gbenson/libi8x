@@ -206,9 +206,8 @@ class PyType(object):
         self.ctype = ctype
 
 class CInt(PyType):
-    CREATORS = {}
-    #"i8x_byte_order_e": "PyInt_FromLong",
-    #"int": "PyInt_FromLong"}
+    CREATORS = {"i8x_byte_order_e": "PyInt_FromLong",
+                "int": "PyInt_FromLong"}
 
     CTYPES = list(CREATORS.keys())
 
@@ -218,6 +217,9 @@ class CInt(PyType):
 
     def argname(self, name):
         return name
+
+    def do_return(self):
+        return "return PyInt_FromLong (result)"
 
 class CString(PyType):
     pass
