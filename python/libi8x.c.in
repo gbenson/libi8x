@@ -173,8 +173,7 @@ py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
   ud->log_fn = log_fn;
   Py_INCREF (log_fn);
 
-  Py_INCREF (Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 /* Python binding for i8x_ctx_import_bytecode.  */
