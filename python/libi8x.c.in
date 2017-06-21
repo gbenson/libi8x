@@ -219,6 +219,54 @@ py8x_ctx_import_bytecode (PyObject *self, PyObject *args)
   return PyCapsule_New (func, NULL, py8x_ob_unref);
 }
 
+/* Implementation function for all native functions we create.  */
+
+static i8x_err_e
+py8x_natfunc_impl (struct i8x_xctx *xctx,
+		  struct i8x_inf *inf,
+		  struct i8x_func *func,
+		  union i8x_value *args,
+		  union i8x_value *rets)
+{
+  abort ();
+}
+
+/* Userdata cleanup for all native functions we create.  */
+
+static void
+py8x_natfunc_udcleanup (void *userdata)
+{
+  PyObject *impl = (PyObject *) userdata;
+
+  Py_DECREF (impl);
+}
+
+/* Python binding for i8x_ctx_import_native.  */
+
+static PyObject *
+py8x_ctx_import_native (PyObject *self, PyObject *args)
+{
+  PyObject *ctxc;
+  const char *provider, *name, *ptypes, *rtypes;
+  PyObject *impl;
+
+  if (!PyArg_ParseTuple (args, "OssssO", &ctxc,
+			 &provider, &name, &ptypes, &rtypes, &impl))
+    return NULL;
+
+  struct i8x_ctx *ctx = py8x_ctx_from_capsule (ctxc);
+  struct i8x_func *func;
+  i8x_err_e err = i8x_ctx_import_native (ctx,
+					 provider, name, ptypes, rtypes,
+					 py8x_natfunc_impl, &func);
+  PY8X_CHECK_CALL (ctx, err);
+
+  Py_INCREF (impl);
+  i8x_func_set_userdata (func, impl, py8x_natfunc_udcleanup);
+
+  return PyCapsule_New (func, NULL, py8x_ob_unref);
+}
+
 /* Python binding for i8x_ctx_get_funcref.  */
 
 static PyObject *
@@ -251,6 +299,7 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (ctx_new),
   PY8X_FUNCTION (ctx_set_log_fn),
   PY8X_FUNCTION (ctx_import_bytecode),
+  PY8X_FUNCTION (ctx_import_native),
   PY8X_FUNCTION (ctx_get_funcref),
 #pragma libi8x_api_function_table
   {NULL, NULL, 0, NULL}
