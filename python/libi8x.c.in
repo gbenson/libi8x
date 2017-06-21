@@ -66,6 +66,18 @@ struct py8x_ctx_userdata
   PyObject *log_fn;
 };
 
+/* Userdata cleanup for py8x_ctx_userdata.  */
+
+static void
+py8x_ctx_udcleanup (void *ud_p)
+{
+  struct py8x_ctx_userdata *ud = (struct py8x_ctx_userdata *) ud_p;
+
+  Py_XDECREF (ud->log_fn);
+
+  free (ud);
+}
+
 /* Userdata for the context currently being created by i8x_ctx_new.
    i8x_ctx_new can log before we have a chance to set the context's
    userdata; this static global exists so that py8x_log can access
@@ -144,9 +156,9 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   err = i8x_ctx_new (flags, py8x_log, &ctx);
 
   if (err == I8X_OK)
-    i8x_ctx_set_userdata (ctx, py8x_new_context_ud, free);
+    i8x_ctx_set_userdata (ctx, py8x_new_context_ud, py8x_ctx_udcleanup);
   else
-    free (py8x_new_context_ud);
+    py8x_ctx_udcleanup (py8x_new_context_ud);
 
   py8x_new_context_ud = NULL;
 
