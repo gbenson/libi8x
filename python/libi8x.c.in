@@ -150,8 +150,8 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   if (py8x_new_context_ud == NULL)
     return PyErr_NoMemory ();
 
-  py8x_new_context_ud->log_fn = log_fn;
   Py_INCREF (log_fn);
+  py8x_new_context_ud->log_fn = log_fn;
 
   err = i8x_ctx_new (flags, py8x_log, &ctx);
 
@@ -182,8 +182,8 @@ py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
     (struct py8x_ctx_userdata *) i8x_ctx_get_userdata (ctx);
 
   Py_DECREF (ud->log_fn);
-  ud->log_fn = log_fn;
   Py_INCREF (log_fn);
+  ud->log_fn = log_fn;
 
   Py_RETURN_NONE;
 }
