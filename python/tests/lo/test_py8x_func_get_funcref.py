@@ -24,17 +24,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import _libi8x as py8x
-from .. import common
+from . import common
 
-class TestCase(common.TestCase):
-    def ctx_new(self):
-        """Standard way to create an i8x_ctx for tests."""
-        return py8x.ctx_new(py8x.I8X_DBG_MEM, None)
-
-class PopulatedTestCase(TestCase):
-    """A testcase with a context and a loaded function."""
-
-    def setUp(self):
-        self.ctx = self.ctx_new()
-        self.func = py8x.ctx_import_bytecode(self.ctx, self.GOOD_NOTE,
-                                             "testnote", 0)
+class TestPy8xFuncGetFuncref(common.PopulatedTestCase):
+    def test_get_funcref(self):
+        """Test py8x_func_get_byte_order."""
+        self.assertIsNot(py8x.func_get_funcref(self.func), None)
