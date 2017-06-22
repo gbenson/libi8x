@@ -328,7 +328,7 @@ class TypeVisitor(pycparser.c_ast.NodeVisitor):
         self.__is_const = False
         self.__nonatomic = None # struct or union
         self.__basetype = None
-        self.__is_pointer = False
+        self.__starcount = 0
         self.name = None
 
     @property
@@ -340,8 +340,8 @@ class TypeVisitor(pycparser.c_ast.NodeVisitor):
             result.append(self.__nonatomic)
         assert self.__basetype is not None
         result.append(self.__basetype)
-        if self.__is_pointer:
-            result.append("*")
+        if self.__starcount:
+            result.append("*" * self.__starcount)
         return " ".join(result)
 
     def generic_visit(self, node):
@@ -350,8 +350,7 @@ class TypeVisitor(pycparser.c_ast.NodeVisitor):
         raise NotImplementedError
 
     def visit_PtrDecl(self, node):
-        assert not self.__is_pointer
-        self.__is_pointer = True
+        self.__starcount += 1
         assert not node.quals
         self.visit(node.type)
 
