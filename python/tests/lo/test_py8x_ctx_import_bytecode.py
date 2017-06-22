@@ -32,7 +32,6 @@ class TestPy8xCtxImportBytecode(common.TestCase):
         ctx = self.ctx_new()
         func = py8x.ctx_import_bytecode(ctx, self.GOOD_NOTE, "testnote", 0)
         self.assertIsNot(func, None)
-        del func
 
     def test_failure(self):
         """Test py8x_ctx_import_bytecode on a corrupt note."""

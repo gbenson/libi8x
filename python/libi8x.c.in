@@ -66,10 +66,10 @@ struct py8x_ctx_userdata
   PyObject *log_fn;
 };
 
-/* Userdata cleanup for py8x_ctx_userdata.  */
+/* Free context userdata.  */
 
 static void
-py8x_ctx_udcleanup (void *ud_p)
+py8x_ctx_userdata_free (void *ud_p)
 {
   struct py8x_ctx_userdata *ud = (struct py8x_ctx_userdata *) ud_p;
 
@@ -156,9 +156,9 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   err = i8x_ctx_new (flags, py8x_log, &ctx);
 
   if (err == I8X_OK)
-    i8x_ctx_set_userdata (ctx, py8x_new_context_ud, py8x_ctx_udcleanup);
+    i8x_ctx_set_userdata (ctx, py8x_new_context_ud, py8x_ctx_userdata_free);
   else
-    py8x_ctx_udcleanup (py8x_new_context_ud);
+    py8x_ctx_userdata_free (py8x_new_context_ud);
 
   py8x_new_context_ud = NULL;
 
@@ -188,6 +188,62 @@ py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+/* Function (i8x_func) userdata.  */
+
+struct py8x_func_userdata
+{
+  /* Referenced parent capsule (for i8x_ob_unref ordering).  */
+  PyObject *parent;
+
+  /* Implementation (native only).  */
+  PyObject *impl;
+};
+
+/* Create function userdata.  */
+
+static struct py8x_func_userdata *
+py8x_func_userdata_new (PyObject *parent, PyObject *impl)
+{
+  struct py8x_func_userdata *ud	\
+    = calloc (1, sizeof (struct py8x_func_userdata));
+
+  if (ud != NULL)
+    {
+      Py_INCREF (parent);
+      ud->parent = parent;
+
+      Py_XINCREF (impl);
+      ud->impl = impl;
+    }
+
+  return ud;
+}
+
+/* Free function userdata.  */
+
+static void
+py8x_func_userdata_free (void *ud_p)
+{
+  struct py8x_func_userdata *ud = (struct py8x_func_userdata *) ud_p;
+
+  Py_XDECREF (ud->impl);
+  Py_DECREF (ud->parent);
+
+  free (ud);
+}
+
+/* Implementation function for native functions we create.  */
+
+static i8x_err_e
+py8x_natfunc_impl (struct i8x_xctx *xctx,
+		  struct i8x_inf *inf,
+		  struct i8x_func *func,
+		  union i8x_value *args,
+		  union i8x_value *rets)
+{
+  abort ();
+}
+
 /* Python binding for i8x_ctx_import_bytecode.  */
 
 static PyObject *
@@ -207,6 +263,10 @@ py8x_ctx_import_bytecode (PyObject *self, PyObject *args)
 			 "*zl", &ctxc, &buffer, &srcname, &srcoff))
     return NULL;
 
+  struct py8x_func_userdata *ud = py8x_func_userdata_new (ctxc, NULL);
+  if (ud == NULL)
+    return PyErr_NoMemory ();
+
   struct i8x_ctx *ctx = py8x_ctx_from_capsule (ctxc);
   struct i8x_func *func;
   i8x_err_e err = i8x_ctx_import_bytecode (ctx,
@@ -214,31 +274,15 @@ py8x_ctx_import_bytecode (PyObject *self, PyObject *args)
 					   srcname, srcoff,
 					   &func);
   PyBuffer_Release (&buffer);
+
+  if (err == I8X_OK)
+    i8x_func_set_userdata (func, ud, py8x_func_userdata_free);
+  else
+    py8x_func_userdata_free (ud);
+
   PY8X_CHECK_CALL (ctx, err);
 
   return PyCapsule_New (func, NULL, py8x_ob_unref);
-}
-
-/* Implementation function for all native functions we create.  */
-
-static i8x_err_e
-py8x_natfunc_impl (struct i8x_xctx *xctx,
-		  struct i8x_inf *inf,
-		  struct i8x_func *func,
-		  union i8x_value *args,
-		  union i8x_value *rets)
-{
-  abort ();
-}
-
-/* Userdata cleanup for all native functions we create.  */
-
-static void
-py8x_natfunc_udcleanup (void *userdata)
-{
-  PyObject *impl = (PyObject *) userdata;
-
-  Py_DECREF (impl);
 }
 
 /* Python binding for i8x_ctx_import_native.  */
@@ -254,15 +298,21 @@ py8x_ctx_import_native (PyObject *self, PyObject *args)
 			 &provider, &name, &ptypes, &rtypes, &impl))
     return NULL;
 
+  struct py8x_func_userdata *ud = py8x_func_userdata_new (ctxc, impl);
+  if (ud == NULL)
+    return PyErr_NoMemory ();
+
   struct i8x_ctx *ctx = py8x_ctx_from_capsule (ctxc);
   struct i8x_func *func;
   i8x_err_e err = i8x_ctx_import_native (ctx,
 					 provider, name, ptypes, rtypes,
 					 py8x_natfunc_impl, &func);
-  PY8X_CHECK_CALL (ctx, err);
+  if (err == I8X_OK)
+    i8x_func_set_userdata (func, ud, py8x_func_userdata_free);
+  else
+    py8x_func_userdata_free (ud);
 
-  Py_INCREF (impl);
-  i8x_func_set_userdata (func, impl, py8x_natfunc_udcleanup);
+  PY8X_CHECK_CALL (ctx, err);
 
   return PyCapsule_New (func, NULL, py8x_ob_unref);
 }

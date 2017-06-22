@@ -33,4 +33,3 @@ class TestPy8xCtxImportNative(common.TestCase):
         func = py8x.ctx_import_native(ctx,
                                       "test", "func", "", "", None)
         self.assertIsNot(func, None)
-        del func
