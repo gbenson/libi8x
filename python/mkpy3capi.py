@@ -193,7 +193,7 @@ class PyType(object):
     @classmethod
     def __cinit(cls):
         cls.CLASSES = {"bool": CBool,
-                       #"const char *": CString,
+                       "const char *": CString,
                        "i8x_err_e": I8xError}
                        #"void": CVoid}
         for ctype in CInt.CTYPES:
@@ -216,6 +216,16 @@ class PyType(object):
     def __init__(self, ctype):
         self.ctype = ctype
 
+    @property
+    def argtype(self):
+        return self.ctype
+
+    def argname(self, name):
+        return name
+
+    def unwrap_arg(self, name):
+        pass
+
 class CBool(PyType):
     def do_return(self):
         return """\
@@ -230,18 +240,11 @@ class CInt(PyType):
 
     CTYPES = list(CREATORS.keys())
 
-    @property
-    def argtype(self):
-        return self.ctype
-
-    def argname(self, name):
-        return name
-
     def do_return(self):
         return "return PyInt_FromLong (result)"
 
 class CString(PyType):
-    pass
+    argfmt = "s"
 
 class CVoid(PyType):
     pass
