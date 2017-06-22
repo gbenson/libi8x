@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -231,6 +231,8 @@ i8x_ob_set_userdata (struct i8x_object *ob, void *userdata,
 		     i8x_cleanup_fn_t *cleanup)
 {
   i8x_assert_not_poisoned (ob);
+  i8x_assert (ob->userdata == NULL
+	      && ob->userdata_cleanup == NULL);
   i8x_assert (userdata != NULL || cleanup == NULL);
 
   ob->userdata = userdata;
