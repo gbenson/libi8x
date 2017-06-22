@@ -74,9 +74,13 @@ class API(object):
     def __emit_function(self, fp, name, rtype, params):
         try:
             rtype = PyType.from_ctype(rtype)
+        except NotImplementedError:
+            print("\x1B[31m%s: %s\x1B[0m" % (name, rtype))
+            return
+        try:
             params = [(PyType.from_ctype(t), n) for t, n in params]
         except NotImplementedError:
-            print("\x1B[31m%s\x1B[0m" % name)
+            print("\x1B[31m%s: %s\x1B[0m" % (name, params))
             return
 
         assert name.startswith("i8x_")
@@ -116,8 +120,8 @@ py%s (PyObject *self, PyObject *args)
         tmp = rtype.ctype
         if not tmp.endswith(" *"):
             tmp += " "
-        print("  %sresult = %s (%s);" % (
-            tmp, name,
+        print("  %s%s = %s (%s);" % (
+            tmp, rtype.retname, name,
             ", ".join(pname for ptype, pname in params)), file=fp)
         print(file=fp)
         print("  %s;\n}\n" % rtype.do_return(), file=fp)
@@ -184,12 +188,14 @@ py%s (PyObject *self, PyObject *args)
         ASTVisitor(self).visit(self.__parse(src, include_path))
 
 class PyType(object):
+    retname = "result"
+
     @classmethod
     def __cinit(cls):
-        cls.CLASSES = {"bool": CBool}
-        #"const char *": CString,
-        #"i8x_err_e": I8xError,
-        #"void": CVoid}
+        cls.CLASSES = {"bool": CBool,
+                       #"const char *": CString,
+                       "i8x_err_e": I8xError}
+                       #"void": CVoid}
         for ctype in CInt.CTYPES:
             cls.CLASSES[ctype] = CInt
 
@@ -241,7 +247,13 @@ class CVoid(PyType):
     pass
 
 class I8xError(PyType):
-    pass
+    retname = "err"
+
+    def do_return(self):
+        return """\
+PY8X_CHECK_CALL (ctx, err);
+
+  Py_RETURN_NONE"""
 
 class I8xObject(PyType):
     OPREFIX, OSUFFIX = "struct i8x_", " *"
