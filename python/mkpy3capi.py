@@ -334,14 +334,11 @@ class ASTVisitor(pycparser.c_ast.NodeVisitor):
                          or name.endswith("_userdata")
                          or name.endswith("_fn")
                          or name.endswith("_cb")
-                         or name.find("_new") != -1
                          or name.startswith("i8x_ctx_import_")
                          or name.startswith("i8x_rb_read_")
-                         or name in ("i8x_ctx_get_funcref",
+                         or name in ("i8x_ctx_new",
                                      "i8x_ctx_strerror_r",
-                                     "i8x_listitem_get_object",
-                                     "i8x_note_get_unique_chunk",
-                                     "i8x_xctx_call")))):
+                                     "i8x_listitem_get_object")))):
             TopLevelDeclVisitor(self.api).visit(node.type)
 
 class TopLevelDeclVisitor(pycparser.c_ast.NodeVisitor):
