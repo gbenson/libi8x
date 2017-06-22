@@ -91,6 +91,12 @@ class API(object):
 
         self.__ftable.append(name)
 
+        if (isinstance(rtype, I8xError)
+              and isinstance(params[-1][0], I8xObjPtrPtr)):
+            rtype.opp_return, retname = params.pop()
+            rtype.opp_return.retname = retname
+            rtype.opp_parent = params[0][0].argname(params[0][1])
+
         print("""\
 /* Python binding for %s.  */
 
@@ -110,6 +116,9 @@ py%s (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "%s", %s))
     return NULL;
 """ % ("".join(fmts), ", ".join(args)), file=fp)
+
+        if rtype.opp_return is not None:
+            params.append((rtype.opp_return, "&" + rtype.opp_return.retname))
 
         for ptype, pname in params:
             unwrap = ptype.unwrap_arg(pname)
@@ -204,10 +213,12 @@ class PyType(object):
         if not hasattr(cls, "CLASSES"):
             cls.__cinit()
         tmp = cls.CLASSES.get(ctype, None)
-        if (tmp is None
-              and ctype.startswith(I8xObject.OPREFIX)
-              and ctype.endswith(I8xObject.OSUFFIX)):
-            tmp = I8xObject
+        if tmp is None:
+            for tmp in (I8xObjPtr, I8xObjPtrPtr):
+                if ctype.startswith(tmp.PREFIX) and ctype.endswith(tmp.SUFFIX):
+                    break
+            else:
+                tmp = None
         if tmp is None:
             raise NotImplementedError(ctype)
         cls = tmp
@@ -225,6 +236,8 @@ class PyType(object):
 
     def unwrap_arg(self, name):
         pass
+
+    opp_return = None
 
 class CBool(PyType):
     def do_return(self):
@@ -253,13 +266,34 @@ class I8xError(PyType):
     retname = "err"
 
     def do_return(self):
-        return """\
-PY8X_CHECK_CALL (ctx, err);
+        result = "PY8X_CHECK_CALL (ctx, err);\n\n  "
+        if self.opp_return is None:
+            result += "Py_RETURN_NONE"
+        else:
+            # Hold referenced parent capsule for i8x_ob_unref ordering.
+            # XXX is param 0 always the parent?
+            result += """Py_INCREF (%s);
+  i8x_%s_set_userdata (%s, %s, py8x_py_decref);
 
-  Py_RETURN_NONE"""
+  return PyCapsule_New (%s, NULL, py8x_ob_unref)""" % (
+                self.opp_parent, self.opp_return.func_prefix,
+                self.opp_return.retname, self.opp_parent,
+                self.opp_return.retname)
+        return result
 
 class I8xObject(PyType):
-    OPREFIX, OSUFFIX = "struct i8x_", " *"
+    PREFIX = "struct i8x_"
+
+    SHORT_PREFIXES = {"readbuf": "rb"}
+
+    @property
+    def func_prefix(self):
+        prefix = self.ctype[len(self.PREFIX):-len(self.SUFFIX)]
+        prefix = self.SHORT_PREFIXES.get(prefix, prefix)
+        return prefix
+
+class I8xObjPtr(I8xObject):
+    SUFFIX = " *"
 
     argtype = "PyObject *"
     argfmt = "O"
@@ -267,21 +301,20 @@ class I8xObject(PyType):
     def argname(self, name):
         return name + "c"
 
-    SHORT_PREFIXES = {"readbuf": "rb"}
-
-    @property
-    def func_prefix(self):
-        prefix = self.ctype[len(self.OPREFIX):-len(self.OSUFFIX)]
-        prefix = self.SHORT_PREFIXES.get(prefix, prefix)
-        return prefix
-
     def unwrap_arg(self, name):
         return "%s%s = py8x_%s_from_capsule (%s)" % (
             self.ctype, name, self.func_prefix, self.argname(name))
 
     def do_return(self):
+        print("XXX: ref the parent capsule?", file=sys.stderr)
         return """result = i8x_%s_ref (result);
   return PyCapsule_New (result, NULL, py8x_ob_unref)""" % self.func_prefix
+
+class I8xObjPtrPtr(I8xObject):
+    SUFFIX = " **"
+
+    def unwrap_arg(self, name):
+        return self.ctype[:-1] + self.retname
 
 class ASTVisitor(pycparser.c_ast.NodeVisitor):
     def __init__(self, api):
