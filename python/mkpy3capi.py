@@ -248,13 +248,23 @@ if (result)
     Py_RETURN_FALSE"""
 
 class CInt(PyType):
-    CREATORS = {"i8x_byte_order_e": "PyInt_FromLong",
-                "int": "PyInt_FromLong"}
+    __ops = {"int":   ("i", "Int"),
+            "size_t": ("n", "Long")}
 
-    CTYPES = list(CREATORS.keys())
+    __ops["i8x_byte_order_e"] = __ops["int"]
+
+    CTYPES = list(__ops.keys())
+
+    @property
+    def argfmt(self):
+        return self.__ops[self.ctype][0]
+
+    @property
+    def __creator(self):
+        return "Py%s_FromLong" % self.__ops[self.ctype][1]
 
     def do_return(self):
-        return "return PyInt_FromLong (result)"
+        return "return %s (%s)" % (self.__creator, self.retname)
 
 class CString(PyType):
     argfmt = "s"
