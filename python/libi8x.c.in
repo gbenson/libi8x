@@ -58,6 +58,16 @@ py8x_ob_unref (PyObject *obc)
   i8x_ob_unref (py8x_ob_from_capsule (obc));
 }
 
+/* Py_DecRef wrapped as i8x_cleanup_fn_t.  */
+
+static void
+py8x_py_decref (void *userdata)
+{
+  PyObject *obj = (PyObject *) userdata;
+
+  Py_DECREF (obj);
+}
+
 /* Context (i8x_ctx) userdata.  */
 
 struct py8x_ctx_userdata
@@ -335,6 +345,10 @@ py8x_ctx_get_funcref (PyObject *self, PyObject *args)
 				       provider, name, ptypes, rtypes,
 				       &ref);
   PY8X_CHECK_CALL (ctx, err);
+
+  /* Hold referenced parent capsule for i8x_ob_unref ordering.  */
+  Py_INCREF (ctxc);
+  i8x_funcref_set_userdata (ref, ctxc, py8x_py_decref);
 
   return PyCapsule_New (ref, NULL, py8x_ob_unref);
 }
