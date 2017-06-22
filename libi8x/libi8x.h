@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -332,6 +332,13 @@ struct i8x_listitem *i8x_list_get_item_by_index (struct i8x_list *list,
   for (item = i8x_list_get_first (list);	\
        item != NULL;				\
        item = i8x_list_get_next (list, item))
+
+/*
+ * i8x_listitem
+ *
+ * access to listitems of i8x
+ */
+I8X_COMMON_OBJECT_FUNCTIONS (listitem);
 
 /*
  * i8x_note
