@@ -20,6 +20,8 @@
 #include <py3c.h>
 #include <libi8x.h>
 
+#define PY8X_MAX(a, b) ((a) > (b) ? (a) : (b))
+
 #define PY8X_STRINGIZE(x) PY8X_STRINGIZE_1(x)
 #define PY8X_STRINGIZE_1(x) #x
 
@@ -338,6 +340,93 @@ py8x_ctx_import_native (PyObject *self, PyObject *args)
   return PyCapsule_New (func, NULL, py8x_ob_unref);
 }
 
+/* Python binding for i8x_xctx_call.  */
+
+static PyObject *
+py8x_xctx_call (PyObject *self, PyObject *args)
+{
+  PyObject *xctxc, *refc, *infc, *tmp;
+
+  if (!PyArg_ParseTuple (args, "OOOO", &xctxc, &refc, &infc, &tmp))
+    return NULL;
+  args = tmp;
+
+  struct i8x_funcref *ref = py8x_funcref_from_capsule (refc);
+  size_t argc = i8x_funcref_get_num_params (ref);
+  size_t retc = i8x_funcref_get_num_returns (ref);
+
+  if (PySequence_Length (args) != argc)
+    PY8X_RAISE ("wrong number of arguments");
+
+  union i8x_value *argv = alloca (PY8X_MAX (argc, retc));
+  union i8x_value *retv = argv;
+  struct i8x_list *types;
+  struct i8x_listitem *li;
+  size_t i;
+
+  types = i8x_funcref_get_ptypes (ref);
+  i8x_list_foreach_indexed (types, li, i)
+    {
+      struct i8x_type *type = i8x_listitem_get_type (li);
+      PyObject *arg = PySequence_GetItem (args, i);
+
+      if (arg == NULL)
+	return NULL;
+
+      if (i8x_type_is_functype (type))
+	{
+	  Py_DECREF (arg);
+	  py8x_not_implemented ();
+	}
+      else
+	{
+	  long value = PyLong_AsLong (arg);
+
+	  Py_DECREF (arg);
+	  if (value == -1 && PyErr_Occurred () != NULL)
+	    return NULL;
+
+	  argv[i].i = value;
+	}
+    }
+
+  struct i8x_xctx *xctx = py8x_xctx_from_capsule (xctxc);
+  struct i8x_inf *inf = py8x_inf_from_capsule (infc);
+  struct i8x_ctx *ctx = i8x_xctx_get_ctx (xctx);
+  i8x_err_e err = i8x_xctx_call (xctx, ref, inf, argv, retv);
+
+  PY8X_CHECK_CALL (ctx, err);
+
+  PyObject *result = PyTuple_New (retc);
+  if (result == NULL)
+    return NULL;
+
+  types = i8x_funcref_get_rtypes (ref);
+  i8x_list_foreach_indexed (types, li, i)
+    {
+      struct i8x_type *type = i8x_listitem_get_type (li);
+
+      if (i8x_type_is_functype (type))
+	{
+	  Py_DECREF (result);
+	  py8x_not_implemented ();
+	}
+      else
+	{
+	  PyObject *ret = PyLong_FromLong (retv[i].i);
+
+	  if (ret == NULL
+	      || PyTuple_SetItem (result, retc - i - 1, ret) != 0)
+	    {
+	      Py_DECREF (result);
+	      return NULL;
+	    }
+	}
+    }
+
+  return result;
+}
+
 #pragma libi8x_api_functions
 
 /* Module-level functions table.  */
@@ -349,6 +438,7 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (ctx_set_log_fn),
   PY8X_FUNCTION (ctx_import_bytecode),
   PY8X_FUNCTION (ctx_import_native),
+  PY8X_FUNCTION (xctx_call),
 #pragma libi8x_api_function_table
   {NULL, NULL, 0, NULL}
 };

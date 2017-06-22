@@ -24,20 +24,24 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import _libi8x as py8x
-from .. import common
+from . import common
 
-class TestCase(common.TestCase):
-    def ctx_new(self):
-        """Standard way to create an i8x_ctx for tests."""
-        return py8x.ctx_new(py8x.I8X_DBG_MEM, None)
+class TestPy8xXctxCall(common.PopulatedTestCase):
+    def test_correct(self):
+        """Test a correct py8x_xctx_call."""
+        rets = py8x.xctx_call(self.xctx, self.funcref, self.inf, (5,))
+        self.assertEqual(rets, (120,))
 
-class PopulatedTestCase(TestCase):
-    """A testcase with a context and a loaded function."""
+    def test_unresolved(self):
+        """Test py8x_xctx_call of an unresolved function."""
+        ref = py8x.ctx_get_funcref (self.ctx, "exmapel", "factorial", "i", "i")
+        self.assertRaises(py8x.Error,
+                          py8x.xctx_call,
+                          self.xctx, ref, self.inf, (5,))
 
-    def setUp(self):
-        self.ctx = self.ctx_new()
-        self.func = py8x.ctx_import_bytecode(self.ctx, self.GOOD_NOTE,
-                                             "testnote", 0)
-        self.xctx = py8x.xctx_new(self.ctx, 512)
-        self.inf = py8x.inf_new(self.ctx)
-        self.funcref = py8x.func_get_funcref(self.func)
+    def test_wrong_argument_count(self):
+        """Test py8x_xctx_call with the wrong number of arguments."""
+        for args in ((), (5, 3)):
+            self.assertRaises(py8x.Error,
+                              py8x.xctx_call,
+                              self.xctx, self.funcref, self.inf, args)
