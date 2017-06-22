@@ -72,15 +72,19 @@ class API(object):
             print("  PY8X_FUNCTION (%s)," % name[4:], file=fp)
 
     def __emit_function(self, fp, name, rtype, params):
-        XXXlog = "%s %s %s" % (name, rtype, params)
         try:
             rtype = PyType.from_ctype(rtype)
             params = [(PyType.from_ctype(t), n) for t, n in params]
         except NotImplementedError:
-            print("\x1B[31m%s\x1B[0m" % XXXlog)
+            print("\x1B[31m%s\x1B[0m" % name)
             return
-        print("\x1B[32m%s\x1B[0m" % XXXlog)
+
         assert name.startswith("i8x_")
+        has_test = os.path.exists(self.__testfmt % name[4:])
+        print("\x1B[%dm%s\x1B[0m" % (33 - has_test, name))
+        if not has_test:
+            return
+
         self.__ftable.append(name)
 
         print("""\
@@ -135,7 +139,8 @@ py%s (PyObject *self, PyObject *args)
               + "EDIT THE TEMPLATE AND REGENERATE. */", file=fp)
         print(file=fp)
 
-    def emit(self, template, output):
+    def emit(self, template, output, testfmt):
+        self.__testfmt = testfmt
         with open(template) as ifp:
             with open(output, "w") as ofp:
                 self.__emit_boilerplate(template, output, ofp)
@@ -402,8 +407,10 @@ argument to this script.""" % sys.argv[0], file=sys.stderr)
     header = os.path.join(topdir, "libi8x", "libi8x.h")
     output = os.path.join(curdir, "libi8x.c")
     template = output + ".in"
+    testdir = os.path.join(topdir, "python", "tests", "lo")
+    testfmt = os.path.join(testdir, "test_py8x_%s.py")
 
-    API(header, fake_include_path).emit(template, output)
+    API(header, fake_include_path).emit(template, output, testfmt)
 
 if __name__ == "__main__":
     main()
