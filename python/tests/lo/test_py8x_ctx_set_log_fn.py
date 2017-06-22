@@ -45,4 +45,5 @@ class TestPy8xCtxSetLogFn(common.TestCase):
         def log_func(*args):
             messages.append(args)
         py8x.ctx_set_log_fn(ctx, log_func)
-        raise NotImplementedError # XXX how to make a msg?
+        py8x.inf_new(ctx) # emit some messages
+        self.assertGreater(len(messages), 0)
