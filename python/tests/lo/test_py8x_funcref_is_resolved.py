@@ -30,16 +30,16 @@ class TestPy8xFuncRefIsResolved(common.PopulatedTestCase):
     def test_resolved(self):
         """Test py8x_funcref_is_resolved on a resolved function."""
         ref = py8x.ctx_get_funcref (self.ctx, "example", "factorial", "i", "i")
-        self.assertIs(py8x.funcref_is_resolved(ref), True)
+        self.assertTrue(py8x.funcref_is_resolved(ref))
 
     def test_undefined(self):
         """Test py8x_funcref_is_resolved on an undefined function."""
         ctx = self.ctx_new()
         ref = py8x.ctx_get_funcref (self.ctx, "exmapel", "factorial", "i", "i")
-        self.assertIs(py8x.funcref_is_resolved(ref), False)
+        self.assertFalse(py8x.funcref_is_resolved(ref))
 
     def test_ambiguous(self):
         """Test py8x_funcref_is_resolved on a function defined twice."""
         py8x.ctx_import_native(self.ctx, "example", "factorial", "i", "i", None)
         ref = py8x.ctx_get_funcref (self.ctx, "example", "factorial", "i", "i")
-        self.assertIs(py8x.funcref_is_resolved(ref), False)
+        self.assertFalse(py8x.funcref_is_resolved(ref))
