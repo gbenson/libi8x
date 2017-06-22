@@ -260,7 +260,8 @@ class I8xObject(PyType):
             self.ctype, name, self.func_prefix, self.argname(name))
 
     def do_return(self):
-        return "return PyCapsule_New (result, NULL, py8x_ob_unref)"
+        return """result = i8x_%s_ref (result);
+  return PyCapsule_New (result, NULL, py8x_ob_unref)""" % self.func_prefix
 
 class ASTVisitor(pycparser.c_ast.NodeVisitor):
     def __init__(self, api):
