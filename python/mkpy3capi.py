@@ -252,6 +252,11 @@ class PyType(object):
     opp_return = None
 
 class CBool(PyType):
+    argfmt = "i" # XXX use "p" for PY3K?
+
+    def __init__(self, ctype):
+        super(CBool, self).__init__("int")
+
     def do_return(self):
         return """\
 if (result)
