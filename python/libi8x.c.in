@@ -30,14 +30,25 @@
     return NULL;							\
   } while (0)
 
-/* Turn libi8x errors into Python exceptions.  */
+/* Exceptions.  */
+
+static PyObject *py8x_Error;
+
+#define PY8X_RAISE(msg)							\
+  do {									\
+    PyErr_SetString (py8x_Error, msg);					\
+    return NULL;							\
+  } while (0)
 
 #define PY8X_CHECK_CALL(ctx, err)					\
   do {									\
     if (err == I8X_ENOMEM)						\
       return PyErr_NoMemory ();						\
     else if (err != I8X_OK)						\
-      py8x_not_implemented ();						\
+      {									\
+        char buf[1024];							\
+	PY8X_RAISE (i8x_ctx_strerror_r (ctx, err, buf,  sizeof (buf)));	\
+      }									\
   } while (0)
 
 /* Helpers for each libi8x object.  */
@@ -360,6 +371,15 @@ static struct PyModuleDef libi8x_moduledef =
 MODULE_INIT_FUNC (_libi8x)
 {
   PyObject *m = PyModule_Create (&libi8x_moduledef);
+  if (m == NULL)
+    return NULL;
+
+  py8x_Error = PyErr_NewException ("_libi8x.Error", PyExc_RuntimeError, NULL);
+  if (py8x_Error == NULL)
+    return NULL;
+
+  if (PyModule_AddObject (m, "Error", py8x_Error) != 0)
+    return NULL;
 
 #pragma libi8x_api_constants
 
