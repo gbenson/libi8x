@@ -333,6 +333,11 @@ struct i8x_listitem *i8x_list_get_item_by_index (struct i8x_list *list,
        item != NULL;				\
        item = i8x_list_get_next (list, item))
 
+#define i8x_list_foreach_indexed(list, item, index)	\
+  for (index = 0, item = i8x_list_get_first (list);	\
+       item != NULL;					\
+       item = i8x_list_get_next (list, item), index++)
+
 /*
  * i8x_listitem
  *
