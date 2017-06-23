@@ -25,6 +25,17 @@ from __future__ import print_function
 
 from setuptools import setup, Extension
 import glob # XXX
+import subprocess # XXX
+import os # XXX
+import sys # XXX
+
+topdir = os.path.dirname(os.path.realpath(sys.argv[0]))
+
+subprocess.check_call((sys.executable,
+                       os.path.join(topdir, "mkpy3capi.py"),
+                       os.path.join(os.path.dirname(os.path.dirname(topdir)),
+                                    "pycparser", "utils",
+                                    "fake_libc_include")))
 
 setup(
     ext_modules=[
