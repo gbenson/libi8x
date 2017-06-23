@@ -127,10 +127,15 @@ py%s (PyObject *self, PyObject *args)
                 print("  %s;" % unwrap, file=fp)
 
         tmp = rtype.ctype
-        if not tmp.endswith(" *"):
-            tmp += " "
-        print("  %s%s = %s (%s);" % (
-            tmp, rtype.retname, name,
+        if tmp == "void":
+            tmp = ""
+        else:
+            if not tmp.endswith(" *"):
+                tmp += " "
+            tmp += rtype.retname
+            tmp += " = "
+        print("  %s%s (%s);" % (
+            tmp, name,
             ", ".join(pname for ptype, pname in params)), file=fp)
         print(file=fp)
         print("  %s;\n}\n" % rtype.do_return(), file=fp)
@@ -203,8 +208,8 @@ class PyType(object):
     def __cinit(cls):
         cls.CLASSES = {"bool": CBool,
                        "const char *": CString,
-                       "i8x_err_e": I8xError}
-                       #"void": CVoid}
+                       "i8x_err_e": I8xError,
+                       "void": CVoid}
         for ctype in CInt.CTYPES:
             cls.CLASSES[ctype] = CInt
 
@@ -270,7 +275,8 @@ class CString(PyType):
     argfmt = "s"
 
 class CVoid(PyType):
-    pass
+    def do_return(self):
+        return "Py_RETURN_NONE";
 
 class I8xError(PyType):
     retname = "err"
