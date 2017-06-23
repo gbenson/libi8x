@@ -41,6 +41,16 @@ class TestAllTested(unittest.TestCase):
                 continue
             if os.path.exists(format % attr):
                 continue
+
+            # Allow get and set tests to be combined
+            tmp = None
+            if attr.find("_get_") >= 0:
+                tmp = attr.replace("_get_", "_get_set_")
+            elif attr.find("_set_") >= 0:
+                tmp = attr.replace("_set_", "_get_set_")
+            if tmp is not None and os.path.exists(format % tmp):
+                continue
+
             unchecked.append(attr)
         if unchecked:
             self.fail("unchecked: " + " ".join(unchecked))

@@ -84,7 +84,14 @@ class API(object):
             return
 
         assert name.startswith("i8x_")
-        has_test = os.path.exists(self.__testfmt % name[4:])
+        tmp = name[4:]
+        has_test = os.path.exists(self.__testfmt % tmp)
+        if not has_test:
+            for what in ("_get_", "_set_"):
+                if tmp.find(what) >= 0:
+                    tmp = tmp.replace(what, "_get_set_")
+                    has_test = os.path.exists(self.__testfmt % tmp)
+                    break
         print("\x1B[%dm%s\x1B[0m" % (33 - has_test, name))
         if not has_test:
             return
