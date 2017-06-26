@@ -34,9 +34,11 @@ class TestCase(common.TestCase):
 class PopulatedTestCase(TestCase):
     """A testcase with a context and a loaded function."""
 
+    TESTNOTE = TestCase.GOOD_NOTE
+
     def setUp(self):
         self.ctx = self.ctx_new()
-        self.func = py8x.ctx_import_bytecode(self.ctx, self.GOOD_NOTE,
+        self.func = py8x.ctx_import_bytecode(self.ctx, self.TESTNOTE,
                                              "testnote", 0)
         self.xctx = py8x.xctx_new(self.ctx, 512)
         self.inf = py8x.inf_new(self.ctx)

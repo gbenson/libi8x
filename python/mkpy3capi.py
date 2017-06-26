@@ -366,6 +366,7 @@ class ASTVisitor(pycparser.c_ast.NodeVisitor):
                          or name.startswith("i8x_rb_read_")
                          or name in ("i8x_ctx_new",
                                      "i8x_ctx_strerror_r",
+                                     "i8x_inf_new",
                                      "i8x_listitem_get_object")))):
             TopLevelDeclVisitor(self.api).visit(node.type)
 
