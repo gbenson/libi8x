@@ -62,3 +62,4 @@ class TestConstants(unittest.TestCase):
         self.assertEqual(py8x.I8X_RELOC_FAILED, -297)
         self.assertEqual(py8x.I8X_READ_MEM_FAILED, -296)
         self.assertEqual(py8x.I8X_DIVIDE_BY_ZERO, -295)
+        self.assertEqual(py8x.I8X_NATCALL_FAILED, -294)
