@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -463,6 +463,9 @@ error_message_for (i8x_err_e code)
 
     case I8X_DIVIDE_BY_ZERO:
       return _("Division by zero");
+
+    case I8X_NATCALL_FAILED:
+      return _("Native call failed");
 
     default:
       return NULL;

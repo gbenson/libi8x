@@ -47,6 +47,7 @@ typedef enum
   I8X_RELOC_FAILED,
   I8X_READ_MEM_FAILED,
   I8X_DIVIDE_BY_ZERO,
+  I8X_NATCALL_FAILED,
 }
 i8x_err_e;
 
