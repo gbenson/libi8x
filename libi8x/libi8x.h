@@ -245,6 +245,7 @@ i8x_err_e i8x_ctx_import_native (struct i8x_ctx *ctx,
 				 const char *ptypes, const char *rtypes,
 				 i8x_nat_fn_t *impl_fn,
 				 struct i8x_func **func);
+struct i8x_list *i8x_ctx_get_functions (struct i8x_ctx *ctx);
 
 /*
  * i8x_func

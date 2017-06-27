@@ -18,6 +18,7 @@ global:
 	i8x_ctx_unregister_func;
 	i8x_ctx_import_bytecode;
 	i8x_ctx_import_native;
+	i8x_ctx_get_functions;
 
 	i8x_func_new_bytecode;
 	i8x_func_new_native;

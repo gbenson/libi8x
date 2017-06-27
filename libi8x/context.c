@@ -893,3 +893,9 @@ i8x_inf_invalidate_relocs (struct i8x_inf *inf)
 	}
     }
 }
+
+I8X_EXPORT struct i8x_list *
+i8x_ctx_get_functions (struct i8x_ctx *ctx)
+{
+  return ctx->functions;
+}
