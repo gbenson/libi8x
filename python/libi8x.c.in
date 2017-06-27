@@ -46,6 +46,8 @@ static PyObject *py8x_Error;
   do {									\
     if (err == I8X_ENOMEM)						\
       return PyErr_NoMemory ();						\
+    else if (err == I8X_NATCALL_FAILED && PyErr_Occurred () != NULL)	\
+      return NULL; /* User code raised an exception.  */		\
     else if (err != I8X_OK)						\
       {									\
         char buf[1024];							\
@@ -255,16 +257,115 @@ py8x_func_userdata_free (void *ud_p)
   free (ud);
 }
 
+/* Helper for py8x_natfunc_impl.  */
+
+#define PY8X_NFI_SETARG(i, v)						\
+  do {									\
+    PyObject *arg = v;							\
+									\
+    if (arg == NULL || PyTuple_SetItem (args, (i), arg) != 0)		\
+      {									\
+	Py_DECREF (args);						\
+	return I8X_NATCALL_FAILED;					\
+      }									\
+  } while (0)
+
 /* Implementation function for native functions we create.  */
 
 static i8x_err_e
 py8x_natfunc_impl (struct i8x_xctx *xctx,
 		  struct i8x_inf *inf,
 		  struct i8x_func *func,
-		  union i8x_value *args,
-		  union i8x_value *rets)
+		  union i8x_value *argv,
+		  union i8x_value *retv)
 {
-  abort ();
+  struct i8x_funcref *ref = i8x_func_get_funcref (func);
+  size_t argc = i8x_funcref_get_num_params (ref);
+  PyObject *args = PyTuple_New (3 + argc);
+
+  if (args == NULL)
+    return I8X_NATCALL_FAILED;
+
+  /* Pack the arguments.  */
+  PY8X_NFI_SETARG (0, PyCapsule_New (i8x_xctx_ref (xctx), NULL, py8x_ob_unref));
+  PY8X_NFI_SETARG (1, PyCapsule_New (i8x_inf_ref (inf), NULL, py8x_ob_unref));
+  PY8X_NFI_SETARG (2, PyCapsule_New (i8x_func_ref (func), NULL, py8x_ob_unref));
+
+  struct i8x_list *types;
+  struct i8x_listitem *li;
+  size_t i;
+
+  types = i8x_funcref_get_ptypes (ref);
+  i8x_list_foreach_indexed (types, li, i)
+    {
+      struct i8x_type *type = i8x_listitem_get_type (li);
+
+      if (i8x_type_is_functype (type))
+	{
+	  Py_DECREF (args);
+	  return I8X_NATCALL_FAILED;
+	}
+      else
+	PY8X_NFI_SETARG (3 + i, PyLong_FromLong (argv[i].i));
+    }
+
+  /* Make the call.  */
+  struct py8x_func_userdata *ud =
+    (struct py8x_func_userdata *) i8x_func_get_userdata (func);
+
+  PyObject *rets = PyObject_Call (ud->impl, args, NULL);
+  Py_DECREF (args);
+  if (rets == NULL)
+    return I8X_NATCALL_FAILED;
+
+  /* Unpack the returns.  */
+  size_t retc = i8x_funcref_get_num_returns (ref);
+  if (PySequence_Length (rets) != retc)
+    {
+      PyErr_SetString (py8x_Error, "wrong number of returns");
+
+      Py_DECREF (rets);
+      return I8X_NATCALL_FAILED;
+    }
+
+  types = i8x_funcref_get_rtypes (ref);
+  i8x_list_foreach_indexed (types, li, i)
+    {
+      struct i8x_type *type = i8x_listitem_get_type (li);
+      PyObject *ret = PySequence_GetItem (rets, retc - i - 1);
+
+      if (ret == NULL)
+	{
+	  Py_DECREF (rets);
+	  return I8X_NATCALL_FAILED;
+	}
+
+      if (i8x_type_is_functype (type))
+	{
+	  PyErr_SetString (PyExc_NotImplementedError,
+			   __FILE__ ":" PY8X_STRINGIZE (__LINE__));
+
+	  Py_DECREF (ret);
+	  Py_DECREF (rets);
+	  return I8X_NATCALL_FAILED;
+	}
+      else
+	{
+	  long value = PyLong_AsLong (ret);
+
+	  Py_DECREF (ret);
+	  if (value == -1 && PyErr_Occurred () != NULL)
+	    {
+	      Py_DECREF (rets);
+	      return I8X_NATCALL_FAILED;
+	    }
+
+	  retv[i].i = value;
+	}
+    }
+
+  Py_DECREF (rets);
+  return I8X_OK;
 }
 
 /* Python binding for i8x_ctx_import_bytecode.  */
