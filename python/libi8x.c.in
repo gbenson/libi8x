@@ -688,6 +688,54 @@ py8x_inf_set_read_mem_fn (PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+/* Helper for methods that return list items (i8x_listitem).  */
+
+#define PY8X_RETURN_LISTITEM(value)					\
+  do {									\
+    struct i8x_listitem *result = value;				\
+									\
+    if (result == NULL)							\
+      {									\
+	PyErr_SetNone(PyExc_StopIteration);				\
+	return NULL;							\
+      }									\
+									\
+    return PyCapsule_New (i8x_listitem_ref (result), NULL,		\
+			  py8x_ob_unref);				\
+  } while (0)
+
+/* Python binding for i8x_list_get_first.  */
+
+static PyObject *
+py8x_list_get_first (PyObject *self, PyObject *args)
+{
+  PyObject *listc;
+
+  if (!PyArg_ParseTuple (args, "O", &listc))
+    return NULL;
+
+  struct i8x_list *list = py8x_list_from_capsule (listc);
+
+  PY8X_RETURN_LISTITEM (i8x_list_get_first (list));
+}
+
+/* Python binding for i8x_list_get_next.  */
+
+static PyObject *
+py8x_list_get_next (PyObject *self, PyObject *args)
+{
+  PyObject *listc;
+  PyObject *currc;
+
+  if (!PyArg_ParseTuple (args, "OO", &listc, &currc))
+    return NULL;
+
+  struct i8x_list *list = py8x_list_from_capsule (listc);
+  struct i8x_listitem *curr = py8x_listitem_from_capsule (currc);
+
+  PY8X_RETURN_LISTITEM (i8x_list_get_next (list, curr));
+}
+
 #pragma libi8x_api_functions
 
 /* Module-level functions table.  */
@@ -702,6 +750,8 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (xctx_call),
   PY8X_FUNCTION (inf_new),
   PY8X_FUNCTION (inf_set_read_mem_fn),
+  PY8X_FUNCTION (list_get_first),
+  PY8X_FUNCTION (list_get_next),
 #pragma libi8x_api_function_table
   {NULL, NULL, 0, NULL}
 };
