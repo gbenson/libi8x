@@ -312,7 +312,7 @@ class I8xError(PyType):
 class I8xObject(PyType):
     PREFIX = "struct i8x_"
 
-    SHORT_PREFIXES = {"readbuf": "rb"}
+    SHORT_PREFIXES = {"readbuf": "rb", "object": "ob"}
 
     @property
     def func_prefix(self):
@@ -367,8 +367,7 @@ class ASTVisitor(pycparser.c_ast.NodeVisitor):
                          or name.startswith("i8x_list_get_")
                          or name in ("i8x_ctx_new",
                                      "i8x_ctx_strerror_r",
-                                     "i8x_inf_new",
-                                     "i8x_listitem_get_object")))):
+                                     "i8x_inf_new")))):
             TopLevelDeclVisitor(self.api).visit(node.type)
 
 class TopLevelDeclVisitor(pycparser.c_ast.NodeVisitor):
