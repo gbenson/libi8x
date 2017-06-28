@@ -31,4 +31,4 @@ class TestPy8xXctxNew(common.TestCase):
         """Test py8x_xctx_new."""
         ctx = self.ctx_new()
         xctx = py8x.xctx_new(ctx, 512)
-        self.assertIsNot(xctx, None)
+        self.assertIsNotNone(xctx)

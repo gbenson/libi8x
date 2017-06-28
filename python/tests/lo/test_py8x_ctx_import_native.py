@@ -30,6 +30,5 @@ class TestPy8xCtxImportNative(common.TestCase):
     def test_basic(self):
         """Test py8x_ctx_import_native."""
         ctx = self.ctx_new()
-        func = py8x.ctx_import_native(ctx,
-                                      "test", "func", "", "", None)
-        self.assertIsNot(func, None)
+        func = py8x.ctx_import_native(ctx, "test", "func", "", "", None)
+        self.assertIsNotNone(func)

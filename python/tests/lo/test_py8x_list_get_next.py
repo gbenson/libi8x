@@ -35,7 +35,7 @@ class TestPy8xListGetNext(common.PopulatedTestCase):
     def test_basic(self):
         """Test py8x_list_get_next"""
         py8x.ctx_import_bytecode(self.ctx, self.GOOD_NOTE, "testnote", 0)
-        self.assertIsNot(self.__do_test(), None)
+        self.assertIsNotNone(self.__do_test())
 
     def test_list_end(self):
         """Test py8x_list_get_next at the end of the list"""

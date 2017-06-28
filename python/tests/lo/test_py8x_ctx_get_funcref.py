@@ -30,10 +30,10 @@ class TestPy8xCtxGetFuncref(common.PopulatedTestCase):
     def test_exists(self):
         """Test py8x_ctx_get_funcref on existing function."""
         ref = py8x.ctx_get_funcref (self.ctx, "example", "factorial", "i", "i")
-        self.assertIsNot(ref, None)
+        self.assertIsNotNone(ref)
 
     def test_new(self):
         """Test py8x_ctx_get_funcref on nonexistent function."""
         ctx = self.ctx_new()
         ref = py8x.ctx_get_funcref (self.ctx, "exmapel", "factorial", "i", "i")
-        self.assertIsNot(ref, None)
+        self.assertIsNotNone(ref)

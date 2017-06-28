@@ -36,7 +36,7 @@ class TestPy8xListGetFirst(common.TestCase):
     def test_basic(self):
         """Test py8x_list_get_first."""
         py8x.ctx_import_bytecode(self.ctx, self.GOOD_NOTE, "testnote", 0)
-        self.assertIsNot(self.__do_test(), None)
+        self.assertIsNotNone(self.__do_test())
 
     def test_empty_list(self):
         """Test py8x_list_get_first on an empty list."""

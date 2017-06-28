@@ -30,4 +30,4 @@ class TestPy8xCtxGetFunctions(common.PopulatedTestCase):
     def test_basic(self):
         """Test py8x_ctx_get_functions."""
         functions = py8x.ctx_get_functions (self.ctx)
-        self.assertIsNot(functions, None)
+        self.assertIsNotNone(functions)

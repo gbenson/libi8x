@@ -29,4 +29,4 @@ from . import common
 class TestPy8xFuncGetFuncref(common.PopulatedTestCase):
     def test_get_funcref(self):
         """Test py8x_func_get_byte_order."""
-        self.assertIsNot(py8x.func_get_funcref(self.func), None)
+        self.assertIsNotNone(py8x.func_get_funcref(self.func))

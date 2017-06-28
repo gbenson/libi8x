@@ -31,4 +31,4 @@ class TestPy8xInfNew(common.TestCase):
         """Test py8x_inf_new."""
         ctx = self.ctx_new()
         inf = py8x.inf_new(ctx)
-        self.assertIsNot(inf, None)
+        self.assertIsNotNone(inf)

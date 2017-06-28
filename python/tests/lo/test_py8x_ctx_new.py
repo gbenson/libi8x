@@ -31,7 +31,7 @@ class TestPy8xCtxNew(common.TestCase):
     def test_basic(self):
         """Test py8x_ctx_new with no flags or log function."""
         ctx = py8x.ctx_new(0, None)
-        self.assertIsNot(ctx, None)
+        self.assertIsNotNone(ctx)
 
     def test_logging(self):
         """Test py8x_ctx_new with logging and a log function."""
