@@ -178,7 +178,7 @@ i8x_ob_new (void *pp, const struct i8x_object_ops *ops, void *ob)
   return I8X_OK;
 }
 
-struct i8x_object *
+I8X_EXPORT struct i8x_object *
 i8x_ob_get_parent (struct i8x_object *ob)
 {
   i8x_assert_not_poisoned (ob);

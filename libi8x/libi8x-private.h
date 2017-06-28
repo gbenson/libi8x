@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -291,7 +291,6 @@ struct i8x_listitem *i8x_list_get_prev (struct i8x_list *list,
 
 i8x_err_e i8x_ob_new (void *parent, const struct i8x_object_ops *ops,
 		      void *ob);
-struct i8x_object *i8x_ob_get_parent (struct i8x_object *ob);
 
 /* i8x_readbuf private functions.  */
 

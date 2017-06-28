@@ -57,6 +57,7 @@ global:
 
 	i8x_ob_ref;
 	i8x_ob_unref;
+	i8x_ob_get_parent;
 	i8x_ob_get_ctx;
 	i8x_ob_get_userdata;
 	i8x_ob_set_userdata;

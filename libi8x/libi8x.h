@@ -118,6 +118,7 @@ extern "C" {
 
 struct i8x_object *i8x_ob_ref (struct i8x_object *ob);
 struct i8x_object *i8x_ob_unref (struct i8x_object *ob);
+struct i8x_object *i8x_ob_get_parent (struct i8x_object *ob);
 struct i8x_ctx *i8x_ob_get_ctx (struct i8x_object *ob);
 void *i8x_ob_get_userdata (struct i8x_object *ob);
 void i8x_ob_set_userdata (struct i8x_object *ob,
