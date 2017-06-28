@@ -32,4 +32,4 @@ class TestPy8xListItemGetObject(common.PopulatedTestCase):
         list = py8x.ctx_get_functions(self.ctx)
         item = py8x.list_get_first(list)
         func = py8x.listitem_get_object(item)
-        self.assertTrue(py8x.ob_is(func, self.func))
+        self.assertIs(func, self.func)

@@ -40,7 +40,7 @@ class TestPy8xCtxSetLogFn(common.TestCase):
 
     def test_basic(self):
         """Test py8x_ctx_set_log_fn."""
-        ctx = py8x.ctx_new(syslog.LOG_DEBUG, None)
+        ctx = py8x.ctx_new(common.TestObject.new, syslog.LOG_DEBUG, None)
         messages = []
         def log_func(*args):
             messages.append(args)

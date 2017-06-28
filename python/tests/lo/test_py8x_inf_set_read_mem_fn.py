@@ -36,6 +36,11 @@ class TestPy8xInfSetReadMemFn(common.PopulatedTestCase):
                           py8x.xctx_call,
                           self.xctx, self.funcref, self.inf, (5,))
 
+    def test_set_to_None(self):
+        """Test deref when memory reader function is set to None."""
+        py8x.inf_set_read_mem_fn(self.inf, None)
+        self.test_unset()
+
     def test_set(self):
         """Test deref when a user memory reader function is set."""
         STORAGE = b"HeLlOmUm"

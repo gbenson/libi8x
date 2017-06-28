@@ -26,10 +26,18 @@ from __future__ import unicode_literals
 import _libi8x as py8x
 from .. import common
 
+class TestObject(object):
+    @classmethod
+    def new(cls, klass):
+        return cls()
+
+    def __init__(self):
+        pass
+
 class TestCase(common.TestCase):
     def ctx_new(self):
         """Standard way to create an i8x_ctx for tests."""
-        return py8x.ctx_new(py8x.I8X_DBG_MEM, None)
+        return py8x.ctx_new(TestObject.new, py8x.I8X_DBG_MEM, None)
 
 class PopulatedTestCase(TestCase):
     """A testcase with a context and a loaded function."""

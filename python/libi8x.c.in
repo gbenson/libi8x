@@ -57,74 +57,296 @@ static PyObject *py8x_Error;
       }									\
   } while (0)
 
+/* Attribute name under which py8x_encapsulate* stores libi8x
+   object PyCapsules in the Python wrapper objects it creates.  */
+
+#define PY8X_CNAME_ATTR "__i8x_object"
+
 /* Helpers for each libi8x object.  */
 
 #define PY8X_OBJECT_FUNCTIONS(TYPE, PREFIX)				\
   static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
-  py8x_ ## PREFIX ## _from_capsule (PyObject *c)			\
+  py8x_ ## PREFIX ## _from_capsule (PyObject *wrapped)			\
   {									\
+    PyObject *c = PyObject_GetAttrString (wrapped, PY8X_CNAME_ATTR);	\
+    if (c == NULL)							\
+      return NULL;							\
     return (struct i8x_ ## TYPE *) PyCapsule_GetPointer (c, NULL);	\
   }
 #pragma libi8x_api_object_functions
+
+#define PY8X_FROM_CAPSULE_2(TYPE, NAME)					\
+  py8x_ ## TYPE ## _from_capsule (NAME ## c);				\
+  if (NAME == NULL)							\
+    return NULL
+
+#define PY8X_FROM_CAPSULE(TYPENAME)					\
+  PY8X_FROM_CAPSULE_2 (TYPENAME, TYPENAME)
 
 /* PyCapsule_Destructor suitable for all libi8x objects.  */
 
 static void
 py8x_ob_unref (PyObject *obc)
 {
-  i8x_ob_unref (py8x_ob_from_capsule (obc));
+  i8x_ob_unref (PyCapsule_GetPointer (obc, NULL));
 }
 
-/* Py_DecRef wrapped as i8x_cleanup_fn_t.  */
+/* Userdata for all libi8x objects we create.  May be extended.
+   Every libi8x object we pass into Python-space has one of these.
+   It can be supplied to py8x_encapsulate* by the object's creator
+   (if the object requires extended userdata).  If not supplied a
+   generic userdata will be created.  It has two functions:
+
+    1) It contains a regular reference to the parent object's
+       Python wrapper.  This ensures parent objects remain live
+       while live Python references to their children exist.
+       (Python-side references are all child-parent).
+
+    2) It contains a weak reference to this object's Python
+       wrapper.  This interning means that Python objects can
+       be compared using "is".  */
+
+struct py8x_userdata;
+
+struct py8x_userdata_ops
+{
+  const char *name;
+  size_t size;
+  void (*cleanup) (struct py8x_userdata *ud);
+};
+
+struct py8x_userdata
+{
+  const struct py8x_userdata_ops *ops;
+
+  /* PyCapsule of parent object (referenced by us).
+     NULL for i8x_ctx objects.  */
+  PyObject *parent;
+
+  /* PyWeakref of our own wrapped PyCapsule.  */
+  PyObject *selfwr;
+};
+
+#define PY8X_USERDATA_FIELDS struct py8x_userdata _oud
+
+/* Generic userdata ops for nonspecialized objects.  */
+
+static const struct py8x_userdata_ops py8x_ob_udops =
+  {
+    "i8x_object",
+    sizeof (struct py8x_userdata),
+  };
+
+/* Allocate and initialize a new py8x_userdata.  */
+
+static struct py8x_userdata *
+py8x_userdata_new (const struct py8x_userdata_ops *ops)
+{
+  struct py8x_userdata *ud;
+
+  ud = calloc (1, ops->size);
+  if (ud != NULL)
+    ud->ops = ops;
+
+  return ud;
+}
+
+/* Userdata cleanup for all objects.  */
 
 static void
-py8x_py_decref (void *userdata)
+py8x_userdata_free (void *ud_p)
 {
-  PyObject *obj = (PyObject *) userdata;
+  struct py8x_userdata *ud = (struct py8x_userdata *) ud_p;
 
-  Py_DECREF (obj);
+  if (ud->ops->cleanup != NULL)
+    ud->ops->cleanup (ud);
+
+  Py_XDECREF (ud->parent);
+  Py_XDECREF (ud->selfwr);
+
+  free (ud);
 }
 
-/* Function to compare pointers in PyCapsules.  */
+/* Get an object's userdata.  */
+
+#define py8x_get_userdata(o)						\
+  ((struct py8x_userdata *)						\
+     i8x_ob_get_userdata ((struct i8x_object *) (o)))
+
+/* Encapsulate and return a libi8x object.  */
+
+static PyObject *py8x_ob_get_wrap_fn (struct i8x_object *ob);
 
 static PyObject *
-py8x_ob_is (PyObject *self, PyObject *args)
+py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
 {
-  PyObject *a, *b;
+  struct py8x_userdata *ud = py8x_get_userdata (ob);
+  PyObject *result = NULL;
 
-  if (!PyArg_ParseTuple (args, "OO", &a, &b))
-    return NULL;
-
-  if (!PyCapsule_CheckExact (a) || !PyCapsule_CheckExact (b))
+  if (ud != NULL && new_ud != NULL)
     {
-      PyErr_SetNone(PyExc_ValueError);
+      /* The caller supplied userdata for an object that already has
+	 userdata set.  This is a programmer error.  */
+      PyErr_SetString (PyExc_AssertionError, "ud != NULL && new_ud != NULL");
       return NULL;
     }
 
-  if (PyCapsule_GetPointer (a, NULL) == PyCapsule_GetPointer (b, NULL))
-    Py_RETURN_TRUE;
-  else
-    Py_RETURN_FALSE;
+  if (ud == NULL)
+    {
+      /* The object has no userdata. Create if necessary.  */
+      ud = new_ud;
+      if (ud == NULL)
+	ud = py8x_userdata_new (&py8x_ob_udops);
+      if (ud == NULL)
+	return PyErr_NoMemory ();
+
+      /* Attach it to the object. */
+      i8x_ob_set_userdata (ob, ud, py8x_userdata_free);
+
+      /* Reference the object's parent's wrapper.  */
+      struct i8x_object *parent = i8x_ob_get_parent (ob);
+
+      if (parent != NULL)
+	{
+	  ud->parent = py8x_encapsulate_2 (parent, NULL);
+	  if (ud->parent == NULL)
+	    return NULL;
+	}
+    }
+
+  /* Try and use a previously-created wrapped capsule.  */
+  if (ud->selfwr != NULL)
+    {
+      result = PyWeakref_GetObject (ud->selfwr);
+      if (result == NULL)
+	return NULL;
+
+      if (result == Py_None)
+	{
+	  result = NULL;
+
+	  Py_DECREF (ud->selfwr);
+	  ud->selfwr = NULL;
+	}
+      else
+	Py_INCREF (result);
+    }
+
+  /* Create a new wrapped capsule if necessary.  */
+  if (result == NULL)
+    {
+      PyObject *capsule;
+
+      /* Create a capsule to hold the object.  */
+      capsule = PyCapsule_New (i8x_ob_ref (ob), NULL, py8x_ob_unref);
+      if (capsule == NULL)
+	return NULL;
+
+      /* Create a Python object to hold the capsule.  */
+      result = PyObject_CallFunction (py8x_ob_get_wrap_fn (ob),
+				      "s", i8x_ob_get_classname (ob));
+      if (result == NULL)
+	{
+	  Py_DECREF (capsule);
+	  return NULL;
+	}
+
+      /* Store the capsule in the wrapper object.  */
+      int err = PyObject_SetAttrString (result, PY8X_CNAME_ATTR, capsule);
+      Py_DECREF (capsule);
+      if (err != 0)
+	{
+	  Py_DECREF (result);
+	  return NULL;
+	}
+
+      /* Store a weak reference to our own wrapper object.  */
+      ud->selfwr = PyWeakref_NewRef (result, NULL);
+      if (ud->selfwr == NULL)
+	{
+	  Py_DECREF (result);
+	  return NULL;
+	}
+    }
+
+  return result;
 }
+
+static PyObject *
+py8x_encapsulate_1 (struct i8x_object *ob, struct py8x_userdata *ud)
+{
+  PyObject *result = py8x_encapsulate_2 (ob, ud);
+
+  i8x_ob_unref (ob);
+
+  return result;
+}
+
+#define py8x_encapsulate(x)						\
+  (py8x_encapsulate_1 ((struct i8x_object *) x, NULL))
+
+/* Helpers for objects with extended userdata.  */
+
+#define PY8X_USERDATA_FUNCTIONS(TYPE)					\
+  static inline struct py8x_ ## TYPE ## _userdata *			\
+    __attribute__ ((always_inline))					\
+  py8x_ ## TYPE ## _userdata_new (void)					\
+  {									\
+    return (struct py8x_ ## TYPE ## _userdata *)			\
+      py8x_userdata_new (&py8x_ ## TYPE ## _udops);			\
+  }									\
+									\
+  static inline struct py8x_ ## TYPE ## _userdata *			\
+    __attribute__ ((always_inline))					\
+  py8x_ ## TYPE ## _get_userdata (struct i8x_ ## TYPE *x)		\
+  {									\
+    return (struct py8x_ ## TYPE ## _userdata *)			\
+      i8x_ ## TYPE ## _get_userdata (x);				\
+  }									\
+									\
+  static inline PyObject * __attribute__ ((always_inline))		\
+  py8x_ ## TYPE ## _encapsulate (struct i8x_ ## TYPE *x,		\
+				 struct py8x_ ## TYPE ## _userdata *ud) \
+  {									\
+    return py8x_encapsulate_1 ((struct i8x_object *) x,			\
+			       (struct py8x_userdata *) ud);		\
+  }
 
 /* Context (i8x_ctx) userdata.  */
 
 struct py8x_ctx_userdata
 {
+  PY8X_USERDATA_FIELDS;
+
+  /* Object wrapping function.  */
+  PyObject *wrap_fn;
+
   /* Logging function.  */
   PyObject *log_fn;
 };
 
-/* Free context userdata.  */
-
 static void
-py8x_ctx_userdata_free (void *ud_p)
+py8x_ctx_userdata_cleanup (struct py8x_userdata *ud_p)
 {
   struct py8x_ctx_userdata *ud = (struct py8x_ctx_userdata *) ud_p;
 
-  Py_XDECREF (ud->log_fn);
+  Py_DECREF (ud->wrap_fn);
+  Py_DECREF (ud->log_fn);
+}
 
-  free (ud);
+static const struct py8x_userdata_ops py8x_ctx_udops =
+  {
+    "i8x_ctx",
+    sizeof (struct py8x_ctx_userdata),
+    py8x_ctx_userdata_cleanup,
+  };
+
+PY8X_USERDATA_FUNCTIONS (ctx)
+
+static PyObject *
+py8x_ob_get_wrap_fn (struct i8x_object *ob)
+{
+  return py8x_ctx_get_userdata (i8x_ob_get_ctx (ob))->wrap_fn;
 }
 
 /* Userdata for the context currently being created by i8x_ctx_new.
@@ -141,8 +363,7 @@ py8x_log (struct i8x_ctx *ctx,
 	  int pri, const char *file, int line, const char *fn,
 	  const char *format, va_list args)
 {
-  struct py8x_ctx_userdata *ud =
-    (struct py8x_ctx_userdata *) i8x_ctx_get_userdata (ctx);
+  struct py8x_ctx_userdata *ud = py8x_ctx_get_userdata (ctx);
   char *msg;
   int count;
   PyObject *arglist;
@@ -187,33 +408,36 @@ py8x_log (struct i8x_ctx *ctx,
 static PyObject *
 py8x_ctx_new (PyObject *self, PyObject *args)
 {
+  PyObject *wrap_fn;
   int flags;
   PyObject *log_fn;
+  struct py8x_ctx_userdata *ud;
   struct i8x_ctx *ctx = NULL;
   i8x_err_e err;
 
-  if (!PyArg_ParseTuple (args, "iO", &flags, &log_fn))
+  if (!PyArg_ParseTuple (args, "OiO", &wrap_fn, &flags, &log_fn))
     return NULL;
 
-  py8x_new_context_ud = calloc (1, sizeof (struct py8x_ctx_userdata));
-  if (py8x_new_context_ud == NULL)
-    return PyErr_NoMemory ();
+  ud = py8x_ctx_userdata_new ();
+  if (ud == NULL)
+    return NULL;
+
+  Py_INCREF (wrap_fn);
+  ud->wrap_fn = wrap_fn;
 
   Py_INCREF (log_fn);
-  py8x_new_context_ud->log_fn = log_fn;
+  ud->log_fn = log_fn;
 
+  py8x_new_context_ud = ud;
   err = i8x_ctx_new (flags, py8x_log, &ctx);
-
-  if (err == I8X_OK)
-    i8x_ctx_set_userdata (ctx, py8x_new_context_ud, py8x_ctx_userdata_free);
-  else
-    py8x_ctx_userdata_free (py8x_new_context_ud);
-
   py8x_new_context_ud = NULL;
+
+  if (err != I8X_OK)
+    py8x_userdata_free (ud);
 
   PY8X_CHECK_CALL (NULL, err);
 
-  return PyCapsule_New (ctx, NULL, py8x_ob_unref);
+  return py8x_ctx_encapsulate (ctx, ud);
 }
 
 /* Python binding for i8x_ctx_set_log_fn.  */
@@ -226,9 +450,8 @@ py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "OO", &ctxc, &log_fn))
     return NULL;
 
-  struct i8x_ctx *ctx = py8x_ctx_from_capsule (ctxc);
-  struct py8x_ctx_userdata *ud =
-    (struct py8x_ctx_userdata *) i8x_ctx_get_userdata (ctx);
+  struct i8x_ctx *ctx = PY8X_FROM_CAPSULE (ctx);
+  struct py8x_ctx_userdata *ud = py8x_ctx_get_userdata (ctx);
 
   Py_DECREF (ud->log_fn);
   Py_INCREF (log_fn);
@@ -241,45 +464,28 @@ py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
 
 struct py8x_func_userdata
 {
-  /* Referenced parent capsule (for i8x_ob_unref ordering).  */
-  PyObject *parent;
+  PY8X_USERDATA_FIELDS;
 
   /* Implementation (native only).  */
   PyObject *impl;
 };
 
-/* Create function userdata.  */
-
-static struct py8x_func_userdata *
-py8x_func_userdata_new (PyObject *parent, PyObject *impl)
-{
-  struct py8x_func_userdata *ud	\
-    = calloc (1, sizeof (struct py8x_func_userdata));
-
-  if (ud != NULL)
-    {
-      Py_INCREF (parent);
-      ud->parent = parent;
-
-      Py_XINCREF (impl);
-      ud->impl = impl;
-    }
-
-  return ud;
-}
-
-/* Free function userdata.  */
-
 static void
-py8x_func_userdata_free (void *ud_p)
+py8x_func_userdata_cleanup (struct py8x_userdata *ud_p)
 {
   struct py8x_func_userdata *ud = (struct py8x_func_userdata *) ud_p;
 
   Py_XDECREF (ud->impl);
-  Py_DECREF (ud->parent);
-
-  free (ud);
 }
+
+static const struct py8x_userdata_ops py8x_func_udops =
+  {
+    "i8x_func",
+    sizeof (struct py8x_func_userdata),
+    py8x_func_userdata_cleanup,
+  };
+
+PY8X_USERDATA_FUNCTIONS (func)
 
 /* Helper for py8x_natfunc_impl.  */
 
@@ -298,10 +504,10 @@ py8x_func_userdata_free (void *ud_p)
 
 static i8x_err_e
 py8x_natfunc_impl (struct i8x_xctx *xctx,
-		  struct i8x_inf *inf,
-		  struct i8x_func *func,
-		  union i8x_value *argv,
-		  union i8x_value *retv)
+		   struct i8x_inf *inf,
+		   struct i8x_func *func,
+		   union i8x_value *argv,
+		   union i8x_value *retv)
 {
   struct i8x_funcref *ref = i8x_func_get_funcref (func);
   size_t argc = i8x_funcref_get_num_params (ref);
@@ -311,9 +517,9 @@ py8x_natfunc_impl (struct i8x_xctx *xctx,
     return I8X_NATCALL_FAILED;
 
   /* Pack the arguments.  */
-  PY8X_NFI_SETARG (0, PyCapsule_New (i8x_xctx_ref (xctx), NULL, py8x_ob_unref));
-  PY8X_NFI_SETARG (1, PyCapsule_New (i8x_inf_ref (inf), NULL, py8x_ob_unref));
-  PY8X_NFI_SETARG (2, PyCapsule_New (i8x_func_ref (func), NULL, py8x_ob_unref));
+  PY8X_NFI_SETARG (0, py8x_encapsulate (i8x_xctx_ref (xctx)));
+  PY8X_NFI_SETARG (1, py8x_encapsulate (i8x_inf_ref (inf)));
+  PY8X_NFI_SETARG (2, py8x_encapsulate (i8x_func_ref (func)));
 
   struct i8x_list *types;
   struct i8x_listitem *li;
@@ -334,8 +540,7 @@ py8x_natfunc_impl (struct i8x_xctx *xctx,
     }
 
   /* Make the call.  */
-  struct py8x_func_userdata *ud =
-    (struct py8x_func_userdata *) i8x_func_get_userdata (func);
+  struct py8x_func_userdata *ud = py8x_func_get_userdata (func);
 
   PyObject *rets = PyObject_Call (ud->impl, args, NULL);
   Py_DECREF (args);
@@ -411,11 +616,11 @@ py8x_ctx_import_bytecode (PyObject *self, PyObject *args)
 			 "*zl", &ctxc, &buffer, &srcname, &srcoff))
     return NULL;
 
-  struct py8x_func_userdata *ud = py8x_func_userdata_new (ctxc, NULL);
+  struct py8x_func_userdata *ud = py8x_func_userdata_new ();
   if (ud == NULL)
     return PyErr_NoMemory ();
 
-  struct i8x_ctx *ctx = py8x_ctx_from_capsule (ctxc);
+  struct i8x_ctx *ctx = PY8X_FROM_CAPSULE (ctx);
   struct i8x_func *func;
   i8x_err_e err = i8x_ctx_import_bytecode (ctx,
 					   buffer.buf, buffer.len,
@@ -423,14 +628,12 @@ py8x_ctx_import_bytecode (PyObject *self, PyObject *args)
 					   &func);
   PyBuffer_Release (&buffer);
 
-  if (err == I8X_OK)
-    i8x_func_set_userdata (func, ud, py8x_func_userdata_free);
-  else
-    py8x_func_userdata_free (ud);
+  if (err != I8X_OK)
+    py8x_userdata_free (ud);
 
   PY8X_CHECK_CALL (ctx, err);
 
-  return PyCapsule_New (func, NULL, py8x_ob_unref);
+  return py8x_func_encapsulate (func, ud);
 }
 
 /* Python binding for i8x_ctx_import_native.  */
@@ -446,23 +649,24 @@ py8x_ctx_import_native (PyObject *self, PyObject *args)
 			 &provider, &name, &ptypes, &rtypes, &impl))
     return NULL;
 
-  struct py8x_func_userdata *ud = py8x_func_userdata_new (ctxc, impl);
+  struct py8x_func_userdata *ud = py8x_func_userdata_new ();
   if (ud == NULL)
     return PyErr_NoMemory ();
 
-  struct i8x_ctx *ctx = py8x_ctx_from_capsule (ctxc);
+  Py_INCREF (impl);
+  ud->impl = impl;
+
+  struct i8x_ctx *ctx = PY8X_FROM_CAPSULE (ctx);
   struct i8x_func *func;
   i8x_err_e err = i8x_ctx_import_native (ctx,
 					 provider, name, ptypes, rtypes,
 					 py8x_natfunc_impl, &func);
-  if (err == I8X_OK)
-    i8x_func_set_userdata (func, ud, py8x_func_userdata_free);
-  else
-    py8x_func_userdata_free (ud);
+  if (err != I8X_OK)
+    py8x_userdata_free (ud);
 
   PY8X_CHECK_CALL (ctx, err);
 
-  return PyCapsule_New (func, NULL, py8x_ob_unref);
+  return py8x_func_encapsulate (func, ud);
 }
 
 /* Python binding for i8x_xctx_call.  */
@@ -476,7 +680,7 @@ py8x_xctx_call (PyObject *self, PyObject *args)
     return NULL;
   args = tmp;
 
-  struct i8x_funcref *ref = py8x_funcref_from_capsule (refc);
+  struct i8x_funcref *ref = PY8X_FROM_CAPSULE_2 (funcref, ref);
   size_t argc = i8x_funcref_get_num_params (ref);
   size_t retc = i8x_funcref_get_num_returns (ref);
 
@@ -515,8 +719,8 @@ py8x_xctx_call (PyObject *self, PyObject *args)
 	}
     }
 
-  struct i8x_xctx *xctx = py8x_xctx_from_capsule (xctxc);
-  struct i8x_inf *inf = py8x_inf_from_capsule (infc);
+  struct i8x_xctx *xctx = PY8X_FROM_CAPSULE (xctx);
+  struct i8x_inf *inf = PY8X_FROM_CAPSULE (inf);
   struct i8x_ctx *ctx = i8x_xctx_get_ctx (xctx);
   i8x_err_e err = i8x_xctx_call (xctx, ref, inf, argv, retv);
 
@@ -556,45 +760,28 @@ py8x_xctx_call (PyObject *self, PyObject *args)
 
 struct py8x_inf_userdata
 {
-  /* Referenced parent capsule (for i8x_ob_unref ordering).  */
-  PyObject *parent;
+  PY8X_USERDATA_FIELDS;
 
   /* Memory reader function.  */
   PyObject *read_mem_fn;
 };
 
-/* Create inferior userdata.  */
-
-static struct py8x_inf_userdata *
-py8x_inf_userdata_new (PyObject *parent)
-{
-  struct py8x_inf_userdata *ud	\
-    = calloc (1, sizeof (struct py8x_inf_userdata));
-
-  if (ud != NULL)
-    {
-      Py_INCREF (parent);
-      ud->parent = parent;
-
-      Py_INCREF (Py_None);
-      ud->read_mem_fn = Py_None;
-    }
-
-  return ud;
-}
-
-/* Free inferior userdata.  */
-
 static void
-py8x_inf_userdata_free (void *ud_p)
+py8x_inf_userdata_cleanup (struct py8x_userdata *ud_p)
 {
   struct py8x_inf_userdata *ud = (struct py8x_inf_userdata *) ud_p;
 
-  Py_DECREF (ud->read_mem_fn);
-  Py_DECREF (ud->parent);
-
-  free (ud);
+  Py_XDECREF (ud->read_mem_fn);
 }
+
+static const struct py8x_userdata_ops py8x_inf_udops =
+  {
+    "i8x_inf",
+    sizeof (struct py8x_inf_userdata),
+    py8x_inf_userdata_cleanup,
+  };
+
+PY8X_USERDATA_FUNCTIONS (inf)
 
 /* Helper for py8x_read_mem_fn.  */
 
@@ -615,10 +802,9 @@ static i8x_err_e
 py8x_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
 		  void *result)
 {
-  struct py8x_inf_userdata *ud =
-    (struct py8x_inf_userdata *) i8x_inf_get_userdata (inf);
+  struct py8x_inf_userdata *ud = py8x_inf_get_userdata (inf);
 
-  if (ud->read_mem_fn == Py_None)
+  if (ud->read_mem_fn == NULL || ud->read_mem_fn == Py_None)
     {
       PyErr_SetString (py8x_Error, "inferior has no read_mem function");
       return I8X_READ_MEM_FAILED;
@@ -629,7 +815,7 @@ py8x_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
   if (args == NULL)
     return I8X_READ_MEM_FAILED;
 
-  PY8X_RMF_SETARG (0, PyCapsule_New (i8x_inf_ref (inf), NULL, py8x_ob_unref));
+  PY8X_RMF_SETARG (0, py8x_encapsulate (i8x_inf_ref (inf)));
   PY8X_RMF_SETARG (1, PyLong_FromUnsignedLong (addr));
   PY8X_RMF_SETARG (2, PyLong_FromSize_t (len));
 
@@ -669,24 +855,22 @@ py8x_inf_new (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "O", &ctxc))
     return NULL;
 
-  struct py8x_inf_userdata *ud = py8x_inf_userdata_new (ctxc);
+  struct py8x_inf_userdata *ud = py8x_inf_userdata_new ();
   if (ud == NULL)
     return PyErr_NoMemory ();
 
-  struct i8x_ctx *ctx = py8x_ctx_from_capsule (ctxc);
+  struct i8x_ctx *ctx = PY8X_FROM_CAPSULE (ctx);
   struct i8x_inf *inf;
   i8x_err_e err = i8x_inf_new (ctx, &inf);
 
-  if (err == I8X_OK)
-    i8x_inf_set_userdata (inf, ud, py8x_inf_userdata_free);
-  else
-    py8x_inf_userdata_free (ud);
+  if (err != I8X_OK)
+    py8x_userdata_free (ud);
 
   PY8X_CHECK_CALL (ctx, err);
 
   i8x_inf_set_read_mem_fn (inf, py8x_read_mem_fn);
 
-  return PyCapsule_New (inf, NULL, py8x_ob_unref);
+  return py8x_inf_encapsulate (inf, ud);
 }
 
 /* Python binding for i8x_ctx_set_read_mem_fn.  */
@@ -699,11 +883,10 @@ py8x_inf_set_read_mem_fn (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "OO", &infc, &read_mem_fn))
     return NULL;
 
-  struct i8x_inf *inf = py8x_inf_from_capsule (infc);
-  struct py8x_inf_userdata *ud =
-    (struct py8x_inf_userdata *) i8x_inf_get_userdata (inf);
+  struct i8x_inf *inf = PY8X_FROM_CAPSULE (inf);
+  struct py8x_inf_userdata *ud = py8x_inf_get_userdata (inf);
 
-  Py_DECREF (ud->read_mem_fn);
+  Py_XDECREF (ud->read_mem_fn);
   Py_INCREF (read_mem_fn);
   ud->read_mem_fn = read_mem_fn;
 
@@ -722,8 +905,7 @@ py8x_inf_set_read_mem_fn (PyObject *self, PyObject *args)
 	return NULL;							\
       }									\
 									\
-    return PyCapsule_New (i8x_listitem_ref (result), NULL,		\
-			  py8x_ob_unref);				\
+    return py8x_encapsulate (i8x_listitem_ref (result));		\
   } while (0)
 
 /* Python binding for i8x_list_get_first.  */
@@ -736,7 +918,7 @@ py8x_list_get_first (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "O", &listc))
     return NULL;
 
-  struct i8x_list *list = py8x_list_from_capsule (listc);
+  struct i8x_list *list = PY8X_FROM_CAPSULE (list);
 
   PY8X_RETURN_LISTITEM (i8x_list_get_first (list));
 }
@@ -752,8 +934,8 @@ py8x_list_get_next (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "OO", &listc, &currc))
     return NULL;
 
-  struct i8x_list *list = py8x_list_from_capsule (listc);
-  struct i8x_listitem *curr = py8x_listitem_from_capsule (currc);
+  struct i8x_list *list = PY8X_FROM_CAPSULE (list);
+  struct i8x_listitem *curr = PY8X_FROM_CAPSULE_2 (listitem, curr);
 
   PY8X_RETURN_LISTITEM (i8x_list_get_next (list, curr));
 }
@@ -765,7 +947,6 @@ py8x_list_get_next (PyObject *self, PyObject *args)
 #define PY8X_FUNCTION(name) {#name, py8x_ ## name, METH_VARARGS, NULL}
 
 static PyMethodDef libi8x_methods[] = {
-  PY8X_FUNCTION (ob_is),
   PY8X_FUNCTION (ctx_new),
   PY8X_FUNCTION (ctx_set_log_fn),
   PY8X_FUNCTION (ctx_import_bytecode),

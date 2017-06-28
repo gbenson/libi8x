@@ -298,15 +298,7 @@ class I8xError(PyType):
         if self.opp_return is None:
             result += "Py_RETURN_NONE"
         else:
-            # Hold referenced parent capsule for i8x_ob_unref ordering.
-            # XXX is param 0 always the parent?
-            result += """Py_INCREF (%s);
-  i8x_%s_set_userdata (%s, %s, py8x_py_decref);
-
-  return PyCapsule_New (%s, NULL, py8x_ob_unref)""" % (
-                self.opp_parent, self.opp_return.func_prefix,
-                self.opp_return.retname, self.opp_parent,
-                self.opp_return.retname)
+            result += "return py8x_encapsulate (%s)" % self.opp_return.retname
         return result
 
 class I8xObject(PyType):
@@ -330,13 +322,16 @@ class I8xObjPtr(I8xObject):
         return name + "c"
 
     def unwrap_arg(self, name):
-        return "%s%s = py8x_%s_from_capsule (%s)" % (
-            self.ctype, name, self.func_prefix, self.argname(name))
+        result = "%s%s = PY8X_FROM_CAPSULE" % (self.ctype, name)
+        if name == self.func_prefix:
+            result += " ("
+        else:
+            result += "_2 (%s, " % self.func_prefix
+        return result + name + ")"
 
     def do_return(self):
-        print("XXX: ref the parent capsule?", file=sys.stderr)
-        return """result = i8x_%s_ref (result);
-  return PyCapsule_New (result, NULL, py8x_ob_unref)""" % self.func_prefix
+        return ("return py8x_encapsulate (i8x_%s_ref (result))"
+                % self.func_prefix)
 
 class I8xObjPtrPtr(I8xObject):
     SUFFIX = " **"
