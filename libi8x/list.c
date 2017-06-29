@@ -167,10 +167,8 @@ i8x_list_get_item (struct i8x_list *list, struct i8x_object *ob)
 }
 
 void
-i8x_list_remove (struct i8x_list *list, struct i8x_object *ob)
+i8x_listitem_remove (struct i8x_listitem *item)
 {
-  struct i8x_listitem *item = i8x_list_get_item (list, ob);
-
   i8x_assert (item != NULL);
 
   item->prev->next = item->next;
@@ -178,6 +176,12 @@ i8x_list_remove (struct i8x_list *list, struct i8x_object *ob)
 
   item->next = NULL;
   item = i8x_listitem_unref (item);
+}
+
+void
+i8x_list_remove (struct i8x_list *list, struct i8x_object *ob)
+{
+  i8x_listitem_remove (i8x_list_get_item (list, ob));
 }
 
 I8X_EXPORT size_t

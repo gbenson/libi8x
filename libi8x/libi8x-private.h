@@ -289,6 +289,10 @@ struct i8x_listitem *i8x_list_get_item (struct i8x_list *list,
        item != NULL;				\
        item = i8x_list_get_prev (list, item))
 
+/* i8x_listitem private functions.  */
+
+void i8x_listitem_remove (struct i8x_listitem *item);
+
 /* i8x_object private functions.  */
 
 i8x_err_e i8x_ob_new (void *parent, const struct i8x_object_ops *ops,
