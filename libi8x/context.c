@@ -811,9 +811,13 @@ i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
   if (li == NULL)
     return i8x_invalid_argument (ctx);
 
+  func = i8x_func_ref (func);
+  i8x_listitem_remove (li);
+
   i8x_func_unregister (func);
   i8x_ctx_resolve_funcrefs (ctx);
-  i8x_listitem_remove (li);
+
+  func = i8x_func_unref (func);
 
   return I8X_OK;
 }

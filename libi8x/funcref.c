@@ -138,7 +138,21 @@ i8x_func_unregister (struct i8x_func *func)
   ref->regcount--;
 
   if (ref->regcount == 1)
-    i8x_not_implemented ();
+    {
+      struct i8x_ctx *ctx = i8x_funcref_get_ctx (ref);
+      struct i8x_listitem *li;
+
+      func = NULL;
+      i8x_list_foreach (i8x_ctx_get_functions (ctx), li)
+	{
+	  func = i8x_listitem_get_func (li);
+
+	  if (i8x_func_get_funcref (func) == ref)
+	    break;
+
+	  func = NULL;
+	}
+    }
   else
     func = NULL;
 
