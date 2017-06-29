@@ -281,6 +281,8 @@ i8x_err_e i8x_list_new (struct i8x_ctx *ctx,
 struct i8x_listitem *i8x_list_get_last (struct i8x_list *list);
 struct i8x_listitem *i8x_list_get_prev (struct i8x_list *list,
 					struct i8x_listitem *curr);
+struct i8x_listitem *i8x_list_get_item (struct i8x_list *list,
+					struct i8x_object *ob);
 
 #define i8x_list_foreach_reversed(list, item)	\
   for (item = i8x_list_get_last (list);		\

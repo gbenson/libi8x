@@ -154,8 +154,8 @@ i8x_list_append (struct i8x_list *list, struct i8x_object *ob)
   return I8X_OK;
 }
 
-static struct i8x_listitem *
-i8x_list_get_listitem (struct i8x_list *list, struct i8x_object *ob)
+struct i8x_listitem *
+i8x_list_get_item (struct i8x_list *list, struct i8x_object *ob)
 {
   struct i8x_listitem *li;
 
@@ -169,7 +169,7 @@ i8x_list_get_listitem (struct i8x_list *list, struct i8x_object *ob)
 void
 i8x_list_remove (struct i8x_list *list, struct i8x_object *ob)
 {
-  struct i8x_listitem *item = i8x_list_get_listitem (list, ob);
+  struct i8x_listitem *item = i8x_list_get_item (list, ob);
 
   i8x_assert (item != NULL);
 
