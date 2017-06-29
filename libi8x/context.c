@@ -806,9 +806,14 @@ i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
   dbg (ctx, "unregistering func %p\n", func);
   i8x_assert (i8x_func_get_ctx (func) == ctx);
 
+  struct i8x_listitem *li
+    = i8x_list_get_item (ctx->functions, (struct i8x_object *) func);
+  if (li == NULL)
+    return i8x_invalid_argument (ctx);
+
   i8x_funcref_unregister_func (i8x_func_get_funcref (func), func);
   i8x_ctx_resolve_funcrefs (ctx);
-  i8x_list_remove_func (ctx->functions, func);
+  i8x_listitem_remove (li);
 
   return I8X_OK;
 }
