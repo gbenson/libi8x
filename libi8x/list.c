@@ -171,6 +171,8 @@ i8x_list_remove (struct i8x_list *list, struct i8x_object *ob)
 {
   struct i8x_listitem *item = i8x_list_get_listitem (list, ob);
 
+  i8x_assert (item != NULL);
+
   item->prev->next = item->next;
   item->next->prev = item->prev;
 
