@@ -366,8 +366,7 @@ py8x_log (struct i8x_ctx *ctx,
   struct py8x_ctx_userdata *ud = py8x_ctx_get_userdata (ctx);
   char *msg;
   int count;
-  PyObject *arglist;
-  PyObject *result;
+  PyObject *result = NULL;
 
   /* No userdata means we're in i8x_ctx_new, before
      py8x_ctx_new has had chance to set it.  */
@@ -380,7 +379,28 @@ py8x_log (struct i8x_ctx *ctx,
   if (count < 0)
     msg = "vasprintf failed";
 
-  if (ud->log_fn == Py_None)
+  /* Call the user-defined logging function if there is one.  */
+  if (ud->log_fn != Py_None)
+    {
+      result = PyObject_CallFunction (ud->log_fn, "isiss", pri,
+				      file, line, fn, msg);
+
+      /* Note that there's no way to signal an error to libi8x
+	 in the event the logging function raises an exception,
+	 so exceptions here may appear in place of others.  We
+	 write what's happening to stderr to give some kind of
+	 clue.  */
+
+      if (result == NULL)
+	{
+	  PySys_WriteStderr ("py8x: user-defined logger failed with "
+			     "the following exception:\n");
+	  PyErr_PrintEx (0);
+	  PySys_WriteStderr ("py8x: the message being logged was:\n");
+	}
+    }
+
+  if (result == NULL)
     {
       /* PySys_WriteStderr wants 1000 bytes max.  */
       char buf[1000];
@@ -389,15 +409,8 @@ py8x_log (struct i8x_ctx *ctx,
       buf[sizeof (buf) - 1] = '\0';
       PySys_WriteStderr ("%s", buf);
     }
-  else
-    {
-      arglist = Py_BuildValue ("isiss", pri, file, line, fn, msg);
 
-      result = PyEval_CallObject (ud->log_fn, arglist);
-      Py_DECREF (arglist);
-
-      Py_DECREF (result);
-    }
+  Py_XDECREF (result);
 
   if (count >= 0)
     free (msg);
