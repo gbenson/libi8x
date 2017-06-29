@@ -45,7 +45,7 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
         for result in (None, 0, [1, 2, 3, 4], (0, 1, 2, 3), (4,), []):
             def readmem(inf, addr, len):
                 return result
-            self.assertRaises(py8x.Error,
+            self.assertRaises(py8x.I8XError,
                               py8x.xctx_call,
                               self.xctx, self.funcref, self.inf, (5,))
 
@@ -55,7 +55,7 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
             if size != 4:
                 def readmem(inf, addr, len):
                     return b"HeLlOmUmXyXyX"[:size]
-                self.assertRaises(py8x.Error,
+                self.assertRaises(py8x.I8XError,
                                   py8x.xctx_call,
                                   self.xctx, self.funcref, self.inf, (5,))
 

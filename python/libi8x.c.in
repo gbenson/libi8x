@@ -34,11 +34,11 @@
 
 /* Exceptions.  */
 
-static PyObject *py8x_Error;
+static PyObject *py8x_I8XError;
 
 #define PY8X_RAISE(msg)							\
   do {									\
-    PyErr_SetString (py8x_Error, msg);					\
+    PyErr_SetString (py8x_I8XError, msg);				\
     return NULL;							\
   } while (0)
 
@@ -551,7 +551,7 @@ py8x_natfunc_impl (struct i8x_xctx *xctx,
   size_t retc = i8x_funcref_get_num_returns (ref);
   if (PySequence_Length (rets) != retc)
     {
-      PyErr_SetString (py8x_Error, "wrong number of returns");
+      PyErr_SetString (py8x_I8XError, "wrong number of returns");
 
       Py_DECREF (rets);
       return I8X_NATCALL_FAILED;
@@ -806,7 +806,7 @@ py8x_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
 
   if (ud->read_mem_fn == NULL || ud->read_mem_fn == Py_None)
     {
-      PyErr_SetString (py8x_Error, "inferior has no read_mem function");
+      PyErr_SetString (py8x_I8XError, "inferior has no read_mem function");
       return I8X_READ_MEM_FAILED;
     }
 
@@ -837,7 +837,7 @@ py8x_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
   if (buf.len != len)
     {
       Py_DECREF (ret);
-      PyErr_SetString (py8x_Error, "read_mem_fn returned bad length");
+      PyErr_SetString (py8x_I8XError, "read_mem_fn returned bad length");
       return I8X_READ_MEM_FAILED;
     }
 
@@ -981,11 +981,12 @@ MODULE_INIT_FUNC (_libi8x)
   if (m == NULL)
     return NULL;
 
-  py8x_Error = PyErr_NewException ("_libi8x.Error", PyExc_RuntimeError, NULL);
-  if (py8x_Error == NULL)
+  py8x_I8XError = PyErr_NewException ("_libi8x.I8XError",
+				   PyExc_RuntimeError, NULL);
+  if (py8x_I8XError == NULL)
     return NULL;
 
-  if (PyModule_AddObject (m, "Error", py8x_Error) != 0)
+  if (PyModule_AddObject (m, "I8XError", py8x_I8XError) != 0)
     return NULL;
 
 #pragma libi8x_api_constants

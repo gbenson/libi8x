@@ -58,7 +58,7 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
             func = py8x.ctx_import_native(self.ctx,
                                           "test", "func", "", "i" * i, impl)
             ref = py8x.func_get_funcref(func)
-            self.assertRaises(py8x.Error,
+            self.assertRaises(py8x.I8XError,
                               py8x.xctx_call,
                               self.xctx, ref, self.inf, ())
 

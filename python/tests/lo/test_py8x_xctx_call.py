@@ -35,13 +35,13 @@ class TestPy8xXctxCall(common.PopulatedTestCase):
     def test_unresolved(self):
         """Test py8x_xctx_call of an unresolved function."""
         ref = py8x.ctx_get_funcref (self.ctx, "exmapel", "factorial", "i", "i")
-        self.assertRaises(py8x.Error,
+        self.assertRaises(py8x.I8XError,
                           py8x.xctx_call,
                           self.xctx, ref, self.inf, (5,))
 
     def test_wrong_argument_count(self):
         """Test py8x_xctx_call with the wrong number of arguments."""
         for args in ((), (5, 3)):
-            self.assertRaises(py8x.Error,
+            self.assertRaises(py8x.I8XError,
                               py8x.xctx_call,
                               self.xctx, self.funcref, self.inf, args)

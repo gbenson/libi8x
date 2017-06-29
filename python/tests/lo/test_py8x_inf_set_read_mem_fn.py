@@ -32,7 +32,7 @@ class TestPy8xInfSetReadMemFn(common.PopulatedTestCase):
 
     def test_unset(self):
         """Test deref when no memory reader function is set."""
-        self.assertRaises(py8x.Error,
+        self.assertRaises(py8x.I8XError,
                           py8x.xctx_call,
                           self.xctx, self.funcref, self.inf, (5,))
 

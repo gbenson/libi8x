@@ -36,7 +36,7 @@ class TestPy8xCtxUnregisterFunc(common.PopulatedTestCase):
     def test_unregistered(self):
         """Test py8x_ctx_unregister_func on an unregistered function"""
         py8x.ctx_unregister_func(self.ctx, self.func)
-        self.assertRaises(py8x.Error,
+        self.assertRaises(py8x.I8XError,
                           py8x.ctx_unregister_func,
                           self.ctx, self.func)
 

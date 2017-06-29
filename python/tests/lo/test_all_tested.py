@@ -37,8 +37,6 @@ class TestAllTested(unittest.TestCase):
                 continue
             if attr.startswith("I8"):
                 continue
-            if attr.endswith("Error"):
-                continue
             if os.path.exists(format % attr):
                 continue
 
