@@ -717,8 +717,14 @@ py8x_xctx_call (PyObject *self, PyObject *args)
 
       if (i8x_type_is_functype (type))
 	{
+	  struct i8x_funcref *value;
+
+	  value = py8x_funcref_from_capsule (arg);
 	  Py_DECREF (arg);
-	  py8x_not_implemented ();
+	  if (value == NULL)
+	    return NULL;
+
+	  argv[i].f = value;
 	}
       else
 	{

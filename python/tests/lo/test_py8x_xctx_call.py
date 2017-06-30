@@ -45,3 +45,22 @@ class TestPy8xXctxCall(common.PopulatedTestCase):
             self.assertRaises(py8x.I8XError,
                               py8x.xctx_call,
                               self.xctx, self.funcref, self.inf, args)
+
+    def test_function_arg(self):
+        """Test py8x_xctx_call with a function argument."""
+        func = py8x.ctx_import_bytecode(self.ctx, self.FUNC_ARG_NOTE,
+                                        "testnote", 0)
+        self.assertEqual(py8x.xctx_call(self.xctx,
+                                        py8x.func_get_funcref(func),
+                                        self.inf,
+                                        (self.funcref, 5)),
+                         (39916800,))
+
+    def test_function_arg_bad_type(self):
+        """Check py8x_xctx_call validates function arguments."""
+        func = py8x.ctx_import_bytecode(self.ctx, self.FUNC_ARG_NOTE,
+                                        "testnote", 0)
+        self.assertRaises(AttributeError,
+                          py8x.xctx_call,
+                          self.xctx, py8x.func_get_funcref(func),
+                          self.inf, (4, 5))
