@@ -753,22 +753,17 @@ py8x_xctx_call (PyObject *self, PyObject *args)
   i8x_list_foreach_indexed (types, li, i)
     {
       struct i8x_type *type = i8x_listitem_get_type (li);
+      PyObject *ret;
 
       if (i8x_type_is_functype (type))
+	ret = py8x_encapsulate (retv[i].f);
+      else
+	ret = PyLong_FromLong (retv[i].i);
+
+      if (ret == NULL || PyTuple_SetItem (result, retc - i - 1, ret) != 0)
 	{
 	  Py_DECREF (result);
-	  py8x_not_implemented ();
-	}
-      else
-	{
-	  PyObject *ret = PyLong_FromLong (retv[i].i);
-
-	  if (ret == NULL
-	      || PyTuple_SetItem (result, retc - i - 1, ret) != 0)
-	    {
-	      Py_DECREF (result);
-	      return NULL;
-	    }
+	  return NULL;
 	}
     }
 

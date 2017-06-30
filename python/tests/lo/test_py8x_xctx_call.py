@@ -64,3 +64,12 @@ class TestPy8xXctxCall(common.PopulatedTestCase):
                           py8x.xctx_call,
                           self.xctx, py8x.func_get_funcref(func),
                           self.inf, (4, 5))
+
+    def test_function_ret(self):
+        """Test py8x_xctx_call with a function that returns a function."""
+        func = py8x.ctx_import_bytecode(self.ctx, self.FUNC_RET_NOTE,
+                                        "testnote", 0)
+        rets = py8x.xctx_call(self.xctx, py8x.func_get_funcref(func),
+                              self.inf, ())
+        self.assertEqual(len(rets), 1)
+        self.assertIs(rets[0], self.funcref)
