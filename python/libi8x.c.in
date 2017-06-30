@@ -47,7 +47,8 @@ static PyObject *py8x_I8XError;
     if (err == I8X_ENOMEM)						\
       return PyErr_NoMemory ();						\
     else if ((err == I8X_NATCALL_FAILED					\
-	      || err == I8X_READ_MEM_FAILED)				\
+	      || err == I8X_READ_MEM_FAILED				\
+	      || err == I8X_RELOC_FAILED)				\
 	     && PyErr_Occurred () != NULL)				\
       return NULL; /* User code raised an exception.  */		\
     else if (err != I8X_OK)						\
@@ -778,6 +779,9 @@ struct py8x_inf_userdata
 
   /* Memory reader function.  */
   PyObject *read_mem_fn;
+
+  /* Relocation function.  */
+  PyObject *relocate_fn;
 };
 
 static void
@@ -786,6 +790,7 @@ py8x_inf_userdata_cleanup (struct py8x_userdata *ud_p)
   struct py8x_inf_userdata *ud = (struct py8x_inf_userdata *) ud_p;
 
   Py_XDECREF (ud->read_mem_fn);
+  Py_XDECREF (ud->relocate_fn);
 }
 
 static const struct py8x_userdata_ops py8x_inf_udops =
@@ -797,18 +802,21 @@ static const struct py8x_userdata_ops py8x_inf_udops =
 
 PY8X_USERDATA_FUNCTIONS (inf)
 
-/* Helper for py8x_read_mem_fn.  */
+/* Helpers for py8x_read_mem_fn and py8x_relocate_fn.  */
 
-#define PY8X_RMF_SETARG(i, v)						\
+#define PY8X_RxF_SETARG(i, v, e)					\
   do {									\
     PyObject *arg = v;							\
 									\
     if (arg == NULL || PyTuple_SetItem (args, (i), arg) != 0)		\
       {									\
 	Py_DECREF (args);						\
-	return I8X_READ_MEM_FAILED;					\
+	return e;							\
       }									\
   } while (0)
+
+#define PY8X_RMF_SETARG(i, v) PY8X_RxF_SETARG(i, v, I8X_READ_MEM_FAILED)
+#define PY8X_RLF_SETARG(i, v) PY8X_RxF_SETARG(i, v, I8X_RELOC_FAILED)
 
 /* Memory reader function for all py8x-created inferiors.  */
 
@@ -859,6 +867,43 @@ py8x_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
   return I8X_OK;
 }
 
+/* Relocation function for all py8x-created inferiors.  */
+
+static i8x_err_e
+py8x_relocate_fn (struct i8x_inf *inf, struct i8x_reloc *reloc,
+		  uintptr_t *result)
+{
+  struct py8x_inf_userdata *ud = py8x_inf_get_userdata (inf);
+
+  if (ud->relocate_fn == NULL || ud->relocate_fn == Py_None)
+    {
+      PyErr_SetString (py8x_I8XError, "inferior has no relocate function");
+      return I8X_RELOC_FAILED;
+    }
+
+  /* Pack the arguments.  */
+  PyObject *args = PyTuple_New (2);
+  if (args == NULL)
+    return I8X_RELOC_FAILED;
+
+  PY8X_RLF_SETARG (0, py8x_encapsulate (i8x_inf_ref (inf)));
+  PY8X_RLF_SETARG (1, py8x_encapsulate (i8x_reloc_ref (reloc)));
+
+  /* Make the call.  */
+  PyObject *ret = PyObject_Call (ud->relocate_fn, args, NULL);
+  Py_DECREF (args);
+  if (ret == NULL)
+    return I8X_RELOC_FAILED;
+
+  /* Read out the result.  */
+  uintptr_t res = PyLong_AsUnsignedLong (ret);
+  if (PyErr_Occurred () != NULL)
+    return I8X_RELOC_FAILED;
+
+  *result = res;
+  return I8X_OK;
+}
+
 /* Python binding for i8x_inf_new.  */
 
 static PyObject *
@@ -883,6 +928,7 @@ py8x_inf_new (PyObject *self, PyObject *args)
   PY8X_CHECK_CALL (ctx, err);
 
   i8x_inf_set_read_mem_fn (inf, py8x_read_mem_fn);
+  i8x_inf_set_relocate_fn (inf, py8x_relocate_fn);
 
   return py8x_inf_encapsulate (inf, ud);
 }
@@ -903,6 +949,26 @@ py8x_inf_set_read_mem_fn (PyObject *self, PyObject *args)
   Py_XDECREF (ud->read_mem_fn);
   Py_INCREF (read_mem_fn);
   ud->read_mem_fn = read_mem_fn;
+
+  Py_RETURN_NONE;
+}
+
+/* Python binding for i8x_ctx_set_relocate_fn.  */
+
+static PyObject *
+py8x_inf_set_relocate_fn (PyObject *self, PyObject *args)
+{
+  PyObject *infc, *relocate_fn;
+
+  if (!PyArg_ParseTuple (args, "OO", &infc, &relocate_fn))
+    return NULL;
+
+  struct i8x_inf *inf = PY8X_FROM_CAPSULE (inf);
+  struct py8x_inf_userdata *ud = py8x_inf_get_userdata (inf);
+
+  Py_XDECREF (ud->relocate_fn);
+  Py_INCREF (relocate_fn);
+  ud->relocate_fn = relocate_fn;
 
   Py_RETURN_NONE;
 }
@@ -968,6 +1034,7 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (xctx_call),
   PY8X_FUNCTION (inf_new),
   PY8X_FUNCTION (inf_set_read_mem_fn),
+  PY8X_FUNCTION (inf_set_relocate_fn),
   PY8X_FUNCTION (list_get_first),
   PY8X_FUNCTION (list_get_next),
 #pragma libi8x_api_function_table
