@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -39,8 +39,10 @@ i8x_reloc_invalidate_for_inferior (struct i8x_reloc *reloc,
 }
 
 static i8x_err_e
-i8x_reloc_init (struct i8x_reloc *reloc, uintptr_t unrelocated)
+i8x_reloc_init (struct i8x_reloc *reloc, ssize_t srcoffset,
+		uintptr_t unrelocated)
 {
+  reloc->srcoffset = srcoffset;
   reloc->unrelocated = unrelocated;
 
   i8x_reloc_invalidate_for_inferior (reloc, reloc->cached_from);
@@ -58,8 +60,8 @@ const struct i8x_object_ops i8x_reloc_ops =
   };
 
 i8x_err_e
-i8x_reloc_new (struct i8x_code *code, uintptr_t unrelocated,
-	       struct i8x_reloc **reloc)
+i8x_reloc_new (struct i8x_code *code, ssize_t srcoffset,
+	       uintptr_t unrelocated, struct i8x_reloc **reloc)
 {
   struct i8x_reloc *r;
   i8x_err_e err;
@@ -68,7 +70,7 @@ i8x_reloc_new (struct i8x_code *code, uintptr_t unrelocated,
   if (err != I8X_OK)
     return err;
 
-  err = i8x_reloc_init (r, unrelocated);
+  err = i8x_reloc_init (r, srcoffset, unrelocated);
   if (err != I8X_OK)
     {
       r = i8x_reloc_unref (r);
@@ -77,11 +79,31 @@ i8x_reloc_new (struct i8x_code *code, uintptr_t unrelocated,
     }
 
   dbg (i8x_code_get_ctx (code),
-       "reloc %p is " LHEX "\n", r, unrelocated);
+       "reloc %p is " LHEX "," LHEX "\n", r, srcoffset, unrelocated);
 
   *reloc = r;
 
   return I8X_OK;
+}
+
+static struct i8x_code *
+i8x_reloc_get_code (struct i8x_reloc *reloc)
+{
+  return (struct i8x_code *)
+    i8x_ob_get_parent ((struct i8x_object *) reloc);
+}
+
+
+I8X_EXPORT struct i8x_func *
+i8x_reloc_get_func (struct i8x_reloc *reloc)
+{
+  return i8x_code_get_func (i8x_reloc_get_code (reloc));
+}
+
+I8X_EXPORT ssize_t
+i8x_reloc_get_src_offset (struct i8x_reloc *reloc)
+{
+  return reloc->srcoffset;
 }
 
 I8X_EXPORT uintptr_t

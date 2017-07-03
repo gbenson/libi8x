@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -33,8 +33,8 @@ no_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
 }
 
 static i8x_err_e
-no_relocate_fn (struct i8x_inf *inf, struct i8x_note *note,
-		uintptr_t unrelocated, uintptr_t *result)
+no_relocate_fn (struct i8x_inf *inf, struct i8x_reloc *reloc,
+		uintptr_t *result)
 {
   error (i8x_inf_get_ctx (inf),
 	 "inferior %p has no relocate function\n", inf);

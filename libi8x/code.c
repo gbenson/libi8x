@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -24,7 +24,7 @@
 #include "archspec.h"
 #include "optable.c"
 
-static struct i8x_func *
+struct i8x_func *
 i8x_code_get_func (struct i8x_code *code)
 {
   return (struct i8x_func *)
@@ -489,28 +489,19 @@ i8x_code_setup_flow (struct i8x_code *code)
 }
 
 static i8x_err_e
-i8x_code_get_reloc (struct i8x_code *code, uintptr_t unrelocated,
+i8x_code_new_reloc (struct i8x_code *code, struct i8x_instr *op,
+		    size_t opsize, uintptr_t unrelocated,
 		    struct i8x_reloc **relocp)
 {
-  struct i8x_listitem *li;
+  struct i8x_note *note = i8x_code_get_note (code);
+  ssize_t srcoffset = i8x_note_get_src_offset (note);
   struct i8x_reloc *reloc;
   i8x_err_e err;
 
-  /* If we have this relocation already then return it.  */
-  i8x_list_foreach (code->relocs, li)
-    {
-      reloc = i8x_listitem_get_reloc (li);
+  if (srcoffset >= 0)
+    srcoffset += ip_to_bcp (code, op) + opsize - i8x_note_get_encoded (note);
 
-      if (i8x_reloc_get_unrelocated (reloc) == unrelocated)
-	{
-	  *relocp = i8x_reloc_ref (reloc);
-
-	  return I8X_OK;
-	}
-    }
-
-  /* It's a new relocation that needs creating.  */
-  err = i8x_reloc_new (code, unrelocated, &reloc);
+  err = i8x_reloc_new (code, srcoffset, unrelocated, &reloc);
   if (err != I8X_OK)
     return err;
 
@@ -566,7 +557,7 @@ i8x_code_rewrite_pre_validate (struct i8x_code *code)
 
 	case DW_OP_addr:
 	  /* Create a relocation and store at op->addr1.  */
-	  err = i8x_code_get_reloc (code, op->arg1.u, &op->addr1);
+	  err = i8x_code_new_reloc (code, op, 1, op->arg1.u, &op->addr1);
 	  if (err != I8X_OK)
 	    return err;
 	  break;

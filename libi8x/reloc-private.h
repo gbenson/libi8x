@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -28,6 +28,7 @@ struct i8x_reloc
 {
   I8X_OBJECT_FIELDS;
 
+  ssize_t srcoffset;		/* Offset in the file this came from.  */
   uintptr_t unrelocated;	/* Unrelocated value.  */
 
   /* A very primitive cache, keyed by the inferior that looked up

@@ -202,6 +202,7 @@ void i8x_list_remove (struct i8x_list *list, struct i8x_object *ob);
 I8X_COMMON_OBJECT_FUNCTIONS (code);
 
 i8x_err_e i8x_code_new (struct i8x_func *func, struct i8x_code **code);
+struct i8x_func *i8x_code_get_func (struct i8x_code *code);
 struct i8x_list *i8x_code_get_relocs (struct i8x_code *code);
 
 /* i8x_chunk private functions.  */
@@ -305,8 +306,8 @@ i8x_err_e i8x_rb_read_funcref (struct i8x_readbuf *rb,
 /* i8x_reloc private functions.  */
 I8X_LIST_FUNCTIONS (reloc);
 
-i8x_err_e i8x_reloc_new (struct i8x_code *code, uintptr_t unrelocated,
-			 struct i8x_reloc **reloc);
+i8x_err_e i8x_reloc_new (struct i8x_code *code, ssize_t srcoffset,
+			 uintptr_t unrelocated, struct i8x_reloc **reloc);
 void i8x_reloc_invalidate_for_inferior (struct i8x_reloc *reloc,
 					struct i8x_inf *inf);
 

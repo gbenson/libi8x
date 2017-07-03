@@ -81,6 +81,8 @@ global:
 	i8x_rb_read_bytes;
 	i8x_rb_read_offset_string;
 
+	i8x_reloc_get_func;
+	i8x_reloc_get_src_offset;
 	i8x_reloc_get_unrelocated;
 
 	i8x_type_get_encoded;

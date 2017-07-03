@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -436,11 +436,9 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 	 of this cache.  */
       if (__i8x_unlikely (reloc->cached_from != inf))
 	{
-	  struct i8x_func *func = (struct i8x_func *) code->_ob.parent;
-	  struct i8x_note *note = i8x_func_get_note (func);
 	  uintptr_t value DEBUG_ONLY(= I8X_POISON_BAD_RELOCATE_FN);
 
-	  err = inf->relocate_fn (inf, note, reloc->unrelocated, &value);
+	  err = inf->relocate_fn (inf, reloc, &value);
 	  CALLBACK_ERROR_CHECK ();
 
 	  reloc->cached_value = value;

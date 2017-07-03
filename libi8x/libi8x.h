@@ -307,8 +307,7 @@ typedef i8x_err_e i8x_read_mem_fn_t (struct i8x_inf *inf,
 				     void *result);
 
 typedef i8x_err_e i8x_relocate_fn_t (struct i8x_inf *inf,
-				     struct i8x_note *note,
-				     uintptr_t unrelocated,
+				     struct i8x_reloc *reloc,
 				     uintptr_t *result);
 
 i8x_err_e i8x_inf_new (struct i8x_ctx *ctx, struct i8x_inf **inf);
@@ -408,6 +407,8 @@ i8x_err_e i8x_rb_read_offset_string (struct i8x_readbuf *rb,
 I8X_COMMON_OBJECT_FUNCTIONS (reloc);
 I8X_LISTABLE_OBJECT_FUNCTIONS (reloc);
 
+struct i8x_func *i8x_reloc_get_func (struct i8x_reloc *reloc);
+ssize_t i8x_reloc_get_src_offset (struct i8x_reloc *reloc);
 uintptr_t i8x_reloc_get_unrelocated (struct i8x_reloc *reloc);
 
 /*

@@ -268,7 +268,7 @@ td_import_note (void *ta_p, const char *buf, size_t bufsiz,
 
   ri->reloc_func = rf;
   ri->reloc_func_arg = rf_arg;
-  i8x_note_set_userdata (i8x_func_get_note (func), ri, free);
+  i8x_func_set_userdata (func, ri, free);
 
   func = i8x_func_unref (func);
 
@@ -547,14 +547,15 @@ td_import_notes_from_r_debug (td_thragent_t *ta)
 /* Address relocation function.  */
 
 static i8x_err_e
-td_relocate_address (struct i8x_inf *inf, struct i8x_note *note,
-		     uintptr_t unrelocated, uintptr_t *result)
+td_relocate_address (struct i8x_inf *inf, struct i8x_reloc *reloc,
+		     uintptr_t *result)
 {
+  struct i8x_func *func = i8x_reloc_get_func (reloc);
   struct td_relocinfo *ri
-    = (struct td_relocinfo *) i8x_note_get_userdata (note);
+    = (struct td_relocinfo *) i8x_func_get_userdata (func);
 
   if (ri->reloc_func (ri->reloc_func_arg,
-		      (psaddr_t) unrelocated,
+		      (psaddr_t) i8x_reloc_get_unrelocated (reloc),
 		      (psaddr_t *) result) != PS_OK)
     return I8X_RELOC_FAILED;
 

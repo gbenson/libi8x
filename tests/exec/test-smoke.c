@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -63,10 +63,10 @@ set_dummy_values (struct i8x_list *types, union i8x_value *value)
 }
 
 static i8x_err_e
-relocate_addr (struct i8x_inf *inf, struct i8x_note *note,
-	       uintptr_t unrelocated, uintptr_t *result)
+relocate_addr (struct i8x_inf *inf, struct i8x_reloc *reloc,
+	       uintptr_t *result)
 {
-  *result = unrelocated;
+  *result = i8x_reloc_get_unrelocated (reloc);
 
   return I8X_OK;
 }
