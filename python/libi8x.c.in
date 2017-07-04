@@ -181,9 +181,24 @@ static PyObject *py8x_ob_get_wrap_fn (struct i8x_object *ob);
 static PyObject *
 py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
 {
-  struct py8x_userdata *ud = py8x_get_userdata (ob);
+  struct py8x_userdata *ud;
   PyObject *result = NULL;
 
+  /* Encapsulate NULLs as Py_None.  */
+  if (ob == NULL)
+    {
+      if (new_ud != NULL)
+	{
+	  /* The caller supplied userdata for a NULL object.  */
+	  PyErr_SetString (PyExc_AssertionError,
+			   "ob == NULL && new_ud != NULL");
+	  return NULL;
+	}
+
+      Py_RETURN_NONE;
+    }
+
+  ud = py8x_get_userdata (ob);
   if (ud != NULL && new_ud != NULL)
     {
       /* The caller supplied userdata for an object that already has
