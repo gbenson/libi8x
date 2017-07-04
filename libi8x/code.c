@@ -336,12 +336,12 @@ i8x_code_unpack_bytecode (struct i8x_code *code)
   op->desc = &optable[op->code];
   i8x_assert (op->desc != NULL && op->desc->name != NULL);
 
-  if (chunk == NULL)
-    return I8X_OK;
-
   err = i8x_list_new (ctx, true, &code->relocs);
   if (err != I8X_OK)
     return err;
+
+  if (chunk == NULL)
+    return I8X_OK;
 
   err = i8x_rb_new_from_chunk (chunk, &rb);
   if (err != I8X_OK)
