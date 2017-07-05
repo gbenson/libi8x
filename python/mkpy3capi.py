@@ -365,7 +365,8 @@ class ASTVisitor(pycparser.c_ast.NodeVisitor):
                          or name in ("i8x_ctx_new",
                                      "i8x_ctx_strerror_r",
                                      "i8x_inf_new",
-                                     "i8x_note_get_unique_chunk")))):
+                                     "i8x_note_get_unique_chunk",
+                                     "i8x_chunk_get_encoded")))):
             TopLevelDeclVisitor(self.api).visit(node.type)
 
 class TopLevelDeclVisitor(pycparser.c_ast.NodeVisitor):

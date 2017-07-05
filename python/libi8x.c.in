@@ -1056,6 +1056,22 @@ py8x_note_get_unique_chunk (PyObject *self, PyObject *args)
   return py8x_encapsulate (i8x_chunk_ref (chunk));
 }
 
+/* Python binding for i8x_chunk_get_encoded.  */
+
+static PyObject *
+py8x_chunk_get_encoded (PyObject *self, PyObject *args)
+{
+  PyObject *chunkc;
+
+  if (!PyArg_ParseTuple (args, "O", &chunkc))
+    return NULL;
+
+  struct i8x_chunk *chunk = PY8X_FROM_CAPSULE (chunk);
+
+  return PyBytes_FromStringAndSize (i8x_chunk_get_encoded (chunk),
+				    i8x_chunk_get_encoded_size (chunk));
+}
+
 #pragma libi8x_api_functions
 
 /* Module-level functions table.  */
@@ -1074,6 +1090,7 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (list_get_first),
   PY8X_FUNCTION (list_get_next),
   PY8X_FUNCTION (note_get_unique_chunk),
+  PY8X_FUNCTION (chunk_get_encoded),
 #pragma libi8x_api_function_table
   {NULL, NULL, 0, NULL}
 };
