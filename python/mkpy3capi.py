@@ -288,6 +288,9 @@ class CInt(PyType):
 class CString(PyType):
     argfmt = "s"
 
+    def do_return(self):
+        return "return PyStr_FromString (%s)" % self.retname
+
 class CVoid(PyType):
     def do_return(self):
         return "Py_RETURN_NONE";
