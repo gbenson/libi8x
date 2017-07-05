@@ -266,8 +266,9 @@ if (result)
 
 class CInt(PyType):
     __ops = {"int":   ("i", "Int"),
-            "size_t": ("n", "Long"),
-            "ssize_t": ("n", "Long")}
+             "size_t": ("n", "Long"),
+             "ssize_t": ("n", "Long"),
+             "uintptr_t": ("k", "Long")}
 
     __ops["i8x_byte_order_e"] = __ops["int"]
 
@@ -363,7 +364,8 @@ class ASTVisitor(pycparser.c_ast.NodeVisitor):
                          or name.startswith("i8x_list_get_")
                          or name in ("i8x_ctx_new",
                                      "i8x_ctx_strerror_r",
-                                     "i8x_inf_new")))):
+                                     "i8x_inf_new",
+                                     "i8x_note_get_unique_chunk")))):
             TopLevelDeclVisitor(self.api).visit(node.type)
 
 class TopLevelDeclVisitor(pycparser.c_ast.NodeVisitor):

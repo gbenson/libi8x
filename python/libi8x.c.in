@@ -1035,6 +1035,27 @@ py8x_list_get_next (PyObject *self, PyObject *args)
   PY8X_RETURN_LISTITEM (i8x_list_get_next (list, curr));
 }
 
+/* Python binding for i8x_note_get_unique_chunk.  */
+
+static PyObject *
+py8x_note_get_unique_chunk (PyObject *self, PyObject *args)
+{
+  PyObject *notec;
+  uintptr_t type_id;
+  int must_exist;
+
+  if (!PyArg_ParseTuple (args, "Oki", &notec, &type_id, &must_exist))
+    return NULL;
+
+  struct i8x_note *note = PY8X_FROM_CAPSULE (note);
+  struct i8x_chunk *chunk;
+  i8x_err_e err = i8x_note_get_unique_chunk (note, type_id, must_exist, &chunk);
+
+  PY8X_CHECK_CALL (i8x_note_get_ctx (note), err);
+
+  return py8x_encapsulate (i8x_chunk_ref (chunk));
+}
+
 #pragma libi8x_api_functions
 
 /* Module-level functions table.  */
@@ -1052,6 +1073,7 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (inf_set_relocate_fn),
   PY8X_FUNCTION (list_get_first),
   PY8X_FUNCTION (list_get_next),
+  PY8X_FUNCTION (note_get_unique_chunk),
 #pragma libi8x_api_function_table
   {NULL, NULL, 0, NULL}
 };
