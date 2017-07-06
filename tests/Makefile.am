@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Red Hat, Inc.
+# Copyright (C) 2016-17 Red Hat, Inc.
 # This file is part of the Infinity Note Execution Library.
 #
 # The Infinity Note Execution Library is free software; you can
@@ -30,6 +30,9 @@ AM_LDFLAGS = \
 	$(top_builddir)/libi8x-test/libi8x-test.la
 
 check_PROGRAMS = \
+	bugs/test-bug-0001 \
+	bugs/test-bug-0002 \
+	bugs/test-bug-0003 \
 	exec/ops/test-deref \
 	exec/test-factorial \
 	exec/test-smoke \

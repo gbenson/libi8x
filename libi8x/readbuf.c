@@ -160,34 +160,45 @@ I8X_RB_READ_FIXED_MULTI (64)
 I8X_EXPORT i8x_err_e
 i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intptr_t *rp)
 {
+  const char *ptr = rb->ptr;
   intptr_t result = 0;
   int shift = 0;
 
   while (1)
     {
       uint8_t byte;
-      int err;
+      i8x_err_e err;
 
       err = i8x_rb_read_uint8_t (rb, &byte);
       if (err != I8X_OK)
 	return err;
 
-      result |= ((byte & 127) << shift);
+      intptr_t masked = byte & 127;
+      intptr_t shifted = masked << shift;
+      if ((shifted >> shift) != masked)
+	return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, ptr);
+
+      result |= shifted;
 
       if ((byte & 128) == 0)
 	{
-	  if (byte & 64)
+	  masked = byte & 64;
+	  if (masked != 0)
 	    {
-	      intptr_t sign = 64 << shift;
+	      shifted = masked << (shift + 1);
+	      if (shifted == 0)
+		return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, ptr);
 
-	      result &= ~sign;
-	      result -= sign;
+	      result |= -shifted;
 	    }
 
 	  break;
 	}
 
       shift += 7;
+
+      if (shift > __WORDSIZE)
+	return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, ptr);
     }
 
   *rp = result;
@@ -198,24 +209,33 @@ i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intptr_t *rp)
 I8X_EXPORT i8x_err_e
 i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintptr_t *rp)
 {
+  const char *ptr = rb->ptr;
   uintptr_t result = 0;
   int shift = 0;
 
   while (1)
     {
       uint8_t byte;
-      int err;
+      i8x_err_e err;
 
       err = i8x_rb_read_uint8_t (rb, &byte);
       if (err != I8X_OK)
 	return err;
 
-      result |= ((byte & 127) << shift);
+      uintptr_t masked = byte & 127;
+      uintptr_t shifted = masked << shift;
+      if ((shifted >> shift) != masked)
+	return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, ptr);
+
+      result |= shifted;
 
       if ((byte & 128) == 0)
 	break;
 
       shift += 7;
+
+      if (shift > __WORDSIZE)
+	return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, ptr);
     }
 
   *rp = result;
