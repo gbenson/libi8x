@@ -223,7 +223,12 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
       TYPE tmp;							\
 								\
       err = i8x_rb_read_ ## TYPE (rb, &tmp);			\
-      RESULT = tmp;						\
+      if (err == I8X_OK)					\
+	{							\
+	  RESULT = tmp;						\
+	  if (RESULT != tmp)					\
+	    err = i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location); \
+	}							\
     }								\
     break
 
