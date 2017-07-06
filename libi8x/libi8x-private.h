@@ -130,8 +130,9 @@ void i8x_ctx_log (struct i8x_ctx *ctx,
 #else
 # define LONG_FMT ""
 #endif
-#define LDEC "%" LONG_FMT "d"
-#define LHEX "0x%" LONG_FMT "x"
+#define LDEC	"%" LONG_FMT "d"
+#define ULDEC	"%" LONG_FMT "u"
+#define LHEX	"0x%" LONG_FMT "x"
 
 /* Placeholder for NLS.  */
 

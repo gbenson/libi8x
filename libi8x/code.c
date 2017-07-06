@@ -854,6 +854,48 @@ ip_to_so (struct i8x_code *code, struct i8x_instr *ip)
   return ip_to_bcp (code, ip) - mem_base + src_base;
 }
 
+/* Format an operand for i8x_code_dump_itable.  Note that I8C's
+   testsuite parses this output so be careful what you alter.  */
+
+static void
+i8x_code_fmt_arg (char *buf, size_t bufsiz, i8x_operand_type_e type,
+		  union i8x_value value)
+{
+  i8x_assert (bufsiz > 0);
+  if (type == I8X_OPR_NONE)
+    {
+      *buf = '\0';
+      return;
+    }
+  *(buf++) = ' ';
+  bufsiz--;
+
+  switch (type)
+    {
+    case I8X_OPR_INT8:
+    case I8X_OPR_INT16:
+    case I8X_OPR_INT32:
+    case I8X_OPR_INT64:
+    case I8X_OPR_SLEB128:
+      snprintf (buf, bufsiz, LDEC, value.i);
+      break;
+
+    case I8X_OPR_UINT8:
+    case I8X_OPR_UINT16:
+    case I8X_OPR_UINT32:
+    case I8X_OPR_UINT64:
+    case I8X_OPR_ULEB128:
+      snprintf (buf, bufsiz, ULDEC, value.u);
+      break;
+
+    default:
+      snprintf (buf, bufsiz, LHEX, value.u);
+    }
+}
+
+/* Dump the instruction table.  Note that I8C's testsuite parses
+   this output so be careful what you alter.  */
+
 void
 i8x_code_dump_itable (struct i8x_code *code, const char *where)
 {
@@ -871,8 +913,8 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
 
   i8x_code_foreach_op (code, op)
     {
-      char arg1[32] = "";  /* Operand 1.  */
-      char arg2[32] = "";  /* Operand 2.  */
+      char arg1[32];       /* Operand 1.  */
+      char arg2[32];       /* Operand 2.  */
       char fnext[32] = ""; /* Fall through next.  */
       char bnext[32] = ""; /* Branch next.  */
       const char *fname;   /* Function name.  */
@@ -881,21 +923,18 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
       if (op->code == IT_EMPTY_SLOT)
 	continue;
 
-      if (op->desc->arg1 != I8X_OPR_NONE)
-	snprintf (arg1, sizeof (arg1), " " LDEC "", op->arg1.u);
-
-      if (op->desc->arg2 != I8X_OPR_NONE)
-	snprintf (arg2, sizeof (arg2), ", " LDEC "", op->arg2.u);
+      i8x_code_fmt_arg (arg1, sizeof (arg1), op->desc->arg1, op->arg1);
+      i8x_code_fmt_arg (arg2, sizeof (arg2), op->desc->arg2, op->arg2);
 
       snprintf (insn, sizeof (insn),
 		"%s%s%s", op->desc->name, arg1, arg2);
 
       if (op->code != I8X_OP_return)
-	snprintf (fnext, sizeof (fnext), "=> " LHEX "",
+	snprintf (fnext, sizeof (fnext), "=> " LHEX,
 		  ip_to_so (code, op->fall_through));
 
       if (op->code == DW_OP_bra)
-	snprintf (bnext, sizeof (bnext), ", " LHEX "",
+	snprintf (bnext, sizeof (bnext), ", " LHEX,
 		  ip_to_so (code, op->branch_next));
 
       if (op->ext1 != NULL)
