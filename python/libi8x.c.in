@@ -72,7 +72,9 @@ static PyObject *py8x_I8XError;
     PyObject *c = PyObject_GetAttrString (wrapped, PY8X_CNAME_ATTR);	\
     if (c == NULL)							\
       return NULL;							\
-    return (struct i8x_ ## TYPE *) PyCapsule_GetPointer (c, NULL);	\
+    void *result = PyCapsule_GetPointer (c, NULL);			\
+    Py_DECREF (c);							\
+    return (struct i8x_ ## TYPE *) result;				\
   }
 #pragma libi8x_api_object_functions
 
