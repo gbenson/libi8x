@@ -29,13 +29,10 @@ import subprocess # XXX
 import os # XXX
 import sys # XXX
 
-topdir = os.path.dirname(os.path.realpath(sys.argv[0]))
-
-subprocess.check_call((sys.executable,
-                       os.path.join(topdir, "mkpy3capi.py"),
-                       os.path.join(os.path.dirname(os.path.dirname(topdir)),
-                                    "pycparser", "utils",
-                                    "fake_libc_include")))
+# Regenerate libi8x.c if we have the fake headers from pycparser.
+hdrdir = "pycparser/utils/fake_libc_include"
+if os.path.exists(hdrdir):
+    subprocess.check_call((sys.executable, "mkpy3capi.py", hdrdir))
 
 setup(
     ext_modules=[
