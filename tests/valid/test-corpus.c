@@ -81,6 +81,25 @@ do_test (struct i8x_ctx *ctx, const char *filename)
 	expect_err = I8X_NOTE_UNHANDLED;
     }
 
+  /* Various test_load_constant tests contain constants overflow.  */
+  if (strstr (filename, "/test_load_constant/test_output/") != NULL)
+    {
+      if (strstr (filename, "/0015-0001") != NULL
+	  || strstr (filename, "/0028-0001") != NULL
+	  || (__WORDSIZE == 32
+	      && (strstr (filename, "/0011-0001") != NULL
+		  || strstr (filename, "/0012-0001") != NULL
+		  || strstr (filename, "/0013-0001") != NULL
+		  || strstr (filename, "/0014-0001") != NULL
+		  || strstr (filename, "/0024-0001") != NULL
+		  || strstr (filename, "/0025-0001") != NULL
+		  || strstr (filename, "/0026-0001") != NULL
+		  || strstr (filename, "/0027-0001") != NULL)))
+	{
+	  expect_err = I8X_NOTE_UNHANDLED;
+	}
+    }
+
   struct i8x_func *func;
   err = i8x_func_new_bytecode (note, &func);
   i8x_note_unref (note);
