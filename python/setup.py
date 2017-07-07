@@ -32,6 +32,7 @@ import sys # XXX
 # Regenerate libi8x.c if we have the fake headers from pycparser.
 hdrdir = "pycparser/utils/fake_libc_include"
 if os.path.exists(hdrdir):
+    print("regenerating libi8x.c")
     subprocess.check_call((sys.executable, "mkpy3capi.py", hdrdir))
 
 setup(

@@ -75,26 +75,22 @@ class API(object):
         try:
             rtype = PyType.from_ctype(rtype)
         except NotImplementedError:
-            print("\x1B[31m%s: %s\x1B[0m" % (name, rtype))
             return
         try:
             params = [(PyType.from_ctype(t), n) for t, n in params]
         except NotImplementedError:
-            print("\x1B[31m%s: %s\x1B[0m" % (name, params))
             return
 
         assert name.startswith("i8x_")
         tmp = name[4:]
-        has_test = os.path.exists(self.__testfmt % tmp)
-        if not has_test:
+        if not os.path.exists(self.__testfmt % tmp):
             for what in ("_get_", "_set_"):
                 if tmp.find(what) >= 0:
                     tmp = tmp.replace(what, "_get_set_")
-                    has_test = os.path.exists(self.__testfmt % tmp)
-                    break
-        print("\x1B[%dm%s\x1B[0m" % (33 - has_test, name))
-        if not has_test:
-            return
+                    if os.path.exists(self.__testfmt % tmp):
+                        break
+            else:
+                return
 
         self.__ftable.append(name)
 
