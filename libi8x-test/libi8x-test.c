@@ -104,7 +104,8 @@ i8x_execution_test_main (void)
       err = i8x_ctx_new (is_debug == 1 ? I8X_DBG_MEM : 0, NULL, &ctx);
       CHECK_CALL (NULL, err);
 
-      i8x_ctx_set_log_priority (ctx, LOG_NOTICE);
+      if (i8x_ctx_get_log_priority (ctx) < LOG_NOTICE)
+	i8x_ctx_set_log_priority (ctx, LOG_NOTICE);
 
       err = i8x_xctx_new (ctx, stack_size, &xctx);
       CHECK_CALL (ctx, err);
