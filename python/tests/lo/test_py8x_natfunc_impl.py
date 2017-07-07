@@ -73,3 +73,23 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
         self.assertRaises(Error,
                           py8x.xctx_call,
                           self.xctx, ref, self.inf, ())
+
+    def test_func_arg(self):
+        """Test calling a native function with a function argument."""
+        def impl(xctx, inf, this_func, func_arg, int_arg):
+            return py8x.xctx_call(xctx, func_arg, self.inf, (int_arg - 3,))
+        func = py8x.ctx_import_native(self.ctx,
+                                      "test", "func", "Fi(i)i", "i", impl)
+        ref = py8x.func_get_funcref(func)
+        rets = py8x.xctx_call(self.xctx, ref, self.inf, (self.funcref, 10))
+        self.assertEqual(rets, (5040,))
+
+    def test_func_ret(self):
+        """Test calling a native function with a function return."""
+        def impl(xctx, inf, func, arg1, arg2):
+            return (arg1 + arg2, self.funcref, arg1 - arg2)
+        func = py8x.ctx_import_native(self.ctx,
+                                      "test", "func", "ii", "pFi(i)p", impl)
+        ref = py8x.func_get_funcref(func)
+        rets = py8x.xctx_call(self.xctx, ref, self.inf, (3, 4))
+        self.assertEqual(rets, (7, self.funcref, -1))

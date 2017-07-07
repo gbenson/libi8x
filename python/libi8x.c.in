@@ -577,10 +577,8 @@ py8x_natfunc_impl (struct i8x_xctx *xctx,
       struct i8x_type *type = i8x_listitem_get_type (li);
 
       if (i8x_type_is_functype (type))
-	{
-	  Py_DECREF (args);
-	  return I8X_NATCALL_FAILED;
-	}
+	PY8X_NFI_SETARG (3 + i,
+			 py8x_encapsulate (i8x_funcref_ref (argv[i].f)));
       else
 	PY8X_NFI_SETARG (3 + i, PyLong_FromLong (argv[i].i));
     }
@@ -617,12 +615,17 @@ py8x_natfunc_impl (struct i8x_xctx *xctx,
 
       if (i8x_type_is_functype (type))
 	{
-	  PyErr_SetString (PyExc_NotImplementedError,
-			   __FILE__ ":" PY8X_STRINGIZE (__LINE__));
+	  struct i8x_funcref *value;
 
+	  value = py8x_funcref_from_capsule (ret);
 	  Py_DECREF (ret);
-	  Py_DECREF (rets);
-	  return I8X_NATCALL_FAILED;
+	  if (value == NULL)
+	    {
+	      Py_DECREF (rets);
+	      return I8X_NATCALL_FAILED;
+	    }
+
+	  retv[i].f = value;
 	}
       else
 	{
