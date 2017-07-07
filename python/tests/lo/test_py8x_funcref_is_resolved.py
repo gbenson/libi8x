@@ -34,7 +34,6 @@ class TestPy8xFuncRefIsResolved(common.PopulatedTestCase):
 
     def test_undefined(self):
         """Test py8x_funcref_is_resolved on an undefined function."""
-        ctx = self.ctx_new()
         ref = py8x.ctx_get_funcref (self.ctx, "exmapel", "factorial", "i", "i")
         self.assertFalse(py8x.funcref_is_resolved(ref))
 
