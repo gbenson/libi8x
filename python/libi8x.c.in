@@ -216,7 +216,8 @@ py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
     {
       /* The caller supplied userdata for an object that already has
 	 userdata set.  This is a programmer error.  */
-      PyErr_SetString (PyExc_AssertionError, "ud != NULL && new_ud != NULL");
+      PyErr_SetString (PyExc_AssertionError,
+		       "ud != NULL && new_ud != NULL");
       return NULL;
     }
 
@@ -792,7 +793,8 @@ py8x_xctx_call (PyObject *self, PyObject *args)
       else
 	ret = PyLong_FromLong (retv[i].i);
 
-      if (ret == NULL || PyTuple_SetItem (result, retc - i - 1, ret) != 0)
+      if (ret == NULL
+	  || PyTuple_SetItem (result, retc - i - 1, ret) != 0)
 	{
 	  Py_DECREF (result);
 	  return NULL;
@@ -859,7 +861,8 @@ py8x_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
 
   if (ud->read_mem_fn == NULL || ud->read_mem_fn == Py_None)
     {
-      PyErr_SetString (py8x_I8XError, "inferior has no read_mem function");
+      PyErr_SetString (py8x_I8XError,
+		       "inferior has no read_mem function");
       return I8X_READ_MEM_FAILED;
     }
 
@@ -890,7 +893,8 @@ py8x_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
   if (buf.len != len)
     {
       Py_DECREF (ret);
-      PyErr_SetString (py8x_I8XError, "read_mem_fn returned bad length");
+      PyErr_SetString (py8x_I8XError,
+		       "read_mem_fn returned bad length");
       return I8X_READ_MEM_FAILED;
     }
 
@@ -908,7 +912,8 @@ py8x_relocate_fn (struct i8x_inf *inf, struct i8x_reloc *reloc,
 
   if (ud->relocate_fn == NULL || ud->relocate_fn == Py_None)
     {
-      PyErr_SetString (py8x_I8XError, "inferior has no relocate function");
+      PyErr_SetString (py8x_I8XError,
+		       "inferior has no relocate function");
       return I8X_RELOC_FAILED;
     }
 
@@ -1065,7 +1070,8 @@ py8x_note_get_unique_chunk (PyObject *self, PyObject *args)
 
   struct i8x_note *note = PY8X_FROM_CAPSULE (note);
   struct i8x_chunk *chunk;
-  i8x_err_e err = i8x_note_get_unique_chunk (note, type_id, must_exist, &chunk);
+  i8x_err_e err = i8x_note_get_unique_chunk (note, type_id, must_exist,
+					     &chunk);
 
   PY8X_CHECK_CALL (i8x_note_get_ctx (note), err);
 
@@ -1124,7 +1130,8 @@ static struct PyModuleDef libi8x_moduledef =
 
 /* Module initialization function.  */
 
-#define PY8X_CONSTANT(mod, name) PyModule_AddIntConstant (mod, #name, name)
+#define PY8X_CONSTANT(mod, name)					\
+  PyModule_AddIntConstant (mod, #name, name)
 
 MODULE_INIT_FUNC (_libi8x)
 {
