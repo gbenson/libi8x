@@ -86,14 +86,6 @@ static PyObject *py8x_I8XError;
 #define PY8X_FROM_CAPSULE(TYPENAME)					\
   PY8X_FROM_CAPSULE_2 (TYPENAME, TYPENAME)
 
-/* PyCapsule_Destructor suitable for all libi8x objects.  */
-
-static void
-py8x_ob_unref (PyObject *obc)
-{
-  i8x_ob_unref (PyCapsule_GetPointer (obc, NULL));
-}
-
 /* Userdata for all libi8x objects we create.  May be extended.
    Every libi8x object we pass into Python-space has one of these.
    It can be supplied to py8x_encapsulate* by the object's creator
@@ -176,6 +168,25 @@ py8x_userdata_free (void *ud_p)
   ((struct py8x_userdata *)						\
      i8x_ob_get_userdata ((struct i8x_object *) (o)))
 
+/* PyCapsule_Destructor suitable for all libi8x objects.  */
+
+static void
+py8x_ob_unref (PyObject *obc)
+{
+  struct i8x_object *ob = PyCapsule_GetPointer (obc, NULL);
+  struct py8x_userdata *ud = py8x_get_userdata (ob);
+
+  if (ud == NULL)
+    abort ();
+
+  /* Release the child before the parent.  */
+  PyObject *parent = ud->parent;
+  ud->parent = NULL;
+
+  i8x_ob_unref (ob);
+  Py_XDECREF (parent);
+}
+
 /* Encapsulate and return a libi8x object.  */
 
 static PyObject *py8x_ob_get_wrap_fn (struct i8x_object *ob);
@@ -220,8 +231,11 @@ py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
 
       /* Attach it to the object. */
       i8x_ob_set_userdata (ob, ud, py8x_userdata_free);
+    }
 
-      /* Reference the object's parent's wrapper.  */
+  /* Reference the object's parent's wrapper.  */
+  if (ud->parent == NULL)
+    {
       struct i8x_object *parent = i8x_ob_get_parent (ob);
 
       if (parent != NULL)
