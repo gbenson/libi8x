@@ -30,7 +30,7 @@ import syslog
 class TestPy8xCtxNew(common.TestCase):
     def test_basic(self):
         """Test py8x_ctx_new with no flags or log function."""
-        ctx = py8x.ctx_new(common.TestObject.new, 0, None)
+        ctx = self.ctx_new()
         self.assertIsNotNone(ctx)
 
     def test_logging(self):
@@ -38,7 +38,7 @@ class TestPy8xCtxNew(common.TestCase):
         messages = []
         def log_func(*args):
             messages.append(args)
-        py8x.ctx_new(common.TestObject.new, syslog.LOG_DEBUG, log_func)
+        self.ctx_new(syslog.LOG_DEBUG, log_func)
         self.assertGreater(len(messages), 0)
         self.assertEqual(len(messages[0]), 5)
         priority, filename, line, function, message = messages[0]

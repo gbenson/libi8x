@@ -30,6 +30,7 @@ import syslog
 
 class TestPy8xCtxSetLogFn(common.TestCase):
     def setUp(self):
+        super(TestPy8xCtxSetLogFn, self).setUp()
         self.saved_stderr = sys.stderr
         self.null_stderr = open("/dev/null", "w")
         sys.stderr = self.null_stderr
@@ -37,10 +38,11 @@ class TestPy8xCtxSetLogFn(common.TestCase):
     def tearDown(self):
         sys.stderr = self.saved_stderr
         self.null_stderr.close()
+        super(TestPy8xCtxSetLogFn, self).tearDown()
 
     def test_basic(self):
         """Test py8x_ctx_set_log_fn."""
-        ctx = py8x.ctx_new(common.TestObject.new, syslog.LOG_DEBUG, None)
+        ctx = self.ctx_new(syslog.LOG_DEBUG)
         messages = []
         def log_func(*args):
             messages.append(args)

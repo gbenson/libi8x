@@ -28,6 +28,7 @@ from . import common
 
 class TestPy8xListGetFirst(common.TestCase):
     def setUp(self):
+        super(TestPy8xListGetFirst, self).setUp()
         self.ctx = self.ctx_new()
 
     def __do_test(self):

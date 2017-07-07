@@ -25,19 +25,45 @@ from __future__ import unicode_literals
 
 import _libi8x as py8x
 from .. import common
+import weakref
 
 class TestObject(object):
-    @classmethod
-    def new(cls, klass):
-        return cls()
+    def __init__(self, type):
+        self.type = type
 
-    def __init__(self):
-        pass
+    def __str__(self):
+        return "<%s>" % self.type
 
 class TestCase(common.TestCase):
-    def ctx_new(self):
+    def setUp(self):
+        self.__objects = []
+
+    def __new_i8xobj(self, type):
+        result = TestObject(type)
+        self.__objects.append(weakref.ref(result))
+        return result
+
+    def tearDown(self):
+        # Delete any objects we're referencing.
+        keys = [key
+                for key, value in self.__dict__.items()
+                if isinstance(value, TestObject)]
+        try:
+            del value
+        except UnboundLocalError:
+            pass
+        for key in keys:
+            self.__dict__.pop(key)
+
+        # Check everything got released.
+        objects = [ob
+                   for ob in (ref() for ref in self.__objects)
+                   if ob is not None]
+        self.assertEqual(objects, [])
+
+    def ctx_new(self, flags=0, log_fn=None):
         """Standard way to create an i8x_ctx for tests."""
-        return py8x.ctx_new(TestObject.new, py8x.I8X_DBG_MEM, None)
+        return py8x.ctx_new(self.__new_i8xobj, flags | py8x.I8X_DBG_MEM, log_fn)
 
 class PopulatedTestCase(TestCase):
     """A testcase with a context and a loaded function."""
@@ -45,6 +71,7 @@ class PopulatedTestCase(TestCase):
     TESTNOTE = TestCase.GOOD_NOTE
 
     def setUp(self):
+        super(PopulatedTestCase, self).setUp()
         self.ctx = self.ctx_new()
         self.func = py8x.ctx_import_bytecode(self.ctx, self.TESTNOTE,
                                              "testnote", 0)
