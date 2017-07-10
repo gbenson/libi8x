@@ -36,6 +36,8 @@ if os.path.exists(hdrdir):
     subprocess.check_call((sys.executable, "mkpy3capi.py", hdrdir))
 
 setup(
+    name="libi8x",
+    version="0.0.1",
     ext_modules=[
         Extension("_libi8x",
                   include_dirs = ["../libi8x"],
