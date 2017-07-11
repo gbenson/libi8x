@@ -24,27 +24,55 @@ from __future__ import print_function
 # Python2 distutils can't cope with __future__.unicode_literals
 
 from setuptools import setup, Extension
-import glob # XXX
-import subprocess # XXX
-import os # XXX
-import sys # XXX
+import os
+import subprocess
+import sys
 
-# Regenerate libi8x.c if we have the fake headers from pycparser.
-hdrdir = "pycparser/utils/fake_libc_include"
-if os.path.exists(hdrdir):
+here = os.path.realpath(os.path.dirname(__file__))
+
+# Link libi8x statically if we're in a libi8x tree (tarball or git).
+if os.path.basename(here) == "python":
+    # Try and stop people packaging static builds in distros.
+    if ("test" not in sys.argv[1:]
+        and ("RPM_PACKAGE_NAME" in os.environ
+             or "DEB_HOST_ARCH" in os.environ)):
+        print("""\
+Please don't build distro packages of these bindings from this tree.
+Please use tarballs from https://pypi.python.org/pypi/libi8x/ instead.""")
+        sys.exit(1)
+    # Ensure everything is up-to-date.
+    if "MAKELEVEL" not in os.environ:
+        subprocess.check_call(("make", "-C", os.path.dirname(here)))
+    import glob
+    print("warning: building static _libi8x")
+    extargs = {"include_dirs": ["../libi8x"],
+               "extra_objects": glob.glob("../libi8x/.libs/*.o")}
+else:
+    extargs = {"libraries": ["i8x"]}
+
+# Regenerate libi8x.c if we're running in a checked-out git tree.
+hdrdir = os.path.join(here, "pycparser", "utils", "fake_libc_include")
+if not os.path.exists(hdrdir):
+    # Ensure we don't ever release packages with stale libi8x.c.
+    for arg in sys.argv[1:]:
+        for bail in ("register", "upload", "dist"):
+            if arg.find(bail) >= 0:
+                print("Please checkout from git for ‘%s’" % arg)
+                sys.exit(1)
+else:
     print("regenerating libi8x.c")
     subprocess.check_call((sys.executable, "mkpy3capi.py", hdrdir))
 
 setup(
     name="libi8x",
     version="0.0.1",
+    description="Python bindings for libi8x",
+    license="LGPLv2.1+",
+    author="Gary Benson",
+    author_email="infinity@sourceware.org",
+    url="https://infinitynotes.org/",
     ext_modules=[
-        Extension("_libi8x",
-                  include_dirs = ["../libi8x"],
-                  #XXX libraries = ["libi8x"],
-                  #XXX library_dirs = ["../libi8x/.libs"],
-                  extra_objects = glob.glob("../libi8x/.libs/*.o"), #XXX
-                  sources = ["libi8x.c"])
+        Extension("_libi8x", sources=["libi8x.c"], **extargs),
     ],
     tests_require=["nose"],
     test_suite="nose.collector")
