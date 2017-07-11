@@ -1094,6 +1094,37 @@ py8x_chunk_get_encoded (PyObject *self, PyObject *args)
 
 #pragma libi8x_api_functions
 
+/* Convert an unsigned value to signed w.r.t. libi8x's wordsize.  */
+
+static PyObject *
+py8x_to_signed (PyObject *self, PyObject *args)
+{
+  PyObject *n;
+  union i8x_value v;
+
+  if (!PyArg_ParseTuple (args, "O", &n))
+    return NULL;
+
+  v.u = PyLong_AsUnsignedLong (n);
+  if (PyErr_Occurred () != NULL)
+    return NULL;
+
+  return PyLong_FromLong (v.i);
+}
+
+/* Convert an signed value to unsigned w.r.t. libi8x's wordsize.  */
+
+static PyObject *
+py8x_to_unsigned (PyObject *self, PyObject *args)
+{
+  union i8x_value v;
+
+  if (!PyArg_ParseTuple (args, "l", &v.i))
+    return NULL;
+
+  return PyLong_FromUnsignedLong (v.u);
+}
+
 /* Module-level functions table.  */
 
 #define PY8X_FUNCTION(name) {#name, py8x_ ## name, METH_VARARGS, NULL}
@@ -1111,6 +1142,8 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (list_get_next),
   PY8X_FUNCTION (note_get_unique_chunk),
   PY8X_FUNCTION (chunk_get_encoded),
+  PY8X_FUNCTION (to_signed),
+  PY8X_FUNCTION (to_unsigned),
 #pragma libi8x_api_function_table
   {NULL, NULL, 0, NULL}
 };
