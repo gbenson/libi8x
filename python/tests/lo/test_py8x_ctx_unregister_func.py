@@ -60,4 +60,5 @@ class TestPy8xCtxUnregisterFunc(common.PopulatedTestCase):
         py8x.ctx_unregister_func(self.ctx, self.func)
         self.assertTrue(py8x.funcref_is_resolved(self.funcref))
         self.assertEqual(py8x.xctx_call(self.xctx, self.funcref,
-                                        self.inf, (8,)), (-8,))
+                                        self.inf, (8,)),
+                         (py8x.to_unsigned(-8),))

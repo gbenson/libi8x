@@ -574,7 +574,7 @@ py8x_pack_tuple (union i8x_value *src, struct i8x_funcref *ref,
       if (i8x_type_is_functype (type))
 	item = py8x_encapsulate (i8x_funcref_ref (src[i].f));
       else
-	item = PyLong_FromLong (src[i].i);
+	item = PyLong_FromUnsignedLong (src[i].u);
 
       if (item == NULL || PyTuple_SetItem (result, index, item) != 0)
 	{

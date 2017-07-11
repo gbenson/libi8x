@@ -92,4 +92,5 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
                                       "test", "func", "ii", "pFi(i)p", impl)
         ref = py8x.func_get_funcref(func)
         rets = py8x.xctx_call(self.xctx, ref, self.inf, (3, 4))
-        self.assertEqual(rets, (7, self.funcref, -1))
+        self.assertEqual(rets, (7, self.funcref,
+                                py8x.to_unsigned(-1)))
