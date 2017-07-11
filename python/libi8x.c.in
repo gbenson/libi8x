@@ -533,6 +533,125 @@ static const struct py8x_userdata_ops py8x_func_udops =
 
 PY8X_USERDATA_FUNCTIONS (func)
 
+/* Actions for py8x_unpack_tuple.  */
+
+typedef enum
+{
+  PY8X_ARGS,
+  PY8X_RETS
+}
+py8x_argsrets_e;
+
+/* Helper for py8x_{pack,unpack}_tuple.  */
+
+#define py8x_pack_unpack_types(ref, what)				\
+  (what == PY8X_ARGS							\
+   ? i8x_funcref_get_ptypes (ref)					\
+   : i8x_funcref_get_rtypes (ref))
+
+/* Pack a Python tuple from an array of i8x_values.  */
+
+static PyObject *
+py8x_pack_tuple (union i8x_value *src, struct i8x_funcref *ref,
+		 py8x_argsrets_e what)
+{
+  struct i8x_list *types =  py8x_pack_unpack_types (ref, what);
+  size_t length = i8x_list_size (types);
+  size_t offset = what == PY8X_ARGS ? 3 : 0;
+  struct i8x_listitem *li;
+  size_t i;
+
+  PyObject *result = PyTuple_New (length + offset);
+  if (result == NULL)
+    return NULL;
+
+  i8x_list_foreach_indexed (types, li, i)
+    {
+      struct i8x_type *type = i8x_listitem_get_type (li);
+      int index = what == PY8X_ARGS ? i + offset : length - i - 1;
+      PyObject *item;
+
+      if (i8x_type_is_functype (type))
+	item = py8x_encapsulate (i8x_funcref_ref (src[i].f));
+      else
+	item = PyLong_FromLong (src[i].i);
+
+      if (item == NULL || PyTuple_SetItem (result, index, item) != 0)
+	{
+	  Py_DECREF (result);
+	  return NULL;
+	}
+    }
+
+  return result;
+}
+
+/* Unpack a Python tuple into an array of i8x_values.  */
+
+static bool
+py8x_unpack_tuple (union i8x_value *dst, PyObject *src,
+		   struct i8x_funcref *ref, py8x_argsrets_e what)
+{
+  struct i8x_list *types =  py8x_pack_unpack_types (ref, what);
+  size_t length = i8x_list_size (types);
+  struct i8x_listitem *li;
+  size_t i;
+
+  if (PySequence_Length (src) != length)
+    {
+      PyErr_SetString (py8x_I8XError,
+		       what == PY8X_ARGS
+		       ? "wrong number of arguments"
+		       : "wrong number of returns");
+      return false;
+    }
+
+  i8x_list_foreach_indexed (types, li, i)
+    {
+      struct i8x_type *type = i8x_listitem_get_type (li);
+      int index = what == PY8X_ARGS ? i : length - i - 1;
+      PyObject *item = PySequence_GetItem (src, index);
+
+      if (item == NULL)
+	return false;
+
+      if (i8x_type_is_functype (type))
+	{
+	  struct i8x_funcref *value = py8x_funcref_from_capsule (item);
+
+	  Py_DECREF (item);
+	  if (value == NULL)
+	    return false;
+
+	  dst[i].f = value;
+	}
+      else
+	{
+	  long value = PyLong_AsLong (item);
+
+	  Py_DECREF (item);
+	  if (value == -1 && PyErr_Occurred () != NULL)
+	    return false;
+
+	  dst[i].i = value;
+	}
+    }
+
+  return true;
+}
+
+#define py8x_pack_args(src, ref) 					\
+  py8x_pack_tuple (src, ref, PY8X_ARGS)
+
+#define py8x_pack_rets(src, ref) 					\
+  py8x_pack_tuple (src, ref, PY8X_RETS)
+
+#define py8x_unpack_args(dst, src, ref) 				\
+  py8x_unpack_tuple (dst, src, ref, PY8X_ARGS)
+
+#define py8x_unpack_rets(dst, src, ref) 				\
+  py8x_unpack_tuple (dst, src, ref, PY8X_RETS)
+
 /* Helper for py8x_natfunc_impl.  */
 
 #define PY8X_NFI_SETARG(i, v)						\
@@ -556,32 +675,16 @@ py8x_natfunc_impl (struct i8x_xctx *xctx,
 		   union i8x_value *retv)
 {
   struct i8x_funcref *ref = i8x_func_get_funcref (func);
-  size_t argc = i8x_funcref_get_num_params (ref);
-  PyObject *args = PyTuple_New (3 + argc);
+
+  /* Pack the arguments.  */
+  PyObject *args = py8x_pack_args (argv, ref);
 
   if (args == NULL)
     return I8X_NATCALL_FAILED;
 
-  /* Pack the arguments.  */
   PY8X_NFI_SETARG (0, py8x_encapsulate (i8x_xctx_ref (xctx)));
   PY8X_NFI_SETARG (1, py8x_encapsulate (i8x_inf_ref (inf)));
   PY8X_NFI_SETARG (2, py8x_encapsulate (i8x_func_ref (func)));
-
-  struct i8x_list *types;
-  struct i8x_listitem *li;
-  size_t i;
-
-  types = i8x_funcref_get_ptypes (ref);
-  i8x_list_foreach_indexed (types, li, i)
-    {
-      struct i8x_type *type = i8x_listitem_get_type (li);
-
-      if (i8x_type_is_functype (type))
-	PY8X_NFI_SETARG (3 + i,
-			 py8x_encapsulate (i8x_funcref_ref (argv[i].f)));
-      else
-	PY8X_NFI_SETARG (3 + i, PyLong_FromLong (argv[i].i));
-    }
 
   /* Make the call.  */
   struct py8x_func_userdata *ud = py8x_func_get_userdata (func);
@@ -592,58 +695,9 @@ py8x_natfunc_impl (struct i8x_xctx *xctx,
     return I8X_NATCALL_FAILED;
 
   /* Unpack the returns.  */
-  size_t retc = i8x_funcref_get_num_returns (ref);
-  if (PySequence_Length (rets) != retc)
-    {
-      PyErr_SetString (py8x_I8XError, "wrong number of returns");
-
-      Py_DECREF (rets);
-      return I8X_NATCALL_FAILED;
-    }
-
-  types = i8x_funcref_get_rtypes (ref);
-  i8x_list_foreach_indexed (types, li, i)
-    {
-      struct i8x_type *type = i8x_listitem_get_type (li);
-      PyObject *ret = PySequence_GetItem (rets, retc - i - 1);
-
-      if (ret == NULL)
-	{
-	  Py_DECREF (rets);
-	  return I8X_NATCALL_FAILED;
-	}
-
-      if (i8x_type_is_functype (type))
-	{
-	  struct i8x_funcref *value;
-
-	  value = py8x_funcref_from_capsule (ret);
-	  Py_DECREF (ret);
-	  if (value == NULL)
-	    {
-	      Py_DECREF (rets);
-	      return I8X_NATCALL_FAILED;
-	    }
-
-	  retv[i].f = value;
-	}
-      else
-	{
-	  long value = PyLong_AsLong (ret);
-
-	  Py_DECREF (ret);
-	  if (value == -1 && PyErr_Occurred () != NULL)
-	    {
-	      Py_DECREF (rets);
-	      return I8X_NATCALL_FAILED;
-	    }
-
-	  retv[i].i = value;
-	}
-    }
-
+  bool success = py8x_unpack_rets (retv, rets, ref);
   Py_DECREF (rets);
-  return I8X_OK;
+  return success ? I8X_OK : I8X_NATCALL_FAILED;
 }
 
 /* Python binding for i8x_ctx_import_bytecode.  */
@@ -732,47 +786,11 @@ py8x_xctx_call (PyObject *self, PyObject *args)
   struct i8x_funcref *ref = PY8X_FROM_CAPSULE_2 (funcref, ref);
   size_t argc = i8x_funcref_get_num_params (ref);
   size_t retc = i8x_funcref_get_num_returns (ref);
-
-  if (PySequence_Length (args) != argc)
-    PY8X_RAISE ("wrong number of arguments");
-
   union i8x_value *argv = alloca (PY8X_MAX (argc, retc));
   union i8x_value *retv = argv;
-  struct i8x_list *types;
-  struct i8x_listitem *li;
-  size_t i;
 
-  types = i8x_funcref_get_ptypes (ref);
-  i8x_list_foreach_indexed (types, li, i)
-    {
-      struct i8x_type *type = i8x_listitem_get_type (li);
-      PyObject *arg = PySequence_GetItem (args, i);
-
-      if (arg == NULL)
-	return NULL;
-
-      if (i8x_type_is_functype (type))
-	{
-	  struct i8x_funcref *value;
-
-	  value = py8x_funcref_from_capsule (arg);
-	  Py_DECREF (arg);
-	  if (value == NULL)
-	    return NULL;
-
-	  argv[i].f = value;
-	}
-      else
-	{
-	  long value = PyLong_AsLong (arg);
-
-	  Py_DECREF (arg);
-	  if (value == -1 && PyErr_Occurred () != NULL)
-	    return NULL;
-
-	  argv[i].i = value;
-	}
-    }
+  if (!py8x_unpack_args (argv, args, ref))
+    return NULL;
 
   struct i8x_xctx *xctx = PY8X_FROM_CAPSULE (xctx);
   struct i8x_inf *inf = PY8X_FROM_CAPSULE (inf);
@@ -781,30 +799,7 @@ py8x_xctx_call (PyObject *self, PyObject *args)
 
   PY8X_CHECK_CALL (ctx, err);
 
-  PyObject *result = PyTuple_New (retc);
-  if (result == NULL)
-    return NULL;
-
-  types = i8x_funcref_get_rtypes (ref);
-  i8x_list_foreach_indexed (types, li, i)
-    {
-      struct i8x_type *type = i8x_listitem_get_type (li);
-      PyObject *ret;
-
-      if (i8x_type_is_functype (type))
-	ret = py8x_encapsulate (i8x_funcref_ref (retv[i].f));
-      else
-	ret = PyLong_FromLong (retv[i].i);
-
-      if (ret == NULL
-	  || PyTuple_SetItem (result, retc - i - 1, ret) != 0)
-	{
-	  Py_DECREF (result);
-	  return NULL;
-	}
-    }
-
-  return result;
+  return py8x_pack_rets (retv, ref);
 }
 
 /* Inferior (i8x_inf) userdata.  */
