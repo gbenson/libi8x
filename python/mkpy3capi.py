@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright (C) 2017 Red Hat, Inc.
 # This file is part of the Infinity Note Execution Library.
 #
