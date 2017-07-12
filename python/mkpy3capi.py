@@ -351,7 +351,8 @@ class ASTVisitor(pycparser.c_ast.NodeVisitor):
         name = node.name
         if (name is None
             or (name.startswith("i8x_")
-                and not (name.startswith("i8x_ob_")
+                and not ((name != "i8x_ob_get_ctx"
+                          and name.startswith("i8x_ob_"))
                          or name.endswith("_ref")
                          or name.endswith("_unref")
                          or name.endswith("_userdata")
