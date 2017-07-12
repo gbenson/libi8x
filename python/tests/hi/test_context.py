@@ -31,6 +31,7 @@ class TestContext(common.TestCase):
     def test_libi8x_defaults(self):
         """Test Context.__init__ with no flags or logger."""
         ctx = self.ctx_new(flags=0)
+        self.assertIsInstance(ctx, libi8x.Context)
         self.assertEqual(self.ctx_new_flags, 0)
         self.assertIs(self.ctx_new_logger, None)
         del ctx
@@ -41,4 +42,11 @@ class TestContext(common.TestCase):
         # This test looks like it does nothing, but it'll fail in
         # tearDown if Context.__init__ creates circular references.
         ctx = self.ctx_new()
+        self.assertIsInstance(ctx, libi8x.Context)
         self.assertNotEqual(self._i8xlog, [])
+
+    def test_new_inferior(self):
+        """Test Context.new_inferior."""
+        ctx = self.ctx_new()
+        inf = ctx.new_inferior()
+        self.assertIsInstance(inf, libi8x.Inferior)

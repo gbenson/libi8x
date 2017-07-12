@@ -28,11 +28,20 @@ import _libi8x as py8x
 class Object(object):
     """Base class for all libi8x objects."""
 
+class Inferior(Object):
+    pass
+
 class Context(Object):
     def __init__(self, flags=0, log_fn=None):
         check = py8x.ctx_new(self.__new_context, flags, log_fn)
         assert check is self
         py8x.ctx_set_object_factory(self, self.__new_child)
+
+    # Python wrappers for the underlying objects in C libi8x.
+    # May be overridden to provide your own implementations.
+    # Note that they must be overridden in the *class*, not
+    # in individual context objects.
+    INFERIOR_CLASS = Inferior
 
     def __new_context(self, clsname):
         """Object factory used for contexts."""
@@ -43,4 +52,8 @@ class Context(Object):
     def __new_child(cls, clsname):
         """Object factory used for everything but contexts."""
         assert clsname != "ctx"
-        raise NotImplementedError(clsname)
+        return getattr(cls, clsname.upper() + "_CLASS")()
+
+    def new_inferior(self):
+        """Create a new inferior."""
+        return py8x.inf_new(self)
