@@ -36,7 +36,7 @@
 
 /* Forward declarations.  */
 
-static PyObject *py8x_ob_get_wrap_fn (struct i8x_object *ob);
+static PyObject *py8x_ob_get_object_factory (struct i8x_object *ob);
 
 /* Exceptions.  */
 
@@ -281,7 +281,7 @@ py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
 	return NULL;
 
       /* Create a Python object to hold the capsule.  */
-      result = PyObject_CallFunction (py8x_ob_get_wrap_fn (ob),
+      result = PyObject_CallFunction (py8x_ob_get_object_factory (ob),
 				      "s", i8x_ob_get_classname (ob));
       if (result == NULL)
 	{
@@ -356,10 +356,13 @@ struct py8x_ctx_userdata
 {
   PY8X_USERDATA_FIELDS;
 
-  /* Object wrapping function.  */
-  PyObject *wrap_fn;
+  /* Object factory.  A Python callable invoked to create
+     weak-referencable wrapper objects into which we store
+     PyCapsule-wrapped libi8x objects.  */
+  PyObject *obf_fn;
 
-  /* Logging function.  */
+  /* Logging function.  May be Py_None, in which case
+     messages will be output on stderr.  */
   PyObject *log_fn;
 };
 
@@ -368,7 +371,7 @@ py8x_ctx_userdata_cleanup (struct py8x_userdata *ud_p)
 {
   struct py8x_ctx_userdata *ud = (struct py8x_ctx_userdata *) ud_p;
 
-  Py_DECREF (ud->wrap_fn);
+  Py_DECREF (ud->obf_fn);
   Py_DECREF (ud->log_fn);
 }
 
@@ -380,12 +383,6 @@ static const struct py8x_userdata_ops py8x_ctx_udops =
   };
 
 PY8X_USERDATA_FUNCTIONS (ctx)
-
-static PyObject *
-py8x_ob_get_wrap_fn (struct i8x_object *ob)
-{
-  return py8x_ctx_get_userdata (i8x_ob_get_ctx (ob))->wrap_fn;
-}
 
 /* Userdata for the context currently being created by i8x_ctx_new.
    i8x_ctx_new can log before we have a chance to set the context's
@@ -459,22 +456,22 @@ py8x_log (struct i8x_ctx *ctx,
 static PyObject *
 py8x_ctx_new (PyObject *self, PyObject *args)
 {
-  PyObject *wrap_fn;
+  PyObject *obf_fn;
   int flags;
   PyObject *log_fn;
   struct py8x_ctx_userdata *ud;
   struct i8x_ctx *ctx = NULL;
   i8x_err_e err;
 
-  if (!PyArg_ParseTuple (args, "OiO", &wrap_fn, &flags, &log_fn))
+  if (!PyArg_ParseTuple (args, "OiO", &obf_fn, &flags, &log_fn))
     return NULL;
 
   ud = py8x_ctx_userdata_new ();
   if (ud == NULL)
     return NULL;
 
-  Py_INCREF (wrap_fn);
-  ud->wrap_fn = wrap_fn;
+  Py_INCREF (obf_fn);
+  ud->obf_fn = obf_fn;
 
   Py_INCREF (log_fn);
   ud->log_fn = log_fn;
@@ -489,6 +486,14 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   PY8X_CHECK_CALL (NULL, err);
 
   return py8x_ctx_encapsulate (ctx, ud);
+}
+
+/* Return the object factory for an object.  */
+
+static PyObject *
+py8x_ob_get_object_factory (struct i8x_object *ob)
+{
+  return py8x_ctx_get_userdata (i8x_ob_get_ctx (ob))->obf_fn;
 }
 
 /* Python binding for i8x_ctx_set_log_fn.  */
