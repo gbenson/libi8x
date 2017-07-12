@@ -20,6 +20,8 @@
 #include <py3c.h>
 #include <libi8x.h>
 
+/* Utilities.  */
+
 #define PY8X_MAX(a, b) ((a) > (b) ? (a) : (b))
 
 #define PY8X_STRINGIZE(x) PY8X_STRINGIZE_1(x)
@@ -31,6 +33,10 @@
 		     __FILE__ ":" PY8X_STRINGIZE (__LINE__));		\
     return NULL;							\
   } while (0)
+
+/* Forward declarations.  */
+
+static PyObject *py8x_ob_get_wrap_fn (struct i8x_object *ob);
 
 /* Exceptions.  */
 
@@ -188,8 +194,6 @@ py8x_ob_unref (PyObject *obc)
 }
 
 /* Encapsulate and return a libi8x object.  */
-
-static PyObject *py8x_ob_get_wrap_fn (struct i8x_object *ob);
 
 static PyObject *
 py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
