@@ -63,6 +63,7 @@ setup(
     author="Gary Benson",
     author_email="infinity@sourceware.org",
     url="https://infinitynotes.org/",
+    packages=["libi8x"],
     ext_modules=[
         Extension("_libi8x", sources=["libi8x.c"], **extargs),
     ],
