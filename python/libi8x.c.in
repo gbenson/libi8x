@@ -60,7 +60,7 @@ static void py8x_logf (struct i8x_ctx *ctx, int priority,
 		       const char *function, const char *format, ...)
   __attribute__ ((format(printf, 6, 7)));
 
-static PyObject *py8x_ob_get_object_factory (struct i8x_object *ob);
+static PyObject *py8x_ctx_get_object_factory_fn (struct i8x_ctx *ctx);
 
 /* Exceptions.  */
 
@@ -299,20 +299,19 @@ py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
   /* Create a new wrapped capsule if necessary.  */
   if (result == NULL)
     {
+      struct i8x_ctx *ctx = i8x_ob_get_ctx (ob);
+      PyObject *obf_fn = py8x_ctx_get_object_factory_fn (ctx);
+      const char *classname = i8x_ob_get_classname (ob);
       PyObject *capsule;
 
       /* Create a capsule to hold the object.  */
       capsule = PyCapsule_New (i8x_ob_ref (ob), NULL, py8x_ob_unref);
       if (capsule == NULL)
 	return NULL;
-
-      const char *classname = i8x_ob_get_classname (ob);
-      dbg (i8x_ob_get_ctx (ob), "%s %p encapsulated\n",
-	   classname, ob);
+      dbg (ctx, "%s %p capsule created\n", classname, ob);
 
       /* Create a Python object to hold the capsule.  */
-      result = PyObject_CallFunction (py8x_ob_get_object_factory (ob),
-				      "s", classname);
+      result = PyObject_CallFunction (obf_fn, "s", classname);
       if (result == NULL)
 	{
 	  Py_DECREF (capsule);
@@ -559,12 +558,32 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   return result;
 }
 
-/* Return the object factory for an object.  */
+/* Return the object factory for a context.  */
 
 static PyObject *
-py8x_ob_get_object_factory (struct i8x_object *ob)
+py8x_ctx_get_object_factory_fn (struct i8x_ctx *ctx)
 {
-  return py8x_ctx_get_userdata (i8x_ob_get_ctx (ob))->obf_fn;
+  return py8x_ctx_get_userdata (ctx)->obf_fn;
+}
+
+/* Set the object factory for a context.  */
+
+static PyObject *
+py8x_ctx_set_object_factory (PyObject *self, PyObject *args)
+{
+  PyObject *ctxc, *obf_fn;
+
+  if (!PyArg_ParseTuple (args, "OO", &ctxc, &obf_fn))
+    return NULL;
+
+  struct i8x_ctx *ctx = PY8X_FROM_CAPSULE (ctx);
+  struct py8x_ctx_userdata *ud = py8x_ctx_get_userdata (ctx);
+
+  Py_DECREF (ud->obf_fn);
+  Py_INCREF (obf_fn);
+  ud->obf_fn = obf_fn;
+
+  Py_RETURN_NONE;
 }
 
 /* Python binding for i8x_ctx_set_log_fn.  */
@@ -1212,6 +1231,7 @@ py8x_to_unsigned (PyObject *self, PyObject *args)
 
 static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (ctx_new),
+  PY8X_FUNCTION (ctx_set_object_factory),
   PY8X_FUNCTION (ctx_set_log_fn),
   PY8X_FUNCTION (ctx_import_bytecode),
   PY8X_FUNCTION (ctx_import_native),
