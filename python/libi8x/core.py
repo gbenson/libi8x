@@ -30,14 +30,17 @@ class Object(object):
 
 class Context(Object):
     def __init__(self, flags=0, log_fn=None):
-        self.__in_context_init = True
-        check = py8x.ctx_new(self.__new_object, flags, log_fn)
-        self.__in_context_init = False
+        check = py8x.ctx_new(self.__new_context, flags, log_fn)
         assert check is self
+        py8x.ctx_set_object_factory(self, self.__new_child)
 
-    def __new_object(self, clsname):
-        if clsname == "ctx":
-            assert self.__in_context_init
-            return self
-        assert not self.__in_context_init
+    def __new_context(self, clsname):
+        """Object factory used for contexts."""
+        assert clsname == "ctx"
+        return self
+
+    @classmethod
+    def __new_child(cls, clsname):
+        """Object factory used for everything but contexts."""
+        assert clsname != "ctx"
         raise NotImplementedError(clsname)
