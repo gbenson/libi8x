@@ -28,7 +28,15 @@ import _libi8x as py8x
 class Object(object):
     """Base class for all libi8x objects."""
 
-class Inferior(Object):
+class ChildObject(Object):
+    """Base class for all objects except contexts."""
+
+    @property
+    def context(self):
+        """Context that created this object."""
+        return py8x.ob_get_ctx(self)
+
+class Inferior(ChildObject):
     pass
 
 class Context(Object):
