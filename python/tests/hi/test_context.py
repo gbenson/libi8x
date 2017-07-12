@@ -34,6 +34,7 @@ class TestContext(common.TestCase):
         self.assertIsInstance(ctx, libi8x.Context)
         self.assertEqual(self.ctx_new_flags, 0)
         self.assertIs(self.ctx_new_logger, None)
+        self.assertEqual(ctx.log_priority, 0)
         del ctx
         self.assertEqual(self._i8xlog, [])
 
@@ -44,6 +45,30 @@ class TestContext(common.TestCase):
         ctx = self.ctx_new()
         self.assertIsInstance(ctx, libi8x.Context)
         self.assertNotEqual(self._i8xlog, [])
+
+    def test_log_priority(self):
+        """Test Context.log_priority."""
+        ctx = self.ctx_new()
+
+        # First test the default, which in the testsuite is
+        # logging debug messages to self._i8xlog.
+        self.assertEqual(ctx.log_priority, syslog.LOG_DEBUG)
+        startlen = len(self._i8xlog)
+        ctx.new_inferior() # emit some messages
+        self.assertGreater(len(self._i8xlog), startlen)
+
+        # Now test changing the priority.
+        ctx.log_priority = syslog.LOG_WARNING
+        try:
+            # Check the value changed.
+            self.assertEqual(ctx.log_priority, syslog.LOG_WARNING)
+            # Check changing the value changed the behaviour.
+            startlen = len(self._i8xlog)
+            ctx.new_inferior() # shouldn't log anything now
+            self.assertEqual(len(self._i8xlog), startlen)
+        finally:
+            # Restore the value for the tearDown checks.
+            ctx.log_priority = syslog.LOG_DEBUG
 
     def test_new_inferior(self):
         """Test Context.new_inferior."""

@@ -62,6 +62,15 @@ class Context(Object):
         assert clsname != "ctx"
         return getattr(cls, clsname.upper() + "_CLASS")()
 
+    @property
+    def log_priority(self):
+        """Logging priority."""
+        return py8x.ctx_get_log_priority(self)
+
+    @log_priority.setter
+    def log_priority(self, value):
+        return py8x.ctx_set_log_priority(self, value)
+
     def new_inferior(self):
         """Create a new inferior."""
         return py8x.inf_new(self)
