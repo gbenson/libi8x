@@ -36,6 +36,9 @@ class ChildObject(Object):
         """Context that created this object."""
         return py8x.ob_get_ctx(self)
 
+class Function(ChildObject):
+    pass
+
 class Inferior(ChildObject):
     pass
 
@@ -49,7 +52,13 @@ class Context(Object):
     # May be overridden to provide your own implementations.
     # Note that they must be overridden in the *class*, not
     # in individual context objects.
+    FUNCTION_CLASS = Function
     INFERIOR_CLASS = Inferior
+
+    # Map short classnames from C libi8x to the above names.
+    __LONG_CLASSNAMES = {
+        "func": "FUNCTION",
+        }
 
     def __new_context(self, clsname):
         """Object factory used for contexts."""
@@ -60,6 +69,7 @@ class Context(Object):
     def __new_child(cls, clsname):
         """Object factory used for everything but contexts."""
         assert clsname != "ctx"
+        clsname = cls.__LONG_CLASSNAMES.get(clsname, clsname)
         return getattr(cls, clsname.upper() + "_CLASS")()
 
     @property
@@ -74,3 +84,7 @@ class Context(Object):
     def new_inferior(self):
         """Create a new inferior."""
         return py8x.inf_new(self)
+
+    def import_bytecode(self, buf, srcname=None, srcoffset=-1):
+        """Load and register a bytecode function."""
+        return py8x.ctx_import_bytecode(self, buf, srcname, srcoffset)

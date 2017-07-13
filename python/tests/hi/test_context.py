@@ -75,3 +75,9 @@ class TestContext(common.TestCase):
         ctx = self.ctx_new()
         inf = ctx.new_inferior()
         self.assertIsInstance(inf, libi8x.Inferior)
+
+    def test_import_bytecode(self):
+        """Test Context.import_bytecode."""
+        ctx = self.ctx_new()
+        func = ctx.import_bytecode(self.GOOD_NOTE)
+        self.assertIsInstance(func, libi8x.Function)
