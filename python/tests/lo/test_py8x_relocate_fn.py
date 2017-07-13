@@ -27,7 +27,7 @@ import _libi8x as py8x
 from . import common
 import struct
 
-class TestPy8xInfSetRelocateFn(common.PopulatedTestCase):
+class TestPy8xRelocateFn(common.PopulatedTestCase):
     TESTNOTE = common.PopulatedTestCase.RELOC_NOTE
 
     def test_unset(self):
