@@ -59,7 +59,7 @@ class TestCase(common.TestCase):
         objects = [ob
                    for ob in (ref() for ref in self.__objects)
                    if ob is not None]
-        self.assertEqual(objects, [])
+        self.assertEqual(list(map(str, objects)), [])
 
     def ctx_new(self, flags=0, log_fn=None):
         """Standard way to create an i8x_ctx for tests."""
