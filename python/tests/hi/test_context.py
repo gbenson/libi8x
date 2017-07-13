@@ -87,3 +87,9 @@ class TestContext(common.TestCase):
         ctx = self.ctx_new()
         func = ctx.import_bytecode(self.GOOD_NOTE)
         self.assertIsInstance(func, libi8x.Function)
+
+    def test_import_native(self):
+        """Test Context.import_native."""
+        ctx = self.ctx_new()
+        func = ctx.import_native("test", "func", "", "", None)
+        self.assertIsInstance(func, libi8x.Function)

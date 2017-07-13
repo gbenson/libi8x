@@ -97,3 +97,8 @@ class Context(Object):
     def import_bytecode(self, buf, srcname=None, srcoffset=-1):
         """Load and register a bytecode function."""
         return py8x.ctx_import_bytecode(self, buf, srcname, srcoffset)
+
+    def import_native(self, provider, name, ptypes, rtypes, impl):
+        """Load and register a native function."""
+        return py8x.ctx_import_native(self, provider, name, ptypes,
+                                      rtypes, impl)
