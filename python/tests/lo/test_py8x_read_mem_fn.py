@@ -45,16 +45,18 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
         for result in (None, 0, [1, 2, 3, 4], (0, 1, 2, 3), (4,), []):
             def readmem(inf, addr, len):
                 return result
-            self.assertRaises(py8x.I8XError,
+            py8x.inf_set_read_mem_fn(self.inf, readmem)
+            self.assertRaises(TypeError,
                               py8x.xctx_call,
                               self.xctx, self.funcref, self.inf, (5,))
 
     def test_bad_result_length(self):
-        """Check py8x_read_mem_fn catches results of the wrong type."""
+        """Check py8x_read_mem_fn catches results of the wrong length."""
         for size in range(10):
             if size != 4:
                 def readmem(inf, addr, len):
                     return b"HeLlOmUmXyXyX"[:size]
+                py8x.inf_set_read_mem_fn(self.inf, readmem)
                 self.assertRaises(py8x.I8XError,
                                   py8x.xctx_call,
                                   self.xctx, self.funcref, self.inf, (5,))
