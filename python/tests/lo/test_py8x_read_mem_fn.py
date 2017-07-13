@@ -46,12 +46,21 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
 
     def test_no_readmem_func(self):
         """Test py8x_read_mem_fn with no memory reader function."""
-        self.assertRaises(py8x.I8XError, self.__do_test)
+        self.assertRaises(AttributeError, self.__do_test)
 
-    def test_read_memory(self):
-        """Test reading memory."""
-        py8x.inf_set_read_mem_fn(self.inf, self.__readmem)
+    def test_object_readmem_func(self):
+        """Test py8x_read_mem_fn with the function set in the object."""
+        self.inf.read_memory = self.__readmem
         self.__do_test()
+
+    def test_class_readmem_func(self):
+        """Test py8x_read_mem_fn with the function set in the class."""
+        cls = common.TestObject
+        try:
+            cls.read_memory = self.__readmem
+            self.__do_test()
+        finally:
+            del cls.read_memory
 
     def test_bad_argc(self):
         """Check py8x_read_mem_fn catches wrong numbers of arguments."""
@@ -59,7 +68,7 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
                         lambda a: None,
                         lambda a, b: None,
                         lambda a, b, c, d: None):
-            py8x.inf_set_read_mem_fn(self.inf, readmem)
+            self.inf.read_memory = readmem
             self.assertRaises(TypeError, self.__do_test)
 
     def test_bad_result_type(self):
@@ -67,7 +76,7 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
         for result in (None, 0, [1, 2, 3, 4], (0, 1, 2, 3), (4,), []):
             def readmem(inf, addr, len):
                 return result
-            py8x.inf_set_read_mem_fn(self.inf, readmem)
+            self.inf.read_memory = readmem
             self.assertRaises(TypeError, self.__do_test)
 
     def test_bad_result_length(self):
@@ -76,8 +85,11 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
             if size != 4:
                 def readmem(inf, addr, len):
                     return b"HeLlOmUmXyXyX"[:size]
-                py8x.inf_set_read_mem_fn(self.inf, readmem)
-                self.assertRaises(py8x.I8XError, self.__do_test)
+                self.inf.read_memory = readmem
+                with self.assertRaises(py8x.I8XError) as cm:
+                    self.__do_test()
+                self.assertEqual(str(cm.exception),
+                                 "read_memory returned bad length")
 
     def test_exception(self):
         """Check py8x_read_mem_fn propagates exceptions."""
@@ -85,5 +97,5 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
             pass
         def readmem(inf, addr, len):
             raise Error("boom")
-        py8x.inf_set_read_mem_fn(self.inf, readmem)
+        self.inf.read_memory = readmem
         self.assertRaises(Error, self.__do_test)

@@ -908,9 +908,6 @@ struct py8x_inf_userdata
 {
   PY8X_USERDATA_FIELDS;
 
-  /* Memory reader function.  */
-  PyObject *read_mem_fn;
-
   /* Relocation function.  */
   PyObject *relocate_fn;
 };
@@ -920,7 +917,6 @@ py8x_inf_userdata_cleanup (struct py8x_userdata *ud_p)
 {
   struct py8x_inf_userdata *ud = (struct py8x_inf_userdata *) ud_p;
 
-  Py_XDECREF (ud->read_mem_fn);
   Py_XDECREF (ud->relocate_fn);
 }
 
@@ -946,7 +942,6 @@ PY8X_USERDATA_FUNCTIONS (inf)
       }									\
   } while (0)
 
-#define PY8X_RMF_SETARG(i, v) PY8X_RxF_SETARG(i, v, I8X_READ_MEM_FAILED)
 #define PY8X_RLF_SETARG(i, v) PY8X_RxF_SETARG(i, v, I8X_RELOC_FAILED)
 
 /* Memory reader function for all py8x-created inferiors.  */
@@ -955,33 +950,28 @@ static i8x_err_e
 py8x_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
 		  void *result)
 {
-  struct py8x_inf_userdata *ud = py8x_inf_get_userdata (inf);
+  PyObject *infc = py8x_encapsulate (i8x_inf_ref (inf));
+  if (infc == NULL)
+    return I8X_READ_MEM_FAILED;
 
-  if (ud->read_mem_fn == NULL || ud->read_mem_fn == Py_None)
+  PyObject *func = PyObject_GetAttrString (infc, "read_memory");
+  if (func == NULL)
     {
-      PyErr_SetString (py8x_I8XError,
-		       "inferior has no read_mem function");
+      Py_DECREF (infc);
       return I8X_READ_MEM_FAILED;
     }
 
-  /* Pack the arguments.  */
-  PyObject *args = PyTuple_New (3);
-  if (args == NULL)
-    return I8X_READ_MEM_FAILED;
+  PyObject *ret =
+    (PyMethod_Check (func) && PyMethod_Self (func) == infc)
+    ? PyObject_CallFunction (func, "kk", addr, len)
+    : PyObject_CallFunction (func, "Okk", infc, addr, len);
 
-  PY8X_RMF_SETARG (0, py8x_encapsulate (i8x_inf_ref (inf)));
-  PY8X_RMF_SETARG (1, PyLong_FromUnsignedLong (addr));
-  PY8X_RMF_SETARG (2, PyLong_FromSize_t (len));
-
-  /* Make the call.  */
-  PyObject *ret = PyObject_Call (ud->read_mem_fn, args, NULL);
-  Py_DECREF (args);
+  Py_DECREF (infc);
+  Py_DECREF (func);
   if (ret == NULL)
     return I8X_READ_MEM_FAILED;
 
-  /* Read out the result.  */
   Py_buffer buf;
-
   if (PyObject_GetBuffer (ret, &buf, PyBUF_SIMPLE) != 0)
     {
       Py_DECREF (ret);
@@ -991,12 +981,12 @@ py8x_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
   if (buf.len != (Py_ssize_t) len)
     {
       Py_DECREF (ret);
-      PyErr_SetString (py8x_I8XError,
-		       "read_mem_fn returned bad length");
+      PyErr_SetString (py8x_I8XError, "read_memory returned bad length");
       return I8X_READ_MEM_FAILED;
     }
 
   memcpy (result, buf.buf, len);
+  Py_DECREF (ret);
   return I8X_OK;
 }
 
@@ -1065,26 +1055,6 @@ py8x_inf_new (PyObject *self, PyObject *args)
   i8x_inf_set_relocate_fn (inf, py8x_relocate_fn);
 
   return py8x_inf_encapsulate (inf, ud);
-}
-
-/* Python binding for i8x_ctx_set_read_mem_fn.  */
-
-static PyObject *
-py8x_inf_set_read_mem_fn (PyObject *self, PyObject *args)
-{
-  PyObject *infc, *read_mem_fn;
-
-  if (!PyArg_ParseTuple (args, "OO", &infc, &read_mem_fn))
-    return NULL;
-
-  struct i8x_inf *inf = PY8X_FROM_CAPSULE (inf);
-  struct py8x_inf_userdata *ud = py8x_inf_get_userdata (inf);
-
-  Py_XDECREF (ud->read_mem_fn);
-  Py_INCREF (read_mem_fn);
-  ud->read_mem_fn = read_mem_fn;
-
-  Py_RETURN_NONE;
 }
 
 /* Python binding for i8x_ctx_set_relocate_fn.  */
@@ -1237,7 +1207,6 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (ctx_import_native),
   PY8X_FUNCTION (xctx_call),
   PY8X_FUNCTION (inf_new),
-  PY8X_FUNCTION (inf_set_read_mem_fn),
   PY8X_FUNCTION (inf_set_relocate_fn),
   PY8X_FUNCTION (list_get_first),
   PY8X_FUNCTION (list_get_next),
