@@ -25,16 +25,24 @@ from __future__ import unicode_literals
 
 import _libi8x as py8x
 from . import common
-import struct
 
 class TestPy8xRelocateFn(common.PopulatedTestCase):
     TESTNOTE = common.PopulatedTestCase.RELOC_NOTE
 
+    @staticmethod
+    def __relocate(inf, reloc):
+        """A correct relocate_address function."""
+        return TestPy8xRelocateFn.EXPECT_RESULT
+
+    EXPECT_RESULT = 0x91929394
+
+    def __do_test(self):
+        result = py8x.xctx_call(self.xctx, self.funcref, self.inf, ())
+        self.assertEqual(result, (self.EXPECT_RESULT,))
+
     def test_unset(self):
         """Test relocation when no relocation function is set."""
-        self.assertRaises(py8x.I8XError,
-                          py8x.xctx_call,
-                          self.xctx, self.funcref, self.inf, ())
+        self.assertRaises(py8x.I8XError, self.__do_test)
 
     def test_set_to_None(self):
         """Test relocation when relocation function is set to None."""
@@ -43,13 +51,8 @@ class TestPy8xRelocateFn(common.PopulatedTestCase):
 
     def test_set(self):
         """Test relocation when a user relocation function is set."""
-        EXPECT = 0x91929394
-        def relocate(inf, reloc):
-            return EXPECT
-        py8x.inf_set_relocate_fn(self.inf, relocate)
-        self.assertEqual(py8x.xctx_call(self.xctx,
-                                        self.funcref,
-                                        self.inf, ()), (EXPECT,))
+        py8x.inf_set_relocate_fn(self.inf, self.__relocate)
+        self.__do_test()
 
     def test_exception(self):
         """Check py8x_relocate_fn propagates exceptions."""
@@ -58,6 +61,4 @@ class TestPy8xRelocateFn(common.PopulatedTestCase):
         def relocate(inf, reloc):
             raise Error("boom")
         py8x.inf_set_relocate_fn(self.inf, relocate)
-        self.assertRaises(Error,
-                          py8x.xctx_call,
-                          self.xctx, self.funcref, self.inf, ())
+        self.assertRaises(Error, self.__do_test)
