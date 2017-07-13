@@ -51,7 +51,9 @@ class FunctionReference(ChildObject):
     pass
 
 class Inferior(ChildObject):
-    pass
+    def read_memory(self, address, nbytes):
+        """Read an array of bytes from memory."""
+        raise NotImplementedError
 
 class Context(Object):
     def __init__(self, flags=0, log_fn=None):

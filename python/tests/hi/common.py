@@ -34,7 +34,7 @@ class TestCase(common.TestCase):
     def _logger(self, *args):
         self._i8xlog.append(args)
 
-    def ctx_new(self, flags=None, logger=None):
+    def ctx_new(self, flags=None, logger=None, klass=libi8x.Context):
         """Standard way to create a Context for testing.
 
         If flags is None (the default) then some extra checks will
@@ -54,7 +54,7 @@ class TestCase(common.TestCase):
         self.ctx_new_flags = flags
         self.ctx_new_logger = logger
 
-        return libi8x.Context(flags, logger)
+        return klass(flags, logger)
 
     def tearDown(self):
         # Delete any objects we're referencing.
