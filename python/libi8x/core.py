@@ -37,7 +37,9 @@ class ChildObject(Object):
         return py8x.ob_get_ctx(self)
 
 class ExecutionContext(ChildObject):
-    pass
+    def call(self, reference, inferior, *args):
+        """Execute an Infinity function."""
+        return py8x.xctx_call(self, reference, inferior, args)
 
 class Function(ChildObject):
     @property
