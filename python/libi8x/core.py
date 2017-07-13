@@ -40,6 +40,12 @@ class ExecutionContext(ChildObject):
     pass
 
 class Function(ChildObject):
+    @property
+    def ref(self):
+        """This function's reference."""
+        return py8x.func_get_funcref(self)
+
+class FunctionReference(ChildObject):
     pass
 
 class Inferior(ChildObject):
@@ -57,11 +63,13 @@ class Context(Object):
     # in individual context objects.
     EXECUTION_CONTEXT_CLASS = ExecutionContext
     FUNCTION_CLASS = Function
+    FUNCTION_REFERENCE_CLASS = FunctionReference
     INFERIOR_CLASS = Inferior
 
     # Map short classnames from C libi8x to the above names.
     __LONG_CLASSNAMES = {
         "func": "FUNCTION",
+        "funcref": "FUNCTION_REFERENCE",
         "xctx": "EXECUTION_CONTEXT",
         }
 

@@ -57,6 +57,17 @@ class TestCase(common.TestCase):
         return libi8x.Context(flags, logger)
 
     def tearDown(self):
+        # Delete any objects we're referencing.
+        keys = [key
+                for key, value in self.__dict__.items()
+                if isinstance(value, libi8x.Object)]
+        try:
+            del value
+        except UnboundLocalError:
+            pass
+        for key in sorted(keys):
+            self.__dict__.pop(key)
+
         # Ensure every object we created was released.
         SENSES = {"created": 1, "released": -1}
         counts = {}

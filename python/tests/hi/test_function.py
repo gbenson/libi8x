@@ -21,30 +21,25 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-#  __future__.unicode_literals breaks "from libi8x import *"
+from __future__ import unicode_literals
 
-from _libi8x import (
-    I8XError,
-    DBG_MEM,
-    LOG_TRACE,
-)
-from .core import (
-    Context,
-    ExecutionContext,
-    Function,
-    FunctionReference,
-    Inferior,
-    Object,
-)
+from . import common
+import libi8x
 
-__all__ = (
-    "Context",
-    "DBG_MEM",
-    "ExecutionContext",
-    "Function",
-    "FunctionReference",
-    "I8XError",
-    "Inferior",
-    "LOG_TRACE",
-    "Object",
-)
+class FunctionTestCase(object):
+    def test_ref(self):
+        """Test Function.ref."""
+        ref = self.func.ref
+        self.assertIsInstance(ref, libi8x.FunctionReference)
+
+class TestBytecodeFunction(common.TestCase, FunctionTestCase):
+    def setUp(self):
+        super(TestBytecodeFunction, self).setUp()
+        ctx = self.ctx_new()
+        self.func = ctx.import_bytecode(self.GOOD_NOTE)
+
+class TestNativeFunction(common.TestCase, FunctionTestCase):
+    def setUp(self):
+        super(TestNativeFunction, self).setUp()
+        ctx = self.ctx_new()
+        self.func = ctx.import_native("test", "func", "", "", None)
