@@ -36,6 +36,9 @@ class ChildObject(Object):
         """Context that created this object."""
         return py8x.ob_get_ctx(self)
 
+class ExecutionContext(ChildObject):
+    pass
+
 class Function(ChildObject):
     pass
 
@@ -52,12 +55,14 @@ class Context(Object):
     # May be overridden to provide your own implementations.
     # Note that they must be overridden in the *class*, not
     # in individual context objects.
+    EXECUTION_CONTEXT_CLASS = ExecutionContext
     FUNCTION_CLASS = Function
     INFERIOR_CLASS = Inferior
 
     # Map short classnames from C libi8x to the above names.
     __LONG_CLASSNAMES = {
         "func": "FUNCTION",
+        "xctx": "EXECUTION_CONTEXT",
         }
 
     def __new_context(self, clsname):
@@ -80,6 +85,10 @@ class Context(Object):
     @log_priority.setter
     def log_priority(self, value):
         return py8x.ctx_set_log_priority(self, value)
+
+    def new_xctx(self, stack_slots=512):
+        """Create a new execution context."""
+        return py8x.xctx_new(self, stack_slots)
 
     def new_inferior(self):
         """Create a new inferior."""

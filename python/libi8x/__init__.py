@@ -30,6 +30,7 @@ from _libi8x import (
 )
 from .core import (
     Context,
+    ExecutionContext,
     Function,
     Inferior,
     Object,
@@ -38,6 +39,7 @@ from .core import (
 __all__ = (
     "Context",
     "DBG_MEM",
+    "ExecutionContext",
     "Function",
     "I8XError",
     "Inferior",
