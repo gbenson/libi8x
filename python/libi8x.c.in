@@ -384,10 +384,10 @@ static const struct py8x_userdata_ops py8x_ctx_udops =
 
 PY8X_USERDATA_FUNCTIONS (ctx)
 
-/* Userdata for the context currently being created by i8x_ctx_new.
-   i8x_ctx_new can log before we have a chance to set the context's
-   userdata; this static global exists so that py8x_vlogf can access
-   the Python log function it needs in this case.  */
+/* Userdata for the context currently being created by py8x_ctx_new.
+   Various things can log before py8x_ctx_encapsulate sets the
+   context's userdata; this static global exists so that py8x_vlogf
+   can access the Python log function it needs in this case.  */
 
 static struct py8x_ctx_userdata *py8x_new_context_ud;
 
@@ -403,8 +403,8 @@ py8x_vlogf (struct i8x_ctx *ctx, int priority, const char *filename,
   int count;
   PyObject *result = NULL;
 
-  /* No userdata means we're in i8x_ctx_new, before
-     py8x_ctx_new has had chance to set it.  */
+  /* No userdata means we're within py8x_ctx_new, before
+     py8x_ctx_encapsulate has had chance to set it.  */
   if (ud == NULL)
     ud = py8x_new_context_ud;
   if (ud == NULL)
@@ -463,6 +463,7 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   struct py8x_ctx_userdata *ud;
   struct i8x_ctx *ctx = NULL;
   i8x_err_e err;
+  PyObject *result = NULL;
 
   if (!PyArg_ParseTuple (args, "OiO", &obf_fn, &flags, &log_fn))
     return NULL;
@@ -479,6 +480,8 @@ py8x_ctx_new (PyObject *self, PyObject *args)
 
   py8x_new_context_ud = ud;
   err = i8x_ctx_new (flags, py8x_vlogf, &ctx);
+  if (err == I8X_OK)
+    result = py8x_ctx_encapsulate (ctx, ud);
   py8x_new_context_ud = NULL;
 
   if (err != I8X_OK)
@@ -486,7 +489,7 @@ py8x_ctx_new (PyObject *self, PyObject *args)
 
   PY8X_CHECK_CALL (NULL, err);
 
-  return py8x_ctx_encapsulate (ctx, ud);
+  return result;
 }
 
 /* Return the object factory for an object.  */
