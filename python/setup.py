@@ -32,14 +32,6 @@ here = os.path.realpath(os.path.dirname(__file__))
 
 # Link libi8x statically if we're in a libi8x tree (tarball or git).
 if os.path.basename(here) == "python":
-    # Try and stop people packaging static builds in distros.
-    if ("test" not in sys.argv[1:]
-        and ("RPM_PACKAGE_NAME" in os.environ
-             or "DEB_HOST_ARCH" in os.environ)):
-        print("""\
-Please don't build distro packages of these bindings from this tree.
-Please use tarballs from https://pypi.python.org/pypi/libi8x/ instead.""")
-        sys.exit(1)
     # Ensure everything is up-to-date.
     if "MAKELEVEL" not in os.environ:
         subprocess.check_call(("make", "-C", os.path.dirname(here)))
