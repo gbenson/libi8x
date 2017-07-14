@@ -25,6 +25,7 @@ from __future__ import unicode_literals
 
 import _libi8x as py8x
 from . import common
+import sys
 
 class TestPy8xRelocateFn(common.PopulatedTestCase):
     TESTNOTE = common.PopulatedTestCase.RELOC_NOTE
@@ -34,7 +35,7 @@ class TestPy8xRelocateFn(common.PopulatedTestCase):
         """A correct relocate_address function."""
         return TestPy8xRelocateFn.EXPECT_RESULT
 
-    EXPECT_RESULT = 0x91929394
+    EXPECT_RESULT = ((sys.maxsize << 1) | 1) & 0x9192939495969798
 
     def __do_test(self):
         result = py8x.xctx_call(self.xctx, self.funcref, self.inf, ())
@@ -53,6 +54,23 @@ class TestPy8xRelocateFn(common.PopulatedTestCase):
         """Test relocation when a user relocation function is set."""
         py8x.inf_set_relocate_fn(self.inf, self.__relocate)
         self.__do_test()
+
+    def test_bad_argc(self):
+        """Check py8x_relocate_fn catches wrong numbers of arguments."""
+        for relocate in (lambda: None,
+                         lambda a: None,
+                         lambda a, b, c: None,
+                         lambda a, b, c, d: None):
+            py8x.inf_set_relocate_fn(self.inf, relocate)
+            self.assertRaises(TypeError, self.__do_test)
+
+    def test_bad_result_type(self):
+        """Check py8x_relocate_fn catches results of the wrong type."""
+        for result in (None, b"hi", [1, 2, 3, 4], (0, 1, 2, 3), (4,), []):
+            def relocate(inf, addr, len):
+                return result
+            py8x.inf_set_relocate_fn(self.inf, relocate)
+            self.assertRaises(TypeError, self.__do_test)
 
     def test_exception(self):
         """Check py8x_relocate_fn propagates exceptions."""
