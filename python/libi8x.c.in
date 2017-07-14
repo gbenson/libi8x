@@ -35,6 +35,12 @@
     return NULL;							\
   } while (0)
 
+#define py8x_internal_error(msg)					\
+  do {									\
+    Py_FatalError ("py8x: " __FILE__ ":" PY8X_STRINGIZE (__LINE__)	\
+		   ": internal error: "	 msg);				\
+  } while (0);
+
 /* Forward declarations.  */
 
 static PyObject *py8x_ob_get_object_factory (struct i8x_object *ob);
@@ -184,7 +190,7 @@ py8x_ob_unref (PyObject *obc)
   struct py8x_userdata *ud = py8x_get_userdata (ob);
 
   if (ud == NULL)
-    abort ();
+    py8x_internal_error ("object userdata == NULL");
 
   /* Release the child before the parent.  */
   PyObject *parent = ud->parent;
@@ -425,7 +431,7 @@ py8x_log (struct i8x_ctx *ctx, int priority, const char *filename,
   if (ud == NULL)
     {
       py8x_log_stderr (priority, filename, linenumber, function, msg);
-      abort ();
+      py8x_internal_error ("context userdata == NULL");
     }
 
   /* Call the user-defined logging function if there is one.  */
