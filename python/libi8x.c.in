@@ -392,6 +392,23 @@ PY8X_USERDATA_FUNCTIONS (ctx)
 
 static struct py8x_ctx_userdata *py8x_new_context_ud;
 
+/* Log a message to stderr.  Should mirror libi8x's default logger.  */
+
+static void
+py8x_log_stderr (int priority, const char *filename, int linenumber,
+		 const char *function, const char *msg)
+{
+  /* PySys_WriteStderr wants 1000 bytes max.  */
+  char buf[1000];
+  ssize_t size = sizeof (buf);
+  const char *dots = "...\n";
+
+  if (snprintf (buf, size, "py8x: %s: %s", function, msg) ==  size)
+    strcpy (buf + size - sizeof (dots), dots);
+
+  PySys_WriteStderr ("%s", buf);
+}
+
 /* Log a message, ideally via the user-supplied logging function.  */
 
 static void
@@ -406,7 +423,10 @@ py8x_log (struct i8x_ctx *ctx, int priority, const char *filename,
   if (ud == NULL)
     ud = py8x_new_context_ud;
   if (ud == NULL)
-    abort ();
+    {
+      py8x_log_stderr (priority, filename, linenumber, function, msg);
+      abort ();
+    }
 
   /* Call the user-defined logging function if there is one.  */
   if (ud->log_fn != Py_None)
@@ -431,14 +451,7 @@ py8x_log (struct i8x_ctx *ctx, int priority, const char *filename,
     }
 
   if (result == NULL)
-    {
-      /* PySys_WriteStderr wants 1000 bytes max.  */
-      char buf[1000];
-
-      snprintf (buf, sizeof (buf), "py8x: %s: %s", function, msg);
-      buf[sizeof (buf) - 1] = '\0';
-      PySys_WriteStderr ("%s", buf);
-    }
+    py8x_log_stderr (priority, filename, linenumber, function, msg);
 
   Py_XDECREF (result);
 }
