@@ -45,5 +45,5 @@ class TestPy8xCtxNew(common.TestCase):
         self.assertEqual(priority, syslog.LOG_DEBUG)
         assert filename.endswith("context.c")
         self.assertEqual(function, "i8x_ctx_new")
-        assert message.startswith("ctx 0x")
-        assert message.endswith(" created\n")
+        assert message.startswith("libi8x ")
+        assert message.endswith("\n")

@@ -300,6 +300,8 @@ i8x_ctx_new (int flags, i8x_log_fn_t *log_fn, struct i8x_ctx **ctx)
   if (env != NULL)
     i8x_ctx_set_log_priority (c, strtoprio (env));
 
+  dbg (c, "%s\n", PACKAGE_STRING);
+
   /* Now log the message i8x_ob_new deferred to us.  */
   dbg (c, "ctx %p created\n", c);
 
