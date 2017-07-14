@@ -597,7 +597,7 @@ py8x_unpack_tuple (union i8x_value *dst, PyObject *src,
   struct i8x_listitem *li;
   size_t i;
 
-  if (PySequence_Length (src) != length)
+  if (PySequence_Length (src) != (Py_ssize_t) length)
     {
       PyErr_SetString (py8x_I8XError,
 		       what == PY8X_ARGS
@@ -888,7 +888,7 @@ py8x_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
       return I8X_READ_MEM_FAILED;
     }
 
-  if (buf.len != len)
+  if (buf.len != (Py_ssize_t) len)
     {
       Py_DECREF (ret);
       PyErr_SetString (py8x_I8XError,
