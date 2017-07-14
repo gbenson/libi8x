@@ -41,19 +41,23 @@ class TestPy8xRelocateFn(common.PopulatedTestCase):
         result = py8x.xctx_call(self.xctx, self.funcref, self.inf, ())
         self.assertEqual(result, (self.EXPECT_RESULT,))
 
-    def test_unset(self):
-        """Test relocation when no relocation function is set."""
-        self.assertRaises(py8x.I8XError, self.__do_test)
+    def test_no_reloc_func(self):
+        """Test py8x_relocate_fn with no memory reader function."""
+        self.assertRaises(AttributeError, self.__do_test)
 
-    def test_set_to_None(self):
-        """Test relocation when relocation function is set to None."""
-        py8x.inf_set_relocate_fn(self.inf, None)
-        self.test_unset()
-
-    def test_set(self):
-        """Test relocation when a user relocation function is set."""
-        py8x.inf_set_relocate_fn(self.inf, self.__relocate)
+    def test_object_reloc_func(self):
+        """Test py8x_relocate_fn with the function set in the object."""
+        self.inf.relocate_address = self.__relocate
         self.__do_test()
+
+    def test_class_reloc_func(self):
+        """Test py8x_relocate_fn with the function set in the class."""
+        cls = common.TestObject
+        try:
+            cls.relocate_address = self.__relocate
+            self.__do_test()
+        finally:
+            del cls.relocate_address
 
     def test_bad_argc(self):
         """Check py8x_relocate_fn catches wrong numbers of arguments."""
@@ -61,7 +65,7 @@ class TestPy8xRelocateFn(common.PopulatedTestCase):
                          lambda a: None,
                          lambda a, b, c: None,
                          lambda a, b, c, d: None):
-            py8x.inf_set_relocate_fn(self.inf, relocate)
+            self.inf.relocate_address = relocate
             self.assertRaises(TypeError, self.__do_test)
 
     def test_bad_result_type(self):
@@ -69,7 +73,7 @@ class TestPy8xRelocateFn(common.PopulatedTestCase):
         for result in (None, b"hi", [1, 2, 3, 4], (0, 1, 2, 3), (4,), []):
             def relocate(inf, addr, len):
                 return result
-            py8x.inf_set_relocate_fn(self.inf, relocate)
+            self.inf.relocate_address = relocate
             self.assertRaises(TypeError, self.__do_test)
 
     def test_exception(self):
@@ -78,5 +82,5 @@ class TestPy8xRelocateFn(common.PopulatedTestCase):
             pass
         def relocate(inf, reloc):
             raise Error("boom")
-        py8x.inf_set_relocate_fn(self.inf, relocate)
+        self.inf.relocate_address = relocate
         self.assertRaises(Error, self.__do_test)

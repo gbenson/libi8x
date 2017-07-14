@@ -902,48 +902,6 @@ py8x_xctx_call (PyObject *self, PyObject *args)
   return py8x_pack_rets (retv, ref);
 }
 
-/* Inferior (i8x_inf) userdata.  */
-
-struct py8x_inf_userdata
-{
-  PY8X_USERDATA_FIELDS;
-
-  /* Relocation function.  */
-  PyObject *relocate_fn;
-};
-
-static void
-py8x_inf_userdata_cleanup (struct py8x_userdata *ud_p)
-{
-  struct py8x_inf_userdata *ud = (struct py8x_inf_userdata *) ud_p;
-
-  Py_XDECREF (ud->relocate_fn);
-}
-
-static const struct py8x_userdata_ops py8x_inf_udops =
-  {
-    "i8x_inf",
-    sizeof (struct py8x_inf_userdata),
-    py8x_inf_userdata_cleanup,
-  };
-
-PY8X_USERDATA_FUNCTIONS (inf)
-
-/* Helpers for py8x_read_mem_fn and py8x_relocate_fn.  */
-
-#define PY8X_RxF_SETARG(i, v, e)					\
-  do {									\
-    PyObject *arg = v;							\
-									\
-    if (arg == NULL || PyTuple_SetItem (args, (i), arg) != 0)		\
-      {									\
-	Py_DECREF (args);						\
-	return e;							\
-      }									\
-  } while (0)
-
-#define PY8X_RLF_SETARG(i, v) PY8X_RxF_SETARG(i, v, I8X_RELOC_FAILED)
-
 /* Memory reader function for all py8x-created inferiors.  */
 
 static i8x_err_e
@@ -996,31 +954,38 @@ static i8x_err_e
 py8x_relocate_fn (struct i8x_inf *inf, struct i8x_reloc *reloc,
 		  uintptr_t *result)
 {
-  struct py8x_inf_userdata *ud = py8x_inf_get_userdata (inf);
+  PyObject *infc = py8x_encapsulate (i8x_inf_ref (inf));
+  if (infc == NULL)
+    return I8X_RELOC_FAILED;
 
-  if (ud->relocate_fn == NULL || ud->relocate_fn == Py_None)
+  PyObject *func = PyObject_GetAttrString (infc, "relocate_address");
+  if (func == NULL)
     {
-      PyErr_SetString (py8x_I8XError,
-		       "inferior has no relocate function");
+      Py_DECREF (infc);
       return I8X_RELOC_FAILED;
     }
 
-  /* Pack the arguments.  */
-  PyObject *args = PyTuple_New (2);
-  if (args == NULL)
-    return I8X_RELOC_FAILED;
+  PyObject *relocc = py8x_encapsulate (i8x_reloc_ref (reloc));
+  if (relocc == NULL)
+    {
+      Py_DECREF (infc);
+      Py_DECREF (func);
+      return I8X_RELOC_FAILED;
+    }
 
-  PY8X_RLF_SETARG (0, py8x_encapsulate (i8x_inf_ref (inf)));
-  PY8X_RLF_SETARG (1, py8x_encapsulate (i8x_reloc_ref (reloc)));
+  PyObject *ret =
+    (PyMethod_Check (func) && PyMethod_Self (func) == infc)
+    ? PyObject_CallFunctionObjArgs (func, relocc, NULL)
+    : PyObject_CallFunctionObjArgs (func, infc, relocc, NULL);
 
-  /* Make the call.  */
-  PyObject *ret = PyObject_Call (ud->relocate_fn, args, NULL);
-  Py_DECREF (args);
+  Py_DECREF (infc);
+  Py_DECREF (func);
+  Py_DECREF (relocc);
   if (ret == NULL)
     return I8X_RELOC_FAILED;
 
-  /* Read out the result.  */
   uintptr_t res = PyLong_AsUnsignedLong (ret);
+  Py_DECREF (ret);
   if (PyErr_Occurred () != NULL)
     return I8X_RELOC_FAILED;
 
@@ -1038,43 +1003,16 @@ py8x_inf_new (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "O", &ctxc))
     return NULL;
 
-  struct py8x_inf_userdata *ud = py8x_inf_userdata_new ();
-  if (ud == NULL)
-    return PyErr_NoMemory ();
-
   struct i8x_ctx *ctx = PY8X_FROM_CAPSULE (ctx);
   struct i8x_inf *inf;
   i8x_err_e err = i8x_inf_new (ctx, &inf);
-
-  if (err != I8X_OK)
-    py8x_userdata_free (ud);
 
   PY8X_CHECK_CALL (ctx, err);
 
   i8x_inf_set_read_mem_fn (inf, py8x_read_mem_fn);
   i8x_inf_set_relocate_fn (inf, py8x_relocate_fn);
 
-  return py8x_inf_encapsulate (inf, ud);
-}
-
-/* Python binding for i8x_ctx_set_relocate_fn.  */
-
-static PyObject *
-py8x_inf_set_relocate_fn (PyObject *self, PyObject *args)
-{
-  PyObject *infc, *relocate_fn;
-
-  if (!PyArg_ParseTuple (args, "OO", &infc, &relocate_fn))
-    return NULL;
-
-  struct i8x_inf *inf = PY8X_FROM_CAPSULE (inf);
-  struct py8x_inf_userdata *ud = py8x_inf_get_userdata (inf);
-
-  Py_XDECREF (ud->relocate_fn);
-  Py_INCREF (relocate_fn);
-  ud->relocate_fn = relocate_fn;
-
-  Py_RETURN_NONE;
+  return py8x_encapsulate (inf);
 }
 
 /* Helper for methods that return list items (i8x_listitem).  */
@@ -1207,7 +1145,6 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (ctx_import_native),
   PY8X_FUNCTION (xctx_call),
   PY8X_FUNCTION (inf_new),
-  PY8X_FUNCTION (inf_set_relocate_fn),
   PY8X_FUNCTION (list_get_first),
   PY8X_FUNCTION (list_get_next),
   PY8X_FUNCTION (note_get_unique_chunk),
