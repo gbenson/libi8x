@@ -469,7 +469,7 @@ py8x_ctx_new (PyObject *self, PyObject *args)
 
   ud = py8x_ctx_userdata_new ();
   if (ud == NULL)
-    return NULL;
+    return PyErr_NoMemory ();
 
   Py_INCREF (obf_fn);
   ud->obf_fn = obf_fn;
