@@ -19,6 +19,7 @@
 
 #include <py3c.h>
 #include <libi8x.h>
+#include <syslog.h>
 
 /* Utilities.  */
 
@@ -386,21 +387,18 @@ PY8X_USERDATA_FUNCTIONS (ctx)
 
 /* Userdata for the context currently being created by py8x_ctx_new.
    Various things can log before py8x_ctx_encapsulate sets the
-   context's userdata; this static global exists so that py8x_vlogf
+   context's userdata; this static global exists so that py8x_log
    can access the Python log function it needs in this case.  */
 
 static struct py8x_ctx_userdata *py8x_new_context_ud;
 
-/* Logging function for all py8x-created contexts.  */
+/* Log a message, ideally via the user-supplied logging function.  */
 
-static void __attribute__ ((format(printf, 6, 0)))
-py8x_vlogf (struct i8x_ctx *ctx, int priority, const char *filename,
-	    int linenumber, const char *function, const char *format,
-	    va_list args)
+static void
+py8x_log (struct i8x_ctx *ctx, int priority, const char *filename,
+	  int linenumber, const char *function, const char *msg)
 {
   struct py8x_ctx_userdata *ud = py8x_ctx_get_userdata (ctx);
-  char *msg;
-  int count;
   PyObject *result = NULL;
 
   /* No userdata means we're within py8x_ctx_new, before
@@ -409,10 +407,6 @@ py8x_vlogf (struct i8x_ctx *ctx, int priority, const char *filename,
     ud = py8x_new_context_ud;
   if (ud == NULL)
     abort ();
-
-  count = vasprintf (&msg, format, args);
-  if (count < 0)
-    msg = "vasprintf failed";
 
   /* Call the user-defined logging function if there is one.  */
   if (ud->log_fn != Py_None)
@@ -447,6 +441,22 @@ py8x_vlogf (struct i8x_ctx *ctx, int priority, const char *filename,
     }
 
   Py_XDECREF (result);
+}
+
+/* Logging function for all py8x-created contexts.  */
+
+static void __attribute__ ((format(printf, 6, 0)))
+py8x_vlogf (struct i8x_ctx *ctx, int priority, const char *filename,
+	    int linenumber, const char *function, const char *format,
+	    va_list args)
+{
+  char *msg;
+
+  int count = vasprintf (&msg, format, args);
+  if (count < 0)
+    msg = "vasprintf failed\n";
+
+  py8x_log (ctx, priority, filename, linenumber, function, msg);
 
   if (count >= 0)
     free (msg);
