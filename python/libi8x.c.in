@@ -386,17 +386,17 @@ PY8X_USERDATA_FUNCTIONS (ctx)
 
 /* Userdata for the context currently being created by i8x_ctx_new.
    i8x_ctx_new can log before we have a chance to set the context's
-   userdata; this static global exists so that py8x_log can access
+   userdata; this static global exists so that py8x_vlogf can access
    the Python log function it needs in this case.  */
 
 static struct py8x_ctx_userdata *py8x_new_context_ud;
 
 /* Logging function for all py8x-created contexts.  */
 
-static void
-py8x_log (struct i8x_ctx *ctx,
-	  int pri, const char *file, int line, const char *fn,
-	  const char *format, va_list args)
+static void __attribute__ ((format(printf, 6, 0)))
+py8x_vlogf (struct i8x_ctx *ctx, int priority, const char *filename,
+	    int linenumber, const char *function, const char *format,
+	    va_list args)
 {
   struct py8x_ctx_userdata *ud = py8x_ctx_get_userdata (ctx);
   char *msg;
@@ -417,8 +417,9 @@ py8x_log (struct i8x_ctx *ctx,
   /* Call the user-defined logging function if there is one.  */
   if (ud->log_fn != Py_None)
     {
-      result = PyObject_CallFunction (ud->log_fn, "isiss", pri,
-				      file, line, fn, msg);
+      result = PyObject_CallFunction (ud->log_fn, "isiss", priority,
+				      filename, linenumber, function,
+				      msg);
 
       /* Note that there's no way to signal an error to libi8x
 	 in the event the logging function raises an exception,
@@ -440,7 +441,7 @@ py8x_log (struct i8x_ctx *ctx,
       /* PySys_WriteStderr wants 1000 bytes max.  */
       char buf[1000];
 
-      snprintf (buf, sizeof (buf), "py8x: %s: %s", fn, msg);
+      snprintf (buf, sizeof (buf), "py8x: %s: %s", function, msg);
       buf[sizeof (buf) - 1] = '\0';
       PySys_WriteStderr ("%s", buf);
     }
@@ -477,7 +478,7 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   ud->log_fn = log_fn;
 
   py8x_new_context_ud = ud;
-  err = i8x_ctx_new (flags, py8x_log, &ctx);
+  err = i8x_ctx_new (flags, py8x_vlogf, &ctx);
   py8x_new_context_ud = NULL;
 
   if (err != I8X_OK)
