@@ -36,6 +36,11 @@ class ChildObject(Object):
         """Context that created this object."""
         return py8x.ob_get_ctx(self)
 
+class InternalObject(ChildObject):
+    """Base class for libi8x internal objects."""
+
+class FunctionBytecode(InternalObject): pass
+
 class ExecutionContext(ChildObject):
     def call(self, reference, inferior, *args):
         """Execute an Infinity function."""
@@ -55,6 +60,13 @@ class Inferior(ChildObject):
         """Read an array of bytes from memory."""
         raise NotImplementedError
 
+    def relocate_address(self, reloc):
+        """Relocate an address."""
+        raise NotImplementedError
+
+class Relocation(ChildObject):
+    pass
+
 class Context(Object):
     def __init__(self, flags=0, log_fn=None):
         check = py8x.ctx_new(self.__new_context, flags, log_fn)
@@ -69,13 +81,23 @@ class Context(Object):
     FUNCTION_CLASS = Function
     FUNCTION_REFERENCE_CLASS = FunctionReference
     INFERIOR_CLASS = Inferior
+    RELOCATION_CLASS = Relocation
 
     # Map short classnames from C libi8x to the above names.
     __LONG_CLASSNAMES = {
         "func": "FUNCTION",
         "funcref": "FUNCTION_REFERENCE",
+        "reloc": "RELOCATION",
         "xctx": "EXECUTION_CONTEXT",
         }
+
+    # Internal libi8x classes exposed by i8x_ob_get_parent.
+    # Instances of these Python classes are referenced by
+    # their children (in py8x_userdata->parent) but are not
+    # otherwise accessible from Python code.
+    __INTERNAL_CLASSES = {
+        "code": FunctionBytecode,
+    }
 
     def __new_context(self, clsname):
         """Object factory used for contexts."""
@@ -86,8 +108,11 @@ class Context(Object):
     def __new_child(cls, clsname):
         """Object factory used for everything but contexts."""
         assert clsname != "ctx"
-        clsname = cls.__LONG_CLASSNAMES.get(clsname, clsname)
-        return getattr(cls, clsname.upper() + "_CLASS")()
+        klass = Context.__INTERNAL_CLASSES.get(clsname, None)
+        if klass is None:
+            clsname = cls.__LONG_CLASSNAMES.get(clsname, clsname)
+            klass = getattr(cls, clsname.upper() + "_CLASS")
+        return klass()
 
     @property
     def log_priority(self):

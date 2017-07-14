@@ -35,6 +35,7 @@ from .core import (
     FunctionReference,
     Inferior,
     Object,
+    Relocation,
 )
 
 __all__ = (
@@ -47,4 +48,5 @@ __all__ = (
     "Inferior",
     "LOG_TRACE",
     "Object",
+    "Relocation",
 )

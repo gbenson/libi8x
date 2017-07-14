@@ -71,3 +71,38 @@ class TestInferiorReadMemory(InferiorTestCase):
             INFERIOR_CLASS = Inferior
         ctx = self.ctx_new(klass=Context)
         self._do_readmem_reloc_test(ctx.new_inferior())
+
+class TestInferiorRelocation(InferiorTestCase):
+    TESTNOTE = InferiorTestCase.RELOC_NOTE
+    TESTNOTE_ARGS = ()
+    TESTNOTE_EXPECT_RESULT = \
+        (((sys.maxsize << 1) | 1) & 0x9192939495969798,)
+
+    def test_no_reloc_func(self):
+        """Test relocation with no relocation function set."""
+        ctx = self.ctx_new()
+        inf = ctx.new_inferior()
+        self.assertRaises(NotImplementedError,
+                          self._do_readmem_reloc_test, inf)
+
+    def test_reloc_func_in_object(self):
+        """Test relocation with the function set in the object."""
+        ctx = self.ctx_new()
+        inf = ctx.new_inferior()
+        inf._expect_result = self.TESTNOTE_EXPECT_RESULT[0]
+        def testfunc(inf, reloc):
+            return inf._expect_result
+        inf.relocate_address = testfunc
+        self._do_readmem_reloc_test(inf)
+
+    def test_reloc_func_in_class(self):
+        """Test relocation with the function set in the class."""
+        expect_result = self.TESTNOTE_EXPECT_RESULT
+        class Inferior(libi8x.Inferior):
+            _expect_result = self.TESTNOTE_EXPECT_RESULT[0]
+            def relocate_address(self, reloc):
+                return self._expect_result
+        class Context(libi8x.Context):
+            INFERIOR_CLASS = Inferior
+        ctx = self.ctx_new(klass=Context)
+        self._do_readmem_reloc_test(ctx.new_inferior())
