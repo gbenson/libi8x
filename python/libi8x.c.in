@@ -224,18 +224,19 @@ py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
   if (ud == NULL)
     {
       /* The object has no userdata. Create if necessary.  */
-      ud = new_ud;
-      if (ud == NULL)
-	ud = py8x_userdata_new (&py8x_ob_udops);
-      if (ud == NULL)
+      if (new_ud == NULL)
+	new_ud = py8x_userdata_new (&py8x_ob_udops);
+      if (new_ud == NULL)
 	return PyErr_NoMemory ();
 
       /* Attach it to the object. */
-      i8x_ob_set_userdata (ob, ud, py8x_userdata_free);
+      i8x_ob_set_userdata (ob, new_ud, py8x_userdata_free);
+
+      ud = new_ud;
     }
 
   /* Reference the object's parent's wrapper.  */
-  if (ud->parent == NULL)
+  if (new_ud != NULL && ud->parent == NULL)
     {
       struct i8x_object *parent = i8x_ob_get_parent (ob);
 
