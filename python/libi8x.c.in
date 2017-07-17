@@ -61,7 +61,7 @@ static PyObject *py8x_I8XError;
 /* Attribute name under which py8x_encapsulate* stores libi8x
    object PyCapsules in the Python wrapper objects it creates.  */
 
-#define PY8X_CNAME_ATTR "__i8x_object"
+#define PY8X_CNAME_ATTR "__py8x_private"
 
 /* Helpers for each libi8x object.  */
 
