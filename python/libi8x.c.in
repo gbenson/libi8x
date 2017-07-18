@@ -586,6 +586,23 @@ py8x_ctx_set_object_factory (PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+/* Return the log function for a context.  */
+
+static PyObject *
+py8x_ctx_get_log_fn (PyObject *self, PyObject *args)
+{
+  PyObject *ctxc;
+
+  if (!PyArg_ParseTuple (args, "O", &ctxc))
+    return NULL;
+
+  struct i8x_ctx *ctx = PY8X_FROM_CAPSULE (ctx);
+  struct py8x_ctx_userdata *ud = py8x_ctx_get_userdata (ctx);
+
+  Py_INCREF (ud->log_fn);
+  return ud->log_fn;
+}
+
 /* Python binding for i8x_ctx_set_log_fn.  */
 
 static PyObject *
@@ -1140,6 +1157,7 @@ py8x_to_unsigned (PyObject *self, PyObject *args)
 static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (ctx_new),
   PY8X_FUNCTION (ctx_set_object_factory),
+  PY8X_FUNCTION (ctx_get_log_fn),
   PY8X_FUNCTION (ctx_set_log_fn),
   PY8X_FUNCTION (ctx_import_bytecode),
   PY8X_FUNCTION (ctx_import_native),
