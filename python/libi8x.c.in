@@ -41,6 +41,18 @@
 		   ": internal error: "	 msg);				\
   } while (0);
 
+#define py8x_logf_cond(ctx, priority, arg...)				\
+  do {									\
+    struct i8x_ctx *__ctx = (ctx);					\
+									\
+    if (i8x_ctx_get_log_priority (__ctx) >= priority)			\
+      py8x_logf (__ctx, priority, __FILE__, __LINE__,			\
+		 __FUNCTION__, ## arg);					\
+  } while (0)
+
+#define dbg(ctx, arg...) py8x_logf_cond (ctx, LOG_DEBUG, ## arg)
+#define info(ctx, arg...) py8x_logf_cond (ctx, LOG_INFO, ## arg)
+
 /* Forward declarations.  */
 
 static void py8x_logf (struct i8x_ctx *ctx, int priority,
