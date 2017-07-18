@@ -43,6 +43,11 @@
 
 /* Forward declarations.  */
 
+static void py8x_logf (struct i8x_ctx *ctx, int priority,
+		       const char *filename, int linenumber,
+		       const char *function, const char *format, ...)
+  __attribute__ ((format(printf, 6, 7)));
+
 static PyObject *py8x_ob_get_object_factory (struct i8x_object *ob);
 
 /* Exceptions.  */
@@ -479,6 +484,21 @@ py8x_vlogf (struct i8x_ctx *ctx, int priority, const char *filename,
 
   if (count >= 0)
     free (msg);
+}
+
+/* Logging function for py8x_logf_cond macros.  */
+
+static void
+py8x_logf (struct i8x_ctx *ctx, int priority, const char *filename,
+	   int linenumber, const char *function, const char *format,
+	   ...)
+{
+  va_list args;
+
+  va_start (args, format);
+  py8x_vlogf (ctx, priority, filename, linenumber, function, format,
+	      args);
+  va_end (args);
 }
 
 /* Python binding for i8x_ctx_new.  */
