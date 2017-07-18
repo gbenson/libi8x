@@ -204,8 +204,10 @@ static void
 py8x_ob_unref (PyObject *obc)
 {
   struct i8x_object *ob = PyCapsule_GetPointer (obc, NULL);
-  struct py8x_userdata *ud = py8x_get_userdata (ob);
+  dbg (i8x_ob_get_ctx (ob), "%s %p capsule released\n",
+       i8x_ob_get_classname (ob), ob);
 
+  struct py8x_userdata *ud = py8x_get_userdata (ob);
   if (ud == NULL)
     py8x_internal_error ("object userdata == NULL");
 
@@ -304,9 +306,13 @@ py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
       if (capsule == NULL)
 	return NULL;
 
+      const char *classname = i8x_ob_get_classname (ob);
+      dbg (i8x_ob_get_ctx (ob), "%s %p encapsulated\n",
+	   classname, ob);
+
       /* Create a Python object to hold the capsule.  */
       result = PyObject_CallFunction (py8x_ob_get_object_factory (ob),
-				      "s", i8x_ob_get_classname (ob));
+				      "s", classname);
       if (result == NULL)
 	{
 	  Py_DECREF (capsule);
