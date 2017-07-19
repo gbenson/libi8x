@@ -72,21 +72,62 @@ static PyObject *py8x_I8XError;
     return NULL;							\
   } while (0)
 
-#define PY8X_CHECK_CALL(ctx, err)					\
+/* Return NULL if a libi8x call raised a Python exception.
+   This can happen if py8x_log fails, and could happen if
+   there is an error somewhere.  OB will be released on
+   error if it is not set to NO_OBJECT.  UD will be freed
+   on error if it is not set to NULL.  */
+
+static void *NO_OBJECT = Py_None; /* Could be anything.  */
+
+#define _PY8X_CHECK_UNCAUGHT_DEREF_UD(err, ob, ud)			\
   do {									\
+    bool __got_exception = PyErr_Occurred () != NULL;			\
+									\
+    if (__got_exception && err == I8X_OK && ob != NO_OBJECT)		\
+      i8x_ob_unref ((struct i8x_object *) ob);				\
+									\
+    if ((__got_exception || err != I8X_OK) && ud != NULL)		\
+      py8x_userdata_free (ud);						\
+									\
+    if (__got_exception)						\
+      return NULL;							\
+  } while (0)
+
+/* Variant of _PY8X_CHECK_UNCAUGHT_DEREF_UD for libi8x calls
+   that do not create new references to libi8x objects.  */
+
+#define PY8X_CHECK_UNCAUGHT()						\
+  _PY8X_CHECK_UNCAUGHT_DEREF_UD (I8X_OK, NO_OBJECT, NULL);
+
+/* Check the result of a libi8x call, returning NULL+exception
+   where necessary.  This variant is for libi8x calls that create
+   new references to libi8x objects and have preallocated userdata.  */
+
+#define PY8X_CHECK_CALL_DEREF_UD(ctx, err, ob, ud)			\
+  do {									\
+    _PY8X_CHECK_UNCAUGHT_DEREF_UD (err, ob, ud);			\
+									\
     if (err == I8X_ENOMEM)						\
       return PyErr_NoMemory ();						\
-    else if ((err == I8X_NATCALL_FAILED					\
-	      || err == I8X_READ_MEM_FAILED				\
-	      || err == I8X_RELOC_FAILED)				\
-	     && PyErr_Occurred () != NULL)				\
-      return NULL; /* User code raised an exception.  */		\
     else if (err != I8X_OK)						\
       {									\
         char buf[1024];							\
 	PY8X_RAISE (i8x_ctx_strerror_r (ctx, err, buf,  sizeof (buf)));	\
       }									\
   } while (0)
+
+/* Variant of PY8X_CHECK_CALL_DEREF_UD for objects without
+   preallocated userdata.  */
+
+#define PY8X_CHECK_CALL_DEREF(ctx, err, ob)				\
+  PY8X_CHECK_CALL_DEREF_UD (ctx, err, ob, NULL)
+
+/* Variant of PY8X_CHECK_CALL_DEREF for libi8x calls that
+   do not create new references to libi8x objects.  */
+
+#define PY8X_CHECK_CALL(ctx, err)					\
+  PY8X_CHECK_CALL_DEREF (ctx, err, NO_OBJECT)
 
 /* Attribute name under which py8x_encapsulate* stores libi8x
    object PyCapsules in the Python wrapper objects it creates.  */
@@ -462,20 +503,6 @@ py8x_log (struct i8x_ctx *ctx, int priority, const char *filename,
       result = PyObject_CallFunction (ud->log_fn, "isiss", priority,
 				      filename, linenumber, function,
 				      msg);
-
-      /* Note that there's no way to signal an error to libi8x
-	 in the event the logging function raises an exception,
-	 so exceptions here may appear in place of others.  We
-	 write what's happening to stderr to give some kind of
-	 clue.  */
-
-      if (result == NULL)
-	{
-	  PySys_WriteStderr ("py8x: user-defined logger failed with "
-			     "the following exception:\n");
-	  PyErr_PrintEx (0);
-	  PySys_WriteStderr ("py8x: the message being logged was:\n");
-	}
     }
 
   if (result == NULL)
@@ -518,6 +545,21 @@ py8x_logf (struct i8x_ctx *ctx, int priority, const char *filename,
   va_end (args);
 }
 
+/* Helper for py8x_ctx_new.  */
+
+static PyObject *
+py8x_ctx_new_1 (int flags, struct py8x_ctx_userdata *ud)
+{
+  struct i8x_ctx *ctx = NULL;
+  i8x_err_e err;
+
+  err = i8x_ctx_new (flags, py8x_vlogf, &ctx);
+
+  PY8X_CHECK_CALL_DEREF_UD (NULL, err, ctx, ud);
+
+  return py8x_ctx_encapsulate (ctx, ud);
+}
+
 /* Python binding for i8x_ctx_new.  */
 
 static PyObject *
@@ -527,8 +569,6 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   int flags;
   PyObject *log_fn;
   struct py8x_ctx_userdata *ud;
-  struct i8x_ctx *ctx = NULL;
-  i8x_err_e err;
   PyObject *result = NULL;
 
   if (!PyArg_ParseTuple (args, "OiO", &obf_fn, &flags, &log_fn))
@@ -545,15 +585,8 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   ud->log_fn = log_fn;
 
   py8x_new_context_ud = ud;
-  err = i8x_ctx_new (flags, py8x_vlogf, &ctx);
-  if (err == I8X_OK)
-    result = py8x_ctx_encapsulate (ctx, ud);
+  result = py8x_ctx_new_1 (flags, ud);
   py8x_new_context_ud = NULL;
-
-  if (err != I8X_OK)
-    py8x_userdata_free (ud);
-
-  PY8X_CHECK_CALL (NULL, err);
 
   return result;
 }
@@ -848,10 +881,7 @@ py8x_ctx_import_bytecode (PyObject *self, PyObject *args)
 					   &func);
   PyBuffer_Release (&buffer);
 
-  if (err != I8X_OK)
-    py8x_userdata_free (ud);
-
-  PY8X_CHECK_CALL (ctx, err);
+  PY8X_CHECK_CALL_DEREF_UD (ctx, err, func, ud);
 
   return py8x_func_encapsulate (func, ud);
 }
@@ -881,10 +911,8 @@ py8x_ctx_import_native (PyObject *self, PyObject *args)
   i8x_err_e err = i8x_ctx_import_native (ctx,
 					 provider, name, ptypes, rtypes,
 					 py8x_natfunc_impl, &func);
-  if (err != I8X_OK)
-    py8x_userdata_free (ud);
 
-  PY8X_CHECK_CALL (ctx, err);
+  PY8X_CHECK_CALL_DEREF_UD (ctx, err, func, ud);
 
   return py8x_func_encapsulate (func, ud);
 }
@@ -1024,7 +1052,7 @@ py8x_inf_new (PyObject *self, PyObject *args)
   struct i8x_inf *inf;
   i8x_err_e err = i8x_inf_new (ctx, &inf);
 
-  PY8X_CHECK_CALL (ctx, err);
+  PY8X_CHECK_CALL_DEREF (ctx, err, inf);
 
   i8x_inf_set_read_mem_fn (inf, py8x_read_mem_fn);
   i8x_inf_set_relocate_fn (inf, py8x_relocate_fn);
