@@ -26,6 +26,7 @@ from __future__ import unicode_literals
 from . import common
 import libi8x
 import syslog
+import weakref
 
 class TestContext(common.TestCase):
     def test_libi8x_defaults(self):
@@ -35,6 +36,7 @@ class TestContext(common.TestCase):
         self.assertEqual(self.ctx_new_flags, 0)
         self.assertIs(self.ctx_new_logger, None)
         self.assertEqual(ctx.log_priority, 0)
+        self.assertIs(ctx.logger, None)
         del ctx
         self.assertEqual(self._i8xlog, [])
 
@@ -69,6 +71,46 @@ class TestContext(common.TestCase):
         finally:
             # Restore the value for the tearDown checks.
             ctx.log_priority = syslog.LOG_DEBUG
+
+    def test_logger(self):
+        """Test Context.logger."""
+        ctx = self.ctx_new()
+
+        # The testsuite default stores messages in self._i8xlog.
+        self.assertEqual(ctx.logger, self._logger)
+        startlen = len(self._i8xlog)
+
+        # Install a new logger.
+        testlog = []
+        def testlogger(*args):
+            testlog.append(args)
+        tlwr = weakref.ref(testlogger)
+
+        ctx.logger = testlogger
+        try:
+            self.assertIs(ctx.logger, testlogger)
+
+            self.assertIsNotNone(tlwr())
+            del testlogger
+            self.assertIsNotNone(tlwr())
+
+            # Check messages go to our log.
+            ctx.new_inferior()
+            self.assertEqual(len(self._i8xlog), startlen)
+            self.assertGreater(len(testlog), 0)
+        finally:
+            # Put the old logger back.
+            ctx.logger = self._logger
+            self.assertEqual(ctx.logger, self._logger)
+
+            # Check we didn't leak references.
+            self.assertIsNone(tlwr())
+
+            # Check messages go to the original log.
+            testlen = len(testlog)
+            ctx.new_inferior()
+            self.assertEqual(len(testlog), testlen)
+            self.assertGreater(len(self._i8xlog), startlen)
 
     def test_new_inferior(self):
         """Test Context.new_inferior."""

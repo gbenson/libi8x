@@ -123,6 +123,15 @@ class Context(Object):
     def log_priority(self, value):
         return py8x.ctx_set_log_priority(self, value)
 
+    @property
+    def logger(self):
+        """Function to log messages."""
+        return py8x.ctx_get_log_fn(self)
+
+    @logger.setter
+    def logger(self, value):
+        return py8x.ctx_set_log_fn(self, value)
+
     def new_xctx(self, stack_slots=512):
         """Create a new execution context."""
         return py8x.xctx_new(self, stack_slots)
