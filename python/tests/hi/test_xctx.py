@@ -27,6 +27,12 @@ from . import common
 import libi8x
 
 class TestExecutionContext(common.TestCase):
+    def test_context(self):
+        """Test ExecutionContext.context."""
+        ctx = self.ctx_new()
+        xctx = ctx.new_xctx()
+        self.assertIs(xctx.context, ctx)
+
     def test_call(self):
         """Test ExecutionContext.call."""
         ctx = self.ctx_new()

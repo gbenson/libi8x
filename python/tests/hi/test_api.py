@@ -72,6 +72,14 @@ class TestAPI(unittest.TestCase):
             self.assertTrue(os.path.exists(testfile),
                             testfile + ": file not found")
 
+            # Check the testfile tests generic methods.
+            with open(testfile) as fp:
+                for line in fp.readlines():
+                    if line.strip() == "def test_context(self):":
+                        break
+                else:
+                    self.fail(testfile + ": missing tests")
+
     def __testfile_for(self, classname):
         return os.path.join(os.path.dirname(__file__),
                             "test_" + classname + ".py")

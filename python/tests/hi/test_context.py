@@ -29,6 +29,11 @@ import syslog
 import weakref
 
 class TestContext(common.TestCase):
+    def test_context(self):
+        """Check there is no Context.context method."""
+        ctx = self.ctx_new()
+        self.assertFalse(hasattr(ctx, "context"))
+
     def test_libi8x_defaults(self):
         """Test Context.__init__ with no flags or logger."""
         ctx = self.ctx_new(flags=0)

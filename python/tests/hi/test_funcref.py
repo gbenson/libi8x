@@ -25,16 +25,14 @@ from __future__ import unicode_literals
 
 from . import common
 import libi8x
-import syslog
 
-class TestObject(common.TestCase):
+class TestFunctionReference(common.TestCase):
+    def setUp(self):
+        super(TestFunctionReference, self).setUp()
+        self.ctx = self.ctx_new()
+        func = self.ctx.import_bytecode(self.GOOD_NOTE)
+        self.funcref = func.ref
+
     def test_context(self):
-        """Test Object.context."""
-        ctx = self.ctx_new()
-        inf = ctx.new_inferior()
-        self.assertIs(inf.context, ctx)
-
-    def test_context_for_contexts(self):
-        """Test Object.context for Context objects."""
-        ctx = self.ctx_new()
-        self.assertFalse(hasattr(ctx, "context"))
+        """Test FunctionReference.context."""
+        self.assertIs(self.funcref.context, self.ctx)

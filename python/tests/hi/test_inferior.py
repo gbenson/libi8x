@@ -28,7 +28,14 @@ import libi8x
 import struct
 import sys
 
-class InferiorTestCase(common.TestCase):
+class TestInferior(common.TestCase):
+    def test_context(self):
+        """Test Inferior.context."""
+        ctx = self.ctx_new()
+        inf = ctx.new_inferior()
+        self.assertIs(inf.context, ctx)
+
+class ReadMemRelocTestCase(common.TestCase):
     def _do_readmem_reloc_test(self, inf):
         ctx = inf.context
         func = ctx.import_bytecode(self.TESTNOTE).ref
@@ -36,8 +43,8 @@ class InferiorTestCase(common.TestCase):
         result = xctx.call(func, inf, *self.TESTNOTE_ARGS)
         self.assertEqual(result, self.TESTNOTE_EXPECT_RESULT)
 
-class TestInferiorReadMemory(InferiorTestCase):
-    TESTNOTE = InferiorTestCase.DEREF_NOTE
+class TestInferiorReadMemory(ReadMemRelocTestCase):
+    TESTNOTE = ReadMemRelocTestCase.DEREF_NOTE
     INFERIOR_MEMORY = b"HeLlOmUmXoXoX"
     TESTNOTE_ARGS = (1,)
     TESTNOTE_EXPECT_RESULT = struct.unpack(
@@ -72,8 +79,8 @@ class TestInferiorReadMemory(InferiorTestCase):
         ctx = self.ctx_new(klass=Context)
         self._do_readmem_reloc_test(ctx.new_inferior())
 
-class TestInferiorRelocation(InferiorTestCase):
-    TESTNOTE = InferiorTestCase.RELOC_NOTE
+class TestInferiorRelocation(ReadMemRelocTestCase):
+    TESTNOTE = ReadMemRelocTestCase.RELOC_NOTE
     TESTNOTE_ARGS = ()
     TESTNOTE_EXPECT_RESULT = \
         (((sys.maxsize << 1) | 1) & 0x9192939495969798,)

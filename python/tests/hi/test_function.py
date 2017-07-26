@@ -27,6 +27,10 @@ from . import common
 import libi8x
 
 class FunctionTestCase(object):
+    def test_context(self):
+        """Test Function.context."""
+        self.assertIs(self.func.context, self.ctx)
+
     def test_ref(self):
         """Test Function.ref."""
         ref = self.func.ref
@@ -35,11 +39,11 @@ class FunctionTestCase(object):
 class TestBytecodeFunction(common.TestCase, FunctionTestCase):
     def setUp(self):
         super(TestBytecodeFunction, self).setUp()
-        ctx = self.ctx_new()
-        self.func = ctx.import_bytecode(self.GOOD_NOTE)
+        self.ctx = self.ctx_new()
+        self.func = self.ctx.import_bytecode(self.GOOD_NOTE)
 
 class TestNativeFunction(common.TestCase, FunctionTestCase):
     def setUp(self):
         super(TestNativeFunction, self).setUp()
-        ctx = self.ctx_new()
-        self.func = ctx.import_native("test", "func", "", "", None)
+        self.ctx = self.ctx_new()
+        self.func = self.ctx.import_native("test", "func", "", "", None)
