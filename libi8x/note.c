@@ -91,6 +91,9 @@ i8x_note_init (struct i8x_note *note, const char *buf, size_t bufsiz,
 	return i8x_out_of_memory (i8x_note_get_ctx (note));
     }
 
+  if (srcoffset < 0)
+    srcoffset = -1;
+
   note->srcoffset = srcoffset;
 
   note->encoded_size = bufsiz;
