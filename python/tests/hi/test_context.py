@@ -129,6 +129,11 @@ class TestContext(common.TestCase):
         xctx = ctx.new_xctx()
         self.assertIsInstance(xctx, libi8x.ExecutionContext)
 
+    def test_functions(self):
+        """Test Context.functions."""
+        ctx = self.ctx_new()
+        self.assertIsSequence(ctx.functions)
+
     def test_import_bytecode(self):
         """Test Context.import_bytecode."""
         ctx = self.ctx_new()

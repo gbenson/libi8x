@@ -89,3 +89,20 @@ class TestCase(common.TestCase):
                 counts[what] = count
         self.assertEqual(list(counts.keys()), [],
                          "test completed with unreleased objects")
+
+    def assertIsSequence(self, seq):
+        """Check that the object is a sequence."""
+        def check(func):
+            try:
+                func(seq)
+                return
+            except TypeError as e:
+                reason = str(e)
+            self.fail(reason)
+
+        def loop(seq):
+            for item in seq:
+                pass
+
+        check(len)
+        check(loop)

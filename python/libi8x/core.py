@@ -24,6 +24,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import _libi8x as py8x
+import sys
 
 class Object(object):
     """Base class for all libi8x objects."""
@@ -36,10 +37,54 @@ class ChildObject(Object):
         """Context that created this object."""
         return py8x.ob_get_ctx(self)
 
-class InternalObject(ChildObject):
-    """Base class for libi8x internal objects."""
+# Internal objects
 
-class FunctionBytecode(InternalObject): pass
+class InternalObject(ChildObject):
+    """Base class for all objects not fixed in the Python API.
+
+    Some of these are things that might change in the future, for
+    example i8x_list which could well be replaced by a hashtable.
+    Some are classes internal to C libi8x that become exposed by
+    i8x_ob_get_parent; Python instances of these are referenced by
+    their children (in py8x_userdata->parent) but are not otherwise
+    accessible from Python code.
+    """
+
+class _I8XCode(InternalObject):
+    pass
+
+class _I8XList(InternalObject):
+    def __len__(self):
+        return py8x.list_size(self)
+
+    def __iter__(self):
+        return _I8XListIterator(self)
+
+class _I8XListIterator(object):
+    def __init__(self, list):
+        self.__list = list
+        self.__item = None
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.__item is None:
+            self.__item = py8x.list_get_first(self.__list)
+        else:
+            self.__item = py8x.list_get_next(self.__list, self.__item)
+        return self.__item.content
+
+    if sys.version_info < (3,):
+        next = __next__
+        del __next__
+
+class _I8XListItem(InternalObject):
+    @property
+    def content(self):
+        return py8x.listitem_get_object(self)
+
+# Public objects
 
 class ExecutionContext(ChildObject):
     def call(self, reference, inferior, *args):
@@ -91,12 +136,13 @@ class Context(Object):
         "xctx": "EXECUTION_CONTEXT",
         }
 
-    # Internal libi8x classes exposed by i8x_ob_get_parent.
-    # Instances of these Python classes are referenced by
-    # their children (in py8x_userdata->parent) but are not
-    # otherwise accessible from Python code.
+    # Python wrappers for objects internal to either Python
+    # or C libi8x.  See InternalObject.__doc__.  These are
+    # not made available for extension/overriding.
     __INTERNAL_CLASSES = {
-        "code": FunctionBytecode,
+        "code": _I8XCode,
+        "list": _I8XList,
+        "listitem": _I8XListItem,
     }
 
     def __new_context(self, clsname):
@@ -139,6 +185,11 @@ class Context(Object):
     def new_inferior(self):
         """Create a new inferior."""
         return py8x.inf_new(self)
+
+    @property
+    def functions(self):
+        """Iterable of all currently registered functions."""
+        return py8x.ctx_get_functions(self)
 
     def import_bytecode(self, buf, srcname=None, srcoffset=-1):
         """Load and register a bytecode function."""
