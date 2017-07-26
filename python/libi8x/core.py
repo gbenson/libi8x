@@ -207,6 +207,10 @@ class Context(Object):
         """Iterable of all currently registered functions."""
         return py8x.ctx_get_functions(self)
 
+    def unregister(self, func):
+        """Unregister a previously registered function."""
+        return py8x.ctx_unregister_func(self, func)
+
     def import_bytecode(self, buf, srcname=None, srcoffset=-1):
         """Load and register a bytecode function."""
         return py8x.ctx_import_bytecode(self, buf, srcname, srcoffset)

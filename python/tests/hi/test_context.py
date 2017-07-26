@@ -134,6 +134,14 @@ class TestContext(common.TestCase):
         ctx = self.ctx_new()
         self.assertIsSequence(ctx.functions)
 
+    def test_unregister(self):
+        """Test Context.unregister."""
+        ctx = self.ctx_new()
+        func = ctx.import_bytecode(self.GOOD_NOTE)
+        self.assertEqual(len(ctx.functions), 1)
+        ctx.unregister(func)
+        self.assertEqual(len(ctx.functions), 0)
+
     def test_import_bytecode(self):
         """Test Context.import_bytecode."""
         ctx = self.ctx_new()
