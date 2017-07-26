@@ -27,7 +27,12 @@ import _libi8x as py8x
 from . import common
 
 class TestPy8xFuncGetNote(common.PopulatedTestCase):
-    def test_basic(self):
-        """Test py8x_func_get_note."""
-        note = py8x.func_get_note (self.func)
+    def test_bytecode(self):
+        """Test py8x_func_get_note on a bytecode function."""
+        note = py8x.func_get_note(self.func)
         self.assertIsNotNone(note)
+
+    def test_native(self):
+        """Test py8x_func_get_note on a native function."""
+        note = py8x.func_get_note(self.import_native())
+        self.assertIsNone(note)

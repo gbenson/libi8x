@@ -27,7 +27,12 @@ import _libi8x as py8x
 from . import common
 
 class TestPy8xFuncGetRelocs(common.PopulatedTestCase):
-    def test_basic(self):
-        """Test py8x_func_get_relocs."""
-        relocs = py8x.func_get_relocs (self.func)
+    def test_bytecode(self):
+        """Test py8x_func_get_relocs on a bytecode function."""
+        relocs = py8x.func_get_relocs(self.func)
         self.assertIsNotNone(relocs)
+
+    def test_native(self):
+        """Test py8x_func_get_relocs on a native function."""
+        relocs = py8x.func_get_relocs(self.import_native())
+        self.assertIsNone(relocs)
