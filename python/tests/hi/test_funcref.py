@@ -36,3 +36,12 @@ class TestFunctionReference(common.TestCase):
     def test_context(self):
         """Test FunctionReference.context."""
         self.assertIs(self.funcref.context, self.ctx)
+
+    def test_resolved(self):
+        """Test FunctionReference.is_resolved returning True."""
+        self.assertTrue(self.funcref.is_resolved)
+
+    def test_unresolved(self):
+        """Test FunctionReference.is_resolved returning False."""
+        self.ctx.import_native("example", "factorial", "i", "i", None)
+        self.assertFalse(self.funcref.is_resolved)

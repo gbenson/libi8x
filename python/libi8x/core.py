@@ -103,7 +103,10 @@ class Function(ChildObject):
         return py8x.func_get_relocs(self) or ()
 
 class FunctionReference(ChildObject):
-    pass
+    @property
+    def is_resolved(self):
+        """Does this reference resolve to a callable function?"""
+        return py8x.funcref_is_resolved(self)
 
 class Inferior(ChildObject):
     def read_memory(self, address, nbytes):
