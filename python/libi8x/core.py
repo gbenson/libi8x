@@ -115,7 +115,15 @@ class Inferior(ChildObject):
         raise NotImplementedError
 
 class Relocation(ChildObject):
-    pass
+    @property
+    def function(self):
+        """The function this relocation is for."""
+        return py8x.reloc_get_func(self)
+
+    @property
+    def source_offset(self):
+        """This relocation's source offset, or -1 if unknown."""
+        return py8x.reloc_get_src_offset(self)
 
 class Context(Object):
     def __init__(self, flags=0, log_fn=None):

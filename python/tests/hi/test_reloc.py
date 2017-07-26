@@ -27,12 +27,24 @@ from . import common
 import libi8x
 
 class TestRelocation(common.TestCase):
+    IMPORT_OFFSET = 23
+    EXPECT_OFFSET = IMPORT_OFFSET + 10
+
     def setUp(self):
         super(TestRelocation, self).setUp()
         self.ctx = self.ctx_new()
-        func = self.ctx.import_bytecode(self.RELOC_NOTE)
-        self.reloc = list(func.relocations)[0]
+        self.func = self.ctx.import_bytecode(self.RELOC_NOTE,
+                                             srcoffset=self.IMPORT_OFFSET)
+        self.reloc = list(self.func.relocations)[0]
 
     def test_context(self):
         """Test Relocation.context."""
         self.assertIs(self.reloc.context, self.ctx)
+
+    def test_function(self):
+        """Test Relocation.function."""
+        self.assertIs(self.reloc.function, self.func)
+
+    def test_source_offset(self):
+        """Test Relocation.source_offset."""
+        self.assertEqual(self.reloc.source_offset, self.EXPECT_OFFSET)
