@@ -26,29 +26,13 @@ from __future__ import unicode_literals
 from . import common
 import libi8x
 
-class FunctionTestCase(object):
+class TestRelocation(common.TestCase):
+    def setUp(self):
+        super(TestRelocation, self).setUp()
+        self.ctx = self.ctx_new()
+        func = self.ctx.import_bytecode(self.RELOC_NOTE)
+        self.reloc = list(func.relocations)[0]
+
     def test_context(self):
-        """Test Function.context."""
-        self.assertIs(self.func.context, self.ctx)
-
-    def test_ref(self):
-        """Test Function.ref."""
-        ref = self.func.ref
-        self.assertIsInstance(ref, libi8x.FunctionReference)
-
-    def test_relocations(self):
-        """Test Function.relocations."""
-        relocs = self.func.relocations
-        self.assertIsSequence(relocs)
-
-class TestBytecodeFunction(common.TestCase, FunctionTestCase):
-    def setUp(self):
-        super(TestBytecodeFunction, self).setUp()
-        self.ctx = self.ctx_new()
-        self.func = self.ctx.import_bytecode(self.GOOD_NOTE)
-
-class TestNativeFunction(common.TestCase, FunctionTestCase):
-    def setUp(self):
-        super(TestNativeFunction, self).setUp()
-        self.ctx = self.ctx_new()
-        self.func = self.ctx.import_native("test", "func", "", "", None)
+        """Test Relocation.context."""
+        self.assertIs(self.reloc.context, self.ctx)

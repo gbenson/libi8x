@@ -97,6 +97,11 @@ class Function(ChildObject):
         """This function's reference."""
         return py8x.func_get_funcref(self)
 
+    @property
+    def relocations(self):
+        """This function's relocations."""
+        return py8x.func_get_relocs(self) or ()
+
 class FunctionReference(ChildObject):
     pass
 
