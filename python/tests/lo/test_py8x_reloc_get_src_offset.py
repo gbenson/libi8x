@@ -26,13 +26,22 @@ from __future__ import unicode_literals
 import _libi8x as py8x
 from . import common
 
-class TestPy8xRelocGetSrcOffset(common.PopulatedTestCase):
-    TESTNOTE = common.PopulatedTestCase.RELOC_NOTE
+class TestPy8xRelocGetSrcOffset(common.TestCase):
+    def __do_test(self, import_offset):
+        if import_offset < 0:
+            expect_offset = -1
+        else:
+            expect_offset = import_offset + 10
+        ctx = self.ctx_new()
+        func = py8x.ctx_import_bytecode(ctx, self.RELOC_NOTE,
+                                        "testnote", import_offset)
+        relocs = py8x.func_get_relocs(func)
+        li = py8x.list_get_first(relocs)
+        reloc = py8x.listitem_get_object(li)
+        actual_offset = py8x.reloc_get_src_offset(reloc)
+        self.assertEqual(actual_offset, expect_offset)
 
     def test_basic(self):
         """Test py8x_reloc_get_src_offset."""
-        relocs = py8x.func_get_relocs (self.func)
-        li = py8x.list_get_first(relocs)
-        reloc = py8x.listitem_get_object(li)
-        offset = py8x.reloc_get_src_offset(reloc)
-        self.assertEqual(offset, 10)
+        for import_offset in (-5, -1, 0, 1, 23):
+            self.__do_test(import_offset)
