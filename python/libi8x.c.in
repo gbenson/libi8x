@@ -176,12 +176,6 @@ py8x_userdata_free (void *ud_p)
 
 static PyObject *py8x_I8XError;
 
-#define PY8X_RAISE(msg)							\
-  do {									\
-    PyErr_SetString (py8x_I8XError, msg);				\
-    return NULL;							\
-  } while (0)
-
 /* Return NULL if a libi8x call raised a Python exception.
    This can happen if py8x_log fails, and could happen if
    there is an error somewhere.  OB will be released on
@@ -223,7 +217,11 @@ static void *NO_OBJECT = Py_None; /* Could be anything.  */
     else if (err != I8X_OK)						\
       {									\
         char buf[1024];							\
-	PY8X_RAISE (i8x_ctx_strerror_r (ctx, err, buf,  sizeof (buf)));	\
+									\
+	PyErr_SetString (py8x_I8XError,					\
+			 i8x_ctx_strerror_r (ctx, err, buf,		\
+					     sizeof (buf)));		\
+	return NULL;							\
       }									\
   } while (0)
 
