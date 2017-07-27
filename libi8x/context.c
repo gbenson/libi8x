@@ -584,10 +584,38 @@ i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
   *dispatch_dbg = ctx->dispatch_dbg;
 }
 
+/* Check the provider or name for a function reference.  */
+
+static i8x_err_e
+check_funcref_namepart (struct i8x_ctx *ctx, const char *c,
+			struct i8x_note *src_note, const char *optr)
+{
+  const char *limit = c + strlen (c);
+
+  /* Zero-length is invalid.  */
+  if (c == limit)
+    return i8x_funcref_error (ctx, I8X_NOTE_INVALID, src_note, optr);
+
+  /* First character cannot be numeric.  */
+  if (isdigit (*c))
+    return i8x_funcref_error (ctx, I8X_NOTE_INVALID, src_note, c);
+
+  /* Remaining characters must be in [A-Za-z0-9_].  */
+  while (c < limit)
+    {
+      if (*c != '_' && !isalnum (*c))
+	return i8x_funcref_error (ctx, I8X_NOTE_INVALID, src_note, c);
+
+      c++;
+    }
+
+  return I8X_OK;
+}
+
 /* Internal version of i8x_ctx_get_funcref with an extra source note
    argument for error-reporting.  If the source note is not NULL then
-   rtypes and ptypes MUST be pointers into the note's buffer or any
-   resulting error messages will contain nonsense offsets.  */
+   all string arguments must be pointers into the note's buffer or any
+   errors set will have nonsense offsets.  */
 
 i8x_err_e
 i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
@@ -603,7 +631,14 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
   struct i8x_type *functype;
   size_t fullname_size;
   char *fullname;
-  i8x_err_e err = I8X_OK;
+  i8x_err_e err;
+
+  /* Ensure the provider and name are valid.  */
+  err = check_funcref_namepart (ctx, provider, src_note, prov_off_ptr);
+  if (err == I8X_OK)
+    err = check_funcref_namepart (ctx, name, src_note, name_off_ptr);
+  if (err != I8X_OK)
+    return err;
 
   /* Build the full name.  */
   fullname_size = (strlen (provider)
