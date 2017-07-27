@@ -131,6 +131,12 @@ class TestContext(common.TestCase):
         xctx = ctx.new_xctx()
         self.assertIsInstance(xctx, libi8x.ExecutionContext)
 
+    def test_get_funcref(self):
+        """Test Context.get_funcref."""
+        ctx = self.ctx_new()
+        ref = ctx.get_funcref("test", "function", "oop", "ii")
+        self.assertIsInstance(ref, libi8x.FunctionReference)
+
     def test_functions(self):
         """Test Context.functions."""
         ctx = self.ctx_new()

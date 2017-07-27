@@ -202,6 +202,10 @@ class Context(Object):
         """Create a new inferior."""
         return py8x.inf_new(self)
 
+    def get_funcref(self, provider, name, ptypes, rtypes):
+        """Return a reference to the specified function."""
+        return py8x.ctx_get_funcref(self, provider, name, ptypes, rtypes)
+
     @property
     def functions(self):
         """Iterable of all currently registered functions."""
