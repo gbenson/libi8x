@@ -176,53 +176,68 @@ py8x_userdata_free (void *ud_p)
 
 static PyObject *py8x_I8XError;
 
-/* Return NULL if a libi8x call raised a Python exception.
-   This can happen if py8x_log fails, and could happen if
-   there is an error somewhere.  OB will be released on
-   error if it is not set to NO_OBJECT.  UD will be freed
-   on error if it is not set to NULL.  */
+/* Pointer used as a flag for _py8x_check_call.
+   Can be anything that isn't a real i8x_object or NULL.  */
+static struct i8x_object *NO_OBJECT = (struct i8x_object *) Py_None;
 
-static void *NO_OBJECT = Py_None; /* Could be anything.  */
+/* Check the result of a libi8x call.  Returns true if execution
+   should continue, false if an error occurred.  Errors can be
+   Python exceptions or libi8x errors.  Python exceptions are
+   untouched, libi8x errors are translated into Python exceptions:
+   there will always a Python exception set if this function returns
+   false.  OB will be released on error if not set to NO_OBJECT;
+   UD will be freed on error if it is not set to NULL.  Don't call
+   this function directly, use the macros below.  */
 
-#define _PY8X_CHECK_UNCAUGHT_DEREF_UD(err, ob, ud)			\
-  do {									\
-    bool __got_exception = PyErr_Occurred () != NULL;			\
-									\
-    if (__got_exception && err == I8X_OK && ob != NO_OBJECT)		\
-      i8x_ob_unref ((struct i8x_object *) ob);				\
-									\
-    if ((__got_exception || err != I8X_OK) && ud != NULL)		\
-      py8x_userdata_free (ud);						\
-									\
-    if (__got_exception)						\
-      return NULL;							\
-  } while (0)
+static bool
+_py8x_check_call (struct i8x_ctx *ctx, i8x_err_e err,
+		  struct i8x_object *ob, struct py8x_userdata *ud)
+{
+  bool got_exception = PyErr_Occurred () != NULL;
 
-/* Variant of _PY8X_CHECK_UNCAUGHT_DEREF_UD for libi8x calls
-   that do not create new references to libi8x objects.  */
+  if (got_exception && err == I8X_OK && ob != NO_OBJECT)
+    {
+      /* An exception occurred somewhere, but libi8x didn't see it
+	 and returned a new reference to an i8x_object.  We need to
+	 unreference that before continuing with the exception.  */
+      ob = i8x_ob_unref (ob);
+    }
 
-#define PY8X_CHECK_UNCAUGHT()						\
-  _PY8X_CHECK_UNCAUGHT_DEREF_UD (I8X_OK, NO_OBJECT, NULL);
+  if ((got_exception || err != I8X_OK) && ud != NULL)
+    {
+      /* An error occurred, and we have preallocated userdata.
+	 Free it before continuing with the exception.  */
+      py8x_userdata_free (ud);
+    }
 
-/* Check the result of a libi8x call, returning NULL+exception
-   where necessary.  This variant is for libi8x calls that create
-   new references to libi8x objects and have preallocated userdata.  */
+  if (!got_exception && err != I8X_OK)
+    {
+      /* A libi8x error occurred, and there's no exception set.
+	 We need to set one.  */
+      if (err == I8X_ENOMEM)
+	PyErr_NoMemory ();
+      else
+	{
+	  static char buf[1024];
+
+	  PyErr_SetString (py8x_I8XError,
+			   i8x_ctx_strerror_r (ctx, err, buf,
+					       sizeof (buf)));
+	}
+
+      got_exception = true;
+    }
+
+  return !got_exception;
+}
+
+/* Wrapper for _py8x_check_call.  */
 
 #define PY8X_CHECK_CALL_DEREF_UD(ctx, err, ob, ud)			\
   do {									\
-    _PY8X_CHECK_UNCAUGHT_DEREF_UD (err, ob, ud);			\
-									\
-    if (err == I8X_ENOMEM)						\
-      return PyErr_NoMemory ();						\
-    else if (err != I8X_OK)						\
-      {									\
-        char buf[1024];							\
-									\
-	PyErr_SetString (py8x_I8XError,					\
-			 i8x_ctx_strerror_r (ctx, err, buf,		\
-					     sizeof (buf)));		\
-	return NULL;							\
-      }									\
+    if (!_py8x_check_call (ctx, err, (struct i8x_object *) ob,		\
+			   (struct py8x_userdata *) ud))		\
+      return NULL;							\
   } while (0)
 
 /* Variant of PY8X_CHECK_CALL_DEREF_UD for objects without
@@ -236,6 +251,12 @@ static void *NO_OBJECT = Py_None; /* Could be anything.  */
 
 #define PY8X_CHECK_CALL(ctx, err)					\
   PY8X_CHECK_CALL_DEREF (ctx, err, NO_OBJECT)
+
+/* Variant of _PY8X_CHECK_UNCAUGHT_DEREF_UD for libi8x calls
+   that do not create new references to libi8x objects.  */
+
+#define PY8X_CHECK_UNCAUGHT()						\
+  PY8X_CHECK_CALL (NULL, I8X_OK)
 
 /* PyCapsule_Destructor suitable for all libi8x objects.  */
 
