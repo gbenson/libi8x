@@ -500,9 +500,15 @@ py8x_log (struct i8x_ctx *ctx, int priority, const char *filename,
   /* Call the user-defined logging function if there is one.  */
   if (ud->log_fn != Py_None)
     {
+      PyObject *type, *value, *traceback;
+      PyErr_Fetch (&type, &value, &traceback);
+
       result = PyObject_CallFunction (ud->log_fn, "isiss", priority,
 				      filename, linenumber, function,
 				      msg);
+
+      if (type != NULL)
+	PyErr_Restore (type, value, traceback);
     }
 
   if (result == NULL)
