@@ -21,6 +21,11 @@
 #include <libi8x.h>
 #include <syslog.h>
 
+/* Attribute name under which py8x_encapsulate* stores libi8x
+   object PyCapsules in the Python wrapper objects it creates.  */
+
+#define PY8X_CNAME_ATTR "__py8x_private"
+
 /* Utilities.  */
 
 #define PY8X_MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -61,34 +66,6 @@ static void py8x_logf (struct i8x_ctx *ctx, int priority,
   __attribute__ ((format(printf, 6, 7)));
 
 static PyObject *py8x_ctx_get_object_factory_fn (struct i8x_ctx *ctx);
-
-/* Attribute name under which py8x_encapsulate* stores libi8x
-   object PyCapsules in the Python wrapper objects it creates.  */
-
-#define PY8X_CNAME_ATTR "__py8x_private"
-
-/* Helpers for each libi8x object.  */
-
-#define PY8X_OBJECT_FUNCTIONS(TYPE, PREFIX)				\
-  static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
-  py8x_ ## PREFIX ## _from_capsule (PyObject *wrapped)			\
-  {									\
-    PyObject *c = PyObject_GetAttrString (wrapped, PY8X_CNAME_ATTR);	\
-    if (c == NULL)							\
-      return NULL;							\
-    void *result = PyCapsule_GetPointer (c, NULL);			\
-    Py_DECREF (c);							\
-    return (struct i8x_ ## TYPE *) result;				\
-  }
-#pragma libi8x_api_object_functions
-
-#define PY8X_FROM_CAPSULE_2(TYPE, NAME)					\
-  py8x_ ## TYPE ## _from_capsule (NAME ## c);				\
-  if (NAME == NULL)							\
-    return NULL
-
-#define PY8X_FROM_CAPSULE(TYPENAME)					\
-  PY8X_FROM_CAPSULE_2 (TYPENAME, TYPENAME)
 
 /* Userdata for all libi8x objects we create.  May be extended.
    Every libi8x object we pass into Python-space has one of these.
@@ -411,6 +388,29 @@ py8x_encapsulate_1 (struct i8x_object *ob, struct py8x_userdata *ud)
 
 #define py8x_encapsulate(x)						\
   (py8x_encapsulate_1 ((struct i8x_object *) x, NULL))
+
+/* Helpers for each libi8x object.  */
+
+#define PY8X_OBJECT_FUNCTIONS(TYPE, PREFIX)				\
+  static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
+  py8x_ ## PREFIX ## _from_capsule (PyObject *wrapped)			\
+  {									\
+    PyObject *c = PyObject_GetAttrString (wrapped, PY8X_CNAME_ATTR);	\
+    if (c == NULL)							\
+      return NULL;							\
+    void *result = PyCapsule_GetPointer (c, NULL);			\
+    Py_DECREF (c);							\
+    return (struct i8x_ ## TYPE *) result;				\
+  }
+#pragma libi8x_api_object_functions
+
+#define PY8X_FROM_CAPSULE_2(TYPE, NAME)					\
+  py8x_ ## TYPE ## _from_capsule (NAME ## c);				\
+  if (NAME == NULL)							\
+    return NULL
+
+#define PY8X_FROM_CAPSULE(TYPENAME)					\
+  PY8X_FROM_CAPSULE_2 (TYPENAME, TYPENAME)
 
 /* Helpers for objects with extended userdata.  */
 
