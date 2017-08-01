@@ -59,11 +59,14 @@ class API(object):
         self.__types[name] = True
 
     TYPE_PREFIXES = {"object": "ob", "readbuf": "rb"}
+    CLASSNAMES = {"inf": '"inferior"', "object": "NULL"}
 
     def emit_object_functions(self, fp):
         for name in sorted(self.__types):
-            print("PY8X_OBJECT_FUNCTIONS (%s, %s);"
-                  % (name, self.TYPE_PREFIXES.get(name, name)),
+            print("PY8X_OBJECT_FUNCTIONS (%s, %s, %s);"
+                  % (name,
+                     self.TYPE_PREFIXES.get(name, name),
+                     self.CLASSNAMES.get(name, '"%s"' % name)),
                   file=fp)
 
     def add_function(self, type, name, params):

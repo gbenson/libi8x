@@ -60,10 +60,11 @@ class TestPy8xXctxCall(common.PopulatedTestCase):
         """Check py8x_xctx_call validates function arguments."""
         func = py8x.ctx_import_bytecode(self.ctx, self.FUNC_ARG_NOTE,
                                         "testnote", 0)
-        self.assertRaises(AttributeError,
-                          py8x.xctx_call,
-                          self.xctx, py8x.func_get_funcref(func),
-                          self.inf, (4, 5))
+        with self.assertRaises(TypeError) as cm:
+            py8x.xctx_call(self.xctx,
+                           py8x.func_get_funcref(func),
+                           self.inf, (4, 5))
+        self.assertEqual(str(cm.exception), "an i8x_funcref is required")
 
     def test_function_ret(self):
         """Test py8x_xctx_call with a function that returns a function."""

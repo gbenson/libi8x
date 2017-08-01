@@ -44,8 +44,7 @@ class TestPy8xCtxUnregisterFunc(common.PopulatedTestCase):
         """Test py8x_ctx_unregister_func with non-function arguments."""
         for arg in (None, 5, 4.0, "example::factorial(i)i", self,
                     self.ctx, self.xctx, self.inf, self.funcref):
-            self.assertRaises(isinstance(arg, common.TestObject)
-                              and py8x.I8XError or AttributeError,
+            self.assertRaises(TypeError,
                               py8x.ctx_unregister_func,
                               self.ctx, arg)
 

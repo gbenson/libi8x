@@ -240,9 +240,9 @@ _py8x_check_call (struct i8x_ctx *ctx, i8x_err_e err,
 static void
 py8x_ob_unref (PyObject *obc)
 {
-  struct i8x_object *ob = PyCapsule_GetPointer (obc, NULL);
-  dbg (i8x_ob_get_ctx (ob), "%s %p capsule released\n",
-       i8x_ob_get_classname (ob), ob);
+  const char *classname = PyCapsule_GetName (obc);
+  struct i8x_object *ob = PyCapsule_GetPointer (obc, classname);
+  dbg (i8x_ob_get_ctx (ob), "%s %p capsule released\n", classname, ob);
 
   struct py8x_userdata *ud = py8x_get_userdata (ob);
   if (ud == NULL)
@@ -342,7 +342,7 @@ py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
       PyObject *capsule;
 
       /* Create a capsule to hold the object.  */
-      capsule = PyCapsule_New (i8x_ob_ref (ob), NULL, py8x_ob_unref);
+      capsule = PyCapsule_New (i8x_ob_ref (ob), classname, py8x_ob_unref);
       if (capsule == NULL)
 	return NULL;
       dbg (ctx, "%s %p capsule created\n", classname, ob);
@@ -389,18 +389,64 @@ py8x_encapsulate_1 (struct i8x_object *ob, struct py8x_userdata *ud)
 #define py8x_encapsulate(x)						\
   (py8x_encapsulate_1 ((struct i8x_object *) x, NULL))
 
-/* Helpers for each libi8x object.  */
+/* Return the libi8x object pointer from a wrapped capsule.  If
+   classname is NULL type-checking is disabled; this is used by
+   py8x_ob_from_capsule.  Don't call this function directly, use
+   the macros below.  */
 
-#define PY8X_OBJECT_FUNCTIONS(TYPE, PREFIX)				\
+static struct i8x_object *
+py8x_from_capsule (PyObject *wrapped, const char *classname)
+{
+  PyObject *expect_exception;
+
+  /* Ensure we're not called with an error set.  We'd likely
+     overwrite it with a TypeError and make things difficult
+     to debug.  */
+  if (PyErr_Occurred () != NULL)
+    {
+      PyErr_SetString (PyExc_AssertionError,
+		       "py8x_from_capsule called with an error set");
+      return NULL;
+    }
+
+  /* Get the libi8x object pointer.  */
+  PyObject *capsule = PyObject_GetAttrString (wrapped, PY8X_CNAME_ATTR);
+  if (capsule == NULL)
+    expect_exception = PyExc_AttributeError;
+  else
+    {
+      if (classname == NULL)
+	classname = PyCapsule_GetName (capsule);
+
+      void *result = PyCapsule_GetPointer (capsule, classname);
+      Py_DECREF (capsule);
+      if (result == NULL)
+	expect_exception = PyExc_ValueError;
+      else
+	return (struct i8x_object *) result;
+    }
+
+  /* Something failed.  If an unexpected exception is set
+     then let that propagate.  Set a TypeError otherwise.  */
+  PyObject *exception = PyErr_Occurred ();
+  if (exception != NULL && exception != expect_exception)
+    return NULL;
+
+  if (classname == NULL)
+    classname = "object";
+  else if (strcmp (classname, "inferior") == 0)
+    classname = "inf";
+
+  PyErr_Format (PyExc_TypeError, "an i8x_%s is required", classname);
+  return NULL;
+}
+
+#define PY8X_OBJECT_FUNCTIONS(TYPE, PREFIX, CLASSNAME)			\
   static inline struct i8x_ ## TYPE * __attribute__ ((always_inline))	\
   py8x_ ## PREFIX ## _from_capsule (PyObject *wrapped)			\
   {									\
-    PyObject *c = PyObject_GetAttrString (wrapped, PY8X_CNAME_ATTR);	\
-    if (c == NULL)							\
-      return NULL;							\
-    void *result = PyCapsule_GetPointer (c, NULL);			\
-    Py_DECREF (c);							\
-    return (struct i8x_ ## TYPE *) result;				\
+    return (struct i8x_ ## TYPE *) py8x_from_capsule (wrapped,		\
+						      CLASSNAME);	\
   }
 #pragma libi8x_api_object_functions
 
