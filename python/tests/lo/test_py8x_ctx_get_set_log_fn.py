@@ -35,23 +35,19 @@ class TestPy8xCtxSetLogFn(common.TestCase):
 
     def test_set_at_init(self):
         """Test get with a logger passed to py8x_ctx_new."""
-        class Logger(object):
-            pass
-        ctx = self.ctx_new(log_fn=Logger)
-        self.assertIs(py8x.ctx_get_log_fn(ctx), Logger)
+        logger = Logger()
+        ctx = self.ctx_new(log_fn=logger)
+        self.assertIs(py8x.ctx_get_log_fn(ctx), logger)
 
     def test_set_later(self):
         """Test setting a logger."""
-        class Logger(object):
-            pass
+        logger = Logger()
         ctx = self.ctx_new()
-        py8x.ctx_set_log_fn(ctx, Logger)
-        self.assertIs(py8x.ctx_get_log_fn(ctx), Logger)
+        py8x.ctx_set_log_fn(ctx, logger)
+        self.assertIs(py8x.ctx_get_log_fn(ctx), logger)
 
     def test_overwrite(self):
         """Test replacing a logger."""
-        class Logger(object):
-            pass
         logger1 = Logger()
         ctx = self.ctx_new(log_fn=logger1)
         logger1 = weakref.ref(logger1)
@@ -65,3 +61,7 @@ class TestPy8xCtxSetLogFn(common.TestCase):
 
         del ctx
         self.assertIsNone(logger2())
+
+class Logger(object):
+    def __call__(self, *args):
+        pass

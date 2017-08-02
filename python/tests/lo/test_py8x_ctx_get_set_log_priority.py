@@ -25,6 +25,7 @@ from __future__ import unicode_literals
 
 import _libi8x as py8x
 from . import common
+import os
 import sys
 import syslog
 
@@ -32,7 +33,8 @@ class TestPy8xCtxGetSetLogPriority(common.TestCase):
     def test_get_set(self):
         """Test py8x_ctx_[gs]et_log_priority."""
         ctx = self.ctx_new()
-        self.assertEqual(py8x.ctx_get_log_priority(ctx), 0)
+        self.assertTrue(py8x.ctx_get_log_priority(ctx) == 0
+                        or "I8X_LOG" in os.environ)
         for pri in (7, 0, 1, 2, 53, -1, 0):
             py8x.ctx_set_log_priority(ctx, pri)
             self.assertEqual(py8x.ctx_get_log_priority(ctx), pri)

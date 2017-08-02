@@ -25,6 +25,7 @@ from __future__ import unicode_literals
 
 from . import common
 import libi8x
+import os
 import syslog
 import weakref
 
@@ -40,7 +41,8 @@ class TestContext(common.TestCase):
         self.assertIsInstance(ctx, libi8x.Context)
         self.assertEqual(self.ctx_new_flags, 0)
         self.assertIs(self.ctx_new_logger, None)
-        self.assertEqual(ctx.log_priority, 0)
+        self.assertTrue(ctx.log_priority == 0
+                        or "I8X_LOG" in os.environ)
         self.assertIs(ctx.logger, None)
         del ctx
         self.assertEqual(self._i8xlog, [])
