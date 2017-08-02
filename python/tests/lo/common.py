@@ -80,4 +80,6 @@ class PopulatedTestCase(TestCase):
         self.funcref = py8x.func_get_funcref(self.func)
 
     def import_native(self):
-        return py8x.ctx_import_native(self.ctx, "test", "func", "", "", None)
+        return py8x.ctx_import_native(self.ctx,
+                                      "test", "func", "", "",
+                                      self.do_not_call)

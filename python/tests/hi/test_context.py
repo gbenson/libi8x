@@ -153,5 +153,5 @@ class TestContext(common.TestCase):
     def test_import_native(self):
         """Test Context.import_native."""
         ctx = self.ctx_new()
-        func = ctx.import_native("test", "func", "", "", None)
+        func = ctx.import_native("test", "func", "", "", self.do_not_call)
         self.assertIsInstance(func, libi8x.Function)

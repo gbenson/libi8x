@@ -194,8 +194,6 @@ class TestPy8xLog(common.TestCase):
 
     @property
     def BADLOG_TESTS(self):
-        # Uncallable object set as logger
-        yield (5, TypeError)
         # User loggers with wrong numbers of arguments
         yield (lambda: None, TypeError)
         yield (lambda a: None, TypeError)
@@ -297,7 +295,7 @@ class TestPy8xLog(common.TestCase):
             self.__badlog_test(test,
                                py8x.ctx_import_native,
                                self.__badlog_ctx(), "test", "func",
-                               "", "", None)
+                               "", "", self.do_not_call)
 
     def test_badlog_inf_new(self):
         """Test py8x_inf_new with bad loggers."""

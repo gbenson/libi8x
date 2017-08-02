@@ -39,6 +39,7 @@ class TestPy8xFuncRefIsResolved(common.PopulatedTestCase):
 
     def test_ambiguous(self):
         """Test py8x_funcref_is_resolved on a function defined twice."""
-        py8x.ctx_import_native(self.ctx, "example", "factorial", "i", "i", None)
+        py8x.ctx_import_native(self.ctx, "example", "factorial", "i", "i",
+                               self.do_not_call)
         ref = py8x.ctx_get_funcref (self.ctx, "example", "factorial", "i", "i")
         self.assertFalse(py8x.funcref_is_resolved(ref))

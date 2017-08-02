@@ -235,6 +235,19 @@ _py8x_check_call (struct i8x_ctx *ctx, i8x_err_e err,
 #define PY8X_CHECK_UNCAUGHT()						\
   PY8X_CHECK_CALL (NULL, I8X_OK)
 
+/* Set a TypeError and return NULL if obj is not callable.  */
+
+#define PY8X_CHECK_CALLABLE(obj)					\
+  do {									\
+    if (!PyCallable_Check (obj))					\
+      {									\
+	PyErr_Format (PyExc_TypeError,					\
+		      "'%.200s' object is not callable",		\
+                      obj->ob_type->tp_name);				\
+	return NULL;							\
+      }									\
+  } while (0)
+
 /* PyCapsule_Destructor suitable for all libi8x objects.  */
 
 static void
@@ -645,6 +658,10 @@ py8x_ctx_new (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "OiO", &obf_fn, &flags, &log_fn))
     return NULL;
 
+  PY8X_CHECK_CALLABLE (obf_fn);
+  if (log_fn != Py_None)
+    PY8X_CHECK_CALLABLE (log_fn);
+
   ud = py8x_ctx_userdata_new ();
   if (ud == NULL)
     return PyErr_NoMemory ();
@@ -679,6 +696,8 @@ py8x_ctx_set_object_factory (PyObject *self, PyObject *args)
 
   if (!PyArg_ParseTuple (args, "OO", &ctxc, &obf_fn))
     return NULL;
+
+  PY8X_CHECK_CALLABLE (obf_fn);
 
   struct i8x_ctx *ctx = PY8X_FROM_CAPSULE (ctx);
   struct py8x_ctx_userdata *ud = py8x_ctx_get_userdata (ctx);
@@ -716,6 +735,9 @@ py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
 
   if (!PyArg_ParseTuple (args, "OO", &ctxc, &log_fn))
     return NULL;
+
+  if (log_fn != Py_None)
+    PY8X_CHECK_CALLABLE (log_fn);
 
   struct i8x_ctx *ctx = PY8X_FROM_CAPSULE (ctx);
   struct py8x_ctx_userdata *ud = py8x_ctx_get_userdata (ctx);
@@ -969,6 +991,8 @@ py8x_ctx_import_native (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "OssssO", &ctxc,
 			 &provider, &name, &ptypes, &rtypes, &impl))
     return NULL;
+
+  PY8X_CHECK_CALLABLE (impl);
 
   struct py8x_func_userdata *ud = py8x_func_userdata_new ();
   if (ud == NULL)

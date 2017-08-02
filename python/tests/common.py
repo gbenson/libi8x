@@ -31,6 +31,9 @@ if sys.version_info < (3,):
                                 for c in seq).encode("iso-8859-1")
 
 class TestCase(unittest.TestCase):
+    def do_not_call(self, *args):
+        """Callable object to be passed to things that need them."""
+        self.fail("crowbar called")
 
     # 32-bit little-endian version of I8C's factorial.i8 example.
     GOOD_NOTE = bytes((

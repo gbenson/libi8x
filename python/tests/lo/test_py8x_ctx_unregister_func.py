@@ -52,7 +52,7 @@ class TestPy8xCtxUnregisterFunc(common.PopulatedTestCase):
         """Test py8x_ctx_unregister_func on an ambigious function"""
         self.assertTrue(py8x.funcref_is_resolved(self.funcref))
         func2 = py8x.ctx_import_native(self.ctx, "example", "factorial",
-                                       "i", "i", None)
+                                       "i", "i", self.do_not_call)
         self.assertFalse(py8x.funcref_is_resolved(self.funcref))
         py8x.ctx_unregister_func(self.ctx, func2)
         self.assertTrue(py8x.funcref_is_resolved(self.funcref))
