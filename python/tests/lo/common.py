@@ -52,7 +52,7 @@ class TestCase(common.TestCase):
             del value
         except UnboundLocalError:
             pass
-        for key in keys:
+        for key in sorted(keys):
             self.__dict__.pop(key)
 
         # Check everything got released.
