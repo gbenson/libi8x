@@ -1216,6 +1216,37 @@ py8x_chunk_get_encoded (PyObject *self, PyObject *args)
 				    i8x_chunk_get_encoded_size (chunk));
 }
 
+/* PyArg_ParseTuple converter for uintptr_t with overflow checking.  */
+
+static int
+py8x_pylong_AsUintptr_t (PyObject *object, void *result)
+{
+  void *value = PyLong_AsVoidPtr (object);
+
+  /* Python 2 sets SystemError for non-numeric arguments.  */
+  PyObject *exception = PyErr_Occurred ();
+#if !IS_PY3
+  if (exception == PyExc_SystemError)
+    PyErr_SetString (PyExc_TypeError, "an integer is required");
+#endif /* !IS_PY3 */
+  if (exception != NULL)
+    return 0;
+
+  /* PyLong_AsVoidPtr accepts negative values: catch this.  */
+  PyObject *check = PyLong_FromVoidPtr (value);
+  if (check == NULL)
+    return 0;
+
+  int cmp = PyObject_RichCompareBool (object, check, Py_EQ);
+  Py_DECREF (check);
+  if (cmp == 0)
+    PyErr_SetNone (PyExc_OverflowError);
+  else if (cmp == 1)
+    *(void **) result = value;
+
+  return cmp == 1;
+}
+
 #pragma libi8x_api_functions
 
 /* Convert an unsigned value to signed w.r.t. libi8x's wordsize.  */
@@ -1223,14 +1254,9 @@ py8x_chunk_get_encoded (PyObject *self, PyObject *args)
 static PyObject *
 py8x_to_signed (PyObject *self, PyObject *args)
 {
-  PyObject *n;
   union i8x_value v;
 
-  if (!PyArg_ParseTuple (args, "O", &n))
-    return NULL;
-
-  v.u = PyLong_AsUnsignedLong (n);
-  if (PyErr_Occurred () != NULL)
+  if (!PyArg_ParseTuple (args, "O&", py8x_pylong_AsUintptr_t, &v.u))
     return NULL;
 
   return PyLong_FromLong (v.i);
