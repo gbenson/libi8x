@@ -1024,6 +1024,9 @@ py8x_xctx_call (PyObject *self, PyObject *args)
   args = tmp;
 
   struct i8x_funcref *ref = PY8X_FROM_CAPSULE_2 (funcref, ref);
+  struct i8x_xctx *xctx = PY8X_FROM_CAPSULE (xctx);
+  struct i8x_inf *inf = PY8X_FROM_CAPSULE (inf);
+
   size_t argc = i8x_funcref_get_num_params (ref);
   size_t retc = i8x_funcref_get_num_returns (ref);
   union i8x_value *argv = alloca (PY8X_MAX (argc, retc));
@@ -1032,8 +1035,6 @@ py8x_xctx_call (PyObject *self, PyObject *args)
   if (!py8x_unpack_args (argv, args, ref))
     return NULL;
 
-  struct i8x_xctx *xctx = PY8X_FROM_CAPSULE (xctx);
-  struct i8x_inf *inf = PY8X_FROM_CAPSULE (inf);
   struct i8x_ctx *ctx = i8x_xctx_get_ctx (xctx);
   i8x_err_e err = i8x_xctx_call (xctx, ref, inf, argv, retv);
 
