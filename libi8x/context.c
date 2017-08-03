@@ -490,6 +490,21 @@ xsnprintf (char **bufp, char *limit, const char *format, ...)
 }
 
 I8X_EXPORT const char *
+i8x_strerror_r (i8x_err_e code, char *buf, size_t bufsiz)
+{
+  char *ptr = buf;
+  char *limit = ptr + bufsiz;
+  const char *msg = error_message_for (code);
+
+  if (msg == NULL)
+    xsnprintf (&ptr, limit, _("Unknown error %d"), code);
+  else
+    xsnprintf (&ptr, limit, "%s", msg);
+
+  return buf;
+}
+
+I8X_EXPORT const char *
 i8x_ctx_get_last_error_src_name (struct i8x_ctx *ctx)
 {
   if (ctx == NULL || ctx->error_note == NULL)
@@ -520,7 +535,6 @@ i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
   char *limit = ptr + bufsiz;
   const char *prefix = i8x_ctx_get_last_error_src_name (ctx);
   ssize_t offset = i8x_ctx_get_last_error_src_offset (ctx);
-  const char *msg = error_message_for (code);
 
   if (prefix == NULL)
     prefix = PACKAGE;
@@ -532,10 +546,7 @@ i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 
   xsnprintf (&ptr, limit, ": ");
 
-  if (msg == NULL)
-    xsnprintf (&ptr, limit, _("unhandled error %d"), code);
-  else
-    xsnprintf (&ptr, limit, "%s", msg);
+  i8x_strerror_r (code, ptr, limit - ptr);
 
   return buf;
 }

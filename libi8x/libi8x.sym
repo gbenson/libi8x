@@ -1,5 +1,7 @@
 LIBI8X_1.0.0 {
 global:
+	i8x_strerror_r;
+
 	i8x_chunk_get_note;
 	i8x_chunk_get_type_id;
 	i8x_chunk_get_version;

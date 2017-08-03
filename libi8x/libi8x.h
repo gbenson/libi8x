@@ -51,6 +51,8 @@ typedef enum
 }
 i8x_err_e;
 
+const char *i8x_strerror_r (i8x_err_e code, char *buf, size_t bufsiz);
+
 /* Values for i8x_ctx_new's "flags" argument.  In addition to these,
    the bottom 3 bits can be used to pass a logging message priority.
    Priorities have the same values and meaning as the severities
