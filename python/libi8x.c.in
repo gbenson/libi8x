@@ -97,10 +97,36 @@ py8x_set_exception (struct i8x_ctx *ctx, i8x_err_e code)
       return;
     }
 
-  static char buf[1024];
+  /* Get the error message.  */
+  char buf[32];
+  const char *msg = i8x_strerror_r (code, buf, sizeof (buf));
 
-  PyErr_SetString (py8x_I8XError,
-		   i8x_ctx_strerror_r (ctx, code, buf, sizeof (buf)));
+  /* Get the error location, if set.  */
+  PyObject *last_error_src_offset;
+  ssize_t tmp = i8x_ctx_get_last_error_src_offset (ctx);
+  if (tmp < 0)
+    {
+      Py_INCREF (Py_None);
+      last_error_src_offset = Py_None;
+    }
+  else
+    {
+      last_error_src_offset = PyLong_FromSsize_t (tmp);
+      if (last_error_src_offset == NULL)
+	return;
+    }
+
+  /* Build the arguments.  */
+  PyObject *args = Py_BuildValue("(issO)", code, msg,
+				 i8x_ctx_get_last_error_src_name (ctx),
+				 last_error_src_offset);
+  Py_DECREF (last_error_src_offset);
+  if (args == NULL)
+    return;
+
+  /* Set the error.  */
+  PyErr_SetObject (py8x_I8XError, args);
+  Py_DECREF (args);
 }
 
 /* Userdata for all libi8x objects we create.  May be extended.
