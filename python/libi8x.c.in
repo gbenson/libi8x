@@ -58,6 +58,17 @@
 #define dbg(ctx, arg...) py8x_logf_cond (ctx, LOG_DEBUG, ## arg)
 #define info(ctx, arg...) py8x_logf_cond (ctx, LOG_INFO, ## arg)
 
+/* Formatting.  */
+
+#ifdef __LP64__
+# define LONG_FMT "l"
+#else
+# define LONG_FMT ""
+#endif
+#define LDEC	"%" LONG_FMT "d"
+#define ULDEC	"%" LONG_FMT "u"
+#define LHEX	"0x%" LONG_FMT "x"
+
 /* Forward declarations.  */
 
 static void py8x_logf (struct i8x_ctx *ctx, int priority,
@@ -850,10 +861,11 @@ py8x_unpack_tuple (union i8x_value *dst, PyObject *src,
 
   if (PySequence_Length (src) != (Py_ssize_t) length)
     {
-      PyErr_SetString (py8x_I8XError,
-		       what == PY8X_ARGS
-		       ? "wrong number of arguments"
-		       : "wrong number of returns");
+      PyErr_Format (PyExc_ValueError,
+		    "wrong number of %s (expected " ULDEC ", got "
+		    LDEC  ")",
+		    what == PY8X_ARGS ? "arguments" : "returns",
+		    length, PySequence_Length (src));
       return false;
     }
 
@@ -1088,7 +1100,9 @@ py8x_read_mem_fn (struct i8x_inf *inf, uintptr_t addr, size_t len,
   if (buf.len != (Py_ssize_t) len)
     {
       Py_DECREF (ret);
-      PyErr_SetString (py8x_I8XError, "read_memory returned bad length");
+      PyErr_Format (PyExc_ValueError,
+		    "read_memory returned bad length (expected " ULDEC
+		    ", got " LDEC ")", len, buf.len);
       return I8X_READ_MEM_FAILED;
     }
 

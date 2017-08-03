@@ -42,9 +42,11 @@ class TestPy8xXctxCall(common.PopulatedTestCase):
     def test_wrong_argument_count(self):
         """Test py8x_xctx_call with the wrong number of arguments."""
         for args in ((), (5, 3)):
-            self.assertRaises(py8x.I8XError,
-                              py8x.xctx_call,
-                              self.xctx, self.funcref, self.inf, args)
+            with self.assertRaises(ValueError) as cm:
+                py8x.xctx_call(self.xctx, self.funcref, self.inf, args)
+            self.assertEqual(cm.exception.args[0],
+                             "wrong number of arguments (expected 1, got %d)"
+                             % len(args))
 
     def test_function_arg(self):
         """Test py8x_xctx_call with a function argument."""

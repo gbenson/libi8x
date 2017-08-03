@@ -58,9 +58,11 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
             func = py8x.ctx_import_native(self.ctx,
                                           "test", "func", "", "i" * i, impl)
             ref = py8x.func_get_funcref(func)
-            self.assertRaises(py8x.I8XError,
-                              py8x.xctx_call,
-                              self.xctx, ref, self.inf, ())
+            with self.assertRaises(ValueError) as cm:
+                py8x.xctx_call(self.xctx, ref, self.inf, ())
+            self.assertEqual(cm.exception.args[0],
+                             "wrong number of returns (expected %d, got 1)"
+                             % i)
 
     def test_exception(self):
         """Check py8x_natfunc_impl propagates exceptions."""

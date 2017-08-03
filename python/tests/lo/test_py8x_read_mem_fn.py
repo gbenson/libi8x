@@ -86,10 +86,11 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
                 def readmem(inf, addr, len):
                     return b"HeLlOmUmXyXyX"[:size]
                 self.inf.read_memory = readmem
-                with self.assertRaises(py8x.I8XError) as cm:
+                with self.assertRaises(ValueError) as cm:
                     self.__do_test()
                 self.assertEqual(str(cm.exception),
-                                 "read_memory returned bad length")
+                                 "read_memory returned bad length"
+                                 + " (expected 4, got %d)" % size)
 
     def test_exception(self):
         """Check py8x_read_mem_fn propagates exceptions."""
