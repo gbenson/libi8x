@@ -32,3 +32,8 @@ class TestPy8xXctxNew(common.TestCase):
         ctx = self.ctx_new()
         xctx = py8x.xctx_new(ctx, 512)
         self.assertIsNotNone(xctx)
+
+    def test_negative_stacksize(self):
+        """Test py8x_xctx_new with a negative stack size."""
+        ctx = self.ctx_new()
+        self.assertRaises(OverflowError, py8x.xctx_new, ctx, -1)

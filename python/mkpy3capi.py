@@ -125,6 +125,9 @@ py%s (PyObject *self, PyObject *args)
             if not tmp.endswith(" *"):
                 tmp += " "
             print("  %s%s;" % (tmp, ptype.argname(pname)), file=fp)
+            tmp = ptype.converter
+            if tmp is not None:
+                args.append(ptype.converter)
             args.append("&" + ptype.argname(pname))
             fmts.append(ptype.argfmt)
         print("""
@@ -254,6 +257,8 @@ class PyType(object):
     def argname(self, name):
         return name
 
+    converter = None
+
     def unwrap_arg(self, name):
         pass
 
@@ -277,9 +282,9 @@ if (result)
 
 class CInt(PyType):
     __ops = {"int":   ("i", "Int"),
-             "size_t": ("n", "Long"),
+             "size_t": ("O&", "Long"),
              "ssize_t": ("n", "Long"),
-             "uintptr_t": ("k", "Long")}
+             "uintptr_t": ("O&", "Long")}
 
     __ops["i8x_byte_order_e"] = __ops["int"]
 
@@ -288,6 +293,11 @@ class CInt(PyType):
     @property
     def argfmt(self):
         return self.__ops[self.ctype][0]
+
+    @property
+    def converter(self):
+        if self.argfmt == "O&":
+            return "py8x_pylong_AsUintptr_t"
 
     @property
     def __creator(self):
