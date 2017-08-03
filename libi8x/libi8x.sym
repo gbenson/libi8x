@@ -7,6 +7,8 @@ global:
 	i8x_chunk_get_encoded;
 
 	i8x_ctx_new;
+	i8x_ctx_get_last_error_src_name;
+	i8x_ctx_get_last_error_src_offset;
 	i8x_ctx_strerror_r;
 	i8x_ctx_set_log_fn;
 	i8x_ctx_get_log_priority;

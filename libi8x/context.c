@@ -490,24 +490,37 @@ xsnprintf (char **bufp, char *limit, const char *format, ...)
 }
 
 I8X_EXPORT const char *
+i8x_ctx_get_last_error_src_name (struct i8x_ctx *ctx)
+{
+  if (ctx == NULL || ctx->error_note == NULL)
+    return NULL;
+
+  return i8x_note_get_src_name (ctx->error_note);
+}
+
+I8X_EXPORT ssize_t
+i8x_ctx_get_last_error_src_offset (struct i8x_ctx *ctx)
+{
+  if (ctx == NULL || ctx->error_note == NULL)
+    return -1;
+
+  ssize_t offset = i8x_note_get_src_offset (ctx->error_note);
+
+  if (offset >= 0 && ctx->error_ptr != NULL)
+    offset += ctx->error_ptr - i8x_note_get_encoded (ctx->error_note);
+
+  return offset;
+}
+
+I8X_EXPORT const char *
 i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 		    char *buf, size_t bufsiz)
 {
   char *ptr = buf;
   char *limit = ptr + bufsiz;
-  const char *prefix = NULL;
-  ssize_t offset = -1;
+  const char *prefix = i8x_ctx_get_last_error_src_name (ctx);
+  ssize_t offset = i8x_ctx_get_last_error_src_offset (ctx);
   const char *msg = error_message_for (code);
-
-  if (ctx != NULL && ctx->error_note != NULL)
-    {
-      prefix = i8x_note_get_src_name (ctx->error_note);
-      offset = i8x_note_get_src_offset (ctx->error_note);
-
-      if (offset >= 0 && ctx->error_ptr != NULL)
-	offset += ctx->error_ptr
-	          - i8x_note_get_encoded (ctx->error_note);
-    }
 
   if (prefix == NULL)
     prefix = PACKAGE;

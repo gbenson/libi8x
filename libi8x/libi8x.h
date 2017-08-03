@@ -219,6 +219,8 @@ I8X_CONTEXT_OBJECT_FUNCTIONS (ctx);
 
 i8x_err_e i8x_ctx_new (int flags, i8x_log_fn_t *log_fn,
 		       struct i8x_ctx **ctx);
+const char *i8x_ctx_get_last_error_src_name (struct i8x_ctx *ctx);
+ssize_t i8x_ctx_get_last_error_src_offset (struct i8x_ctx *ctx);
 const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 				char *buf, size_t bufsiz);
 void i8x_ctx_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn);
