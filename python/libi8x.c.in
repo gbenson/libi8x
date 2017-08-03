@@ -840,6 +840,14 @@ py8x_unpack_tuple (union i8x_value *dst, PyObject *src,
   struct i8x_listitem *li;
   size_t i;
 
+  if (!PySequence_Check (src))
+    {
+      PyErr_Format (PyExc_TypeError,
+		    "must be sequence, not '%.200s'",
+		    src->ob_type->tp_name);
+      return false;
+    }
+
   if (PySequence_Length (src) != (Py_ssize_t) length)
     {
       PyErr_SetString (py8x_I8XError,
