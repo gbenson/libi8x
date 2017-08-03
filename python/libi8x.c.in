@@ -82,6 +82,27 @@ static PyObject *py8x_ctx_get_object_factory_fn (struct i8x_ctx *ctx);
 
 static PyObject *py8x_I8XError;
 
+/* Set an exception from a libi8x error code.  Note that ctx will
+   be NULL if the error occurred during i8x_ctx_new.  This function
+   always returns with an exception set, though not necessarily an
+   I8XError.  */
+
+static void
+py8x_set_exception (struct i8x_ctx *ctx, i8x_err_e code)
+{
+  /* Use PyExc_MemoryError for I8X_ENOMEM.  */
+  if (code == I8X_ENOMEM)
+    {
+      PyErr_NoMemory ();
+      return;
+    }
+
+  static char buf[1024];
+
+  PyErr_SetString (py8x_I8XError,
+		   i8x_ctx_strerror_r (ctx, code, buf, sizeof (buf)));
+}
+
 /* Userdata for all libi8x objects we create.  May be extended.
    Every libi8x object we pass into Python-space has one of these.
    It can be supplied to py8x_encapsulate* by the object's creator
@@ -202,16 +223,7 @@ _py8x_check_call (struct i8x_ctx *ctx, i8x_err_e err,
     {
       /* A libi8x error occurred, and there's no exception set.
 	 We need to set one.  */
-      if (err == I8X_ENOMEM)
-	PyErr_NoMemory ();
-      else
-	{
-	  static char buf[1024];
-
-	  PyErr_SetString (py8x_I8XError,
-			   i8x_ctx_strerror_r (ctx, err, buf,
-					       sizeof (buf)));
-	}
+      py8x_set_exception (ctx, err);
 
       got_exception = true;
     }
