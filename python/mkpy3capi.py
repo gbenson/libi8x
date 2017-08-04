@@ -45,9 +45,15 @@ class API(object):
         for name in sorted(self.__constants):
             if name in ("I8X_OK", "I8X_ENOMEM"):
                 continue
-            print('  PyModule_AddIntConstant (m, "%s", %s);'
-                  % (name.startswith("I8X_") and name[4:] or name,
-                     name), file=fp)
+            if name == "I8X_EINVAL":
+                pyname = "INVALID_ARGUMENT"
+            elif name.startswith("I8X_"):
+                pyname = name[4:]
+            else:
+                pyname = name
+            print('  PyModule_AddIntConstant (m, "%s", %s);' % (pyname,
+                                                                name),
+                  file=fp)
 
     def add_type(self, name):
         self.__types[name] = True

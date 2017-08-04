@@ -48,7 +48,7 @@ class TestConstants(unittest.TestCase):
 
     def test_error_codes(self):
         """Test error codes."""
-        self.assertEqual(py8x.EINVAL, -98)
+        self.assertEqual(py8x.INVALID_ARGUMENT, -98)
 
         self.assertEqual(py8x.NOTE_CORRUPT, -199)
         self.assertEqual(py8x.NOTE_UNHANDLED, -198)
