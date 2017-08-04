@@ -594,6 +594,8 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
 			       const char *provider, const char *name,
 			       const char *ptypes, const char *rtypes,
 			       struct i8x_note *src_note,
+			       const char *prov_off_ptr,
+			       const char *name_off_ptr,
 			       struct i8x_funcref **refp)
 {
   struct i8x_listitem *li;
@@ -667,7 +669,8 @@ i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *provider,
 		     const char *rtypes, struct i8x_funcref **refp)
 {
   return i8x_ctx_get_funcref_with_note (ctx, provider, name,
-					ptypes, rtypes, NULL, refp);
+					ptypes, rtypes, NULL,
+					NULL, NULL, refp);
 }
 
 void

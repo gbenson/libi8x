@@ -262,10 +262,12 @@ i8x_rb_read_funcref (struct i8x_readbuf *rb, struct i8x_funcref **ref)
   struct i8x_note *note;
   i8x_err_e err;
 
+  const char *poffptr = rb->ptr;
   err = i8x_rb_read_offset_string (rb, &provider);
   if (err != I8X_OK)
     return err;
 
+  const char *noffptr = rb->ptr;
   err = i8x_rb_read_offset_string (rb, &name);
   if (err != I8X_OK)
     return err;
@@ -281,7 +283,8 @@ i8x_rb_read_funcref (struct i8x_readbuf *rb, struct i8x_funcref **ref)
   note = i8x_rb_get_note (rb);
   err = i8x_ctx_get_funcref_with_note (i8x_note_get_ctx (note),
 				       provider, name, ptypes,
-				       rtypes, note, ref);
+				       rtypes, note, poffptr,
+				       noffptr, ref);
 
   return err;
 }

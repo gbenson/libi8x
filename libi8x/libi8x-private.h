@@ -234,6 +234,8 @@ i8x_err_e i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
 					 const char *encoded_ptypes,
 					 const char *encoded_rtypes,
 					 struct i8x_note *src_note,
+					 const char *prov_off_ptr,
+					 const char *name_off_ptr,
 					 struct i8x_funcref **ref);
 void i8x_ctx_forget_funcref (struct i8x_funcref *ref);
 i8x_err_e i8x_ctx_get_functype (struct i8x_ctx *ctx,
