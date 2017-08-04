@@ -43,6 +43,8 @@ class API(object):
 
     def emit_constants(self, fp):
         for name in sorted(self.__constants):
+            if name == "I8X_OK":
+                continue
             print('  PY8X_CONSTANT (m, %s);' % name, file=fp)
 
     def add_type(self, name):
