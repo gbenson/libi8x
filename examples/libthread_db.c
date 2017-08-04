@@ -199,7 +199,7 @@ td_err_from_i8x_err (i8x_err_e err)
     case I8X_ENOMEM:
       return TD_MALLOC;
 
-    case I8X_UNRESOLVED_FUNC:
+    case I8X_UNRESOLVED_FUNCTION:
       return TD_NOCAPAB;
 
     default:
