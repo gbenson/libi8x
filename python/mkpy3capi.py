@@ -43,7 +43,7 @@ class API(object):
 
     def emit_constants(self, fp):
         for name in sorted(self.__constants):
-            if name == "I8X_OK":
+            if name in ("I8X_OK", "I8X_ENOMEM"):
                 continue
             print('  PyModule_AddIntConstant (m, "%s", %s);'
                   % (name.startswith("I8X_") and name[4:] or name,
