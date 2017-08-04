@@ -53,16 +53,6 @@ i8x_type_get_rtypes (struct i8x_type *type)
 }
 
 static i8x_err_e
-i8x_tld_error (struct i8x_ctx *ctx, i8x_err_e code,
-	       struct i8x_note *cause_note, const char *cause_ptr)
-{
-  if (cause_note == NULL)
-    return i8x_invalid_argument (ctx);
-  else
-    return i8x_note_error (cause_note, code, cause_ptr);
-}
-
-static i8x_err_e
 i8x_type_list_skip_to (struct i8x_ctx *ctx, const char *ptr,
 		       const char *limit, struct i8x_note *src_note,
 		       char stop_char, const char **stop_char_ptr);
@@ -80,14 +70,14 @@ i8x_functype_get_bounds (struct i8x_ctx *ctx, const char *ptr,
   /* Return types start straight after the 'F'.  */
   *rtypes_start = ++ptr;
   err = i8x_type_list_skip_to (ctx, ptr, limit, src_note,
-				 '(', rtypes_limit);
+			       '(', rtypes_limit);
   if (err != I8X_OK)
     return err;
 
   /* Parameter types start straight after the '('.  */
   *ptypes_start = ptr = *rtypes_limit + 1;
   err = i8x_type_list_skip_to (ctx, ptr, limit, src_note,
-				 ')', ptypes_limit);
+			       ')', ptypes_limit);
   if (err != I8X_OK)
     return err;
 
@@ -161,14 +151,14 @@ i8x_tld_helper (struct i8x_ctx *ctx,
 
 	case '(':
 	case ')':
-	  if (*ptr != stop_char)
-	    return i8x_tld_error (ctx, I8X_NOTE_CORRUPT, src_note, ptr);
+	  if (c != stop_char)
+	    return i8x_funcref_error (ctx, I8X_NOTE_INVALID, src_note, ptr);
 
 	  *stop_char_ptr = ptr;
 	  return I8X_OK;
 
 	default:
-	  return i8x_tld_error (ctx, I8X_NOTE_UNHANDLED, src_note, ptr);
+	  return i8x_funcref_error (ctx, I8X_NOTE_UNHANDLED, src_note, ptr);
 	}
 
       if (result != NULL)
@@ -183,7 +173,7 @@ i8x_tld_helper (struct i8x_ctx *ctx,
     }
 
   if (stop_char != 0)
-    return i8x_tld_error (ctx, I8X_NOTE_CORRUPT, src_note, ptr);
+    return i8x_funcref_error (ctx, I8X_NOTE_INVALID, src_note, ptr);
 
   return I8X_OK;
 }

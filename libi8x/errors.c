@@ -39,6 +39,16 @@ i8x_internal_error (const char *file, int line,
 }
 
 i8x_err_e
+i8x_funcref_error (struct i8x_ctx *ctx, i8x_err_e code,
+		   struct i8x_note *cause_note, const char *cause_ptr)
+{
+  if (cause_note == NULL)
+    return i8x_invalid_argument (ctx);
+  else
+    return i8x_note_error (cause_note, code, cause_ptr);
+}
+
+i8x_err_e
 i8x_note_error (struct i8x_note *note, i8x_err_e code, const char *ptr)
 {
   return i8x_ctx_set_error (i8x_note_get_ctx (note), code, note, ptr);
