@@ -50,8 +50,8 @@ struct i8x_code;
 #define i8x_invalid_argument(ctx) \
   i8x_ctx_set_error (ctx, I8X_EINVAL, NULL, NULL)
 
-#define i8x_unresolved_func(ctx) \
-  i8x_ctx_set_error (ctx, I8X_UNRESOLVED_FUNC, NULL, NULL)
+#define i8x_unresolved_function(ctx) \
+  i8x_ctx_set_error (ctx, I8X_UNRESOLVED_FUNCTION, NULL, NULL)
 
 #ifdef __cplusplus
 extern "C" {

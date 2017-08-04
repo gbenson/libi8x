@@ -57,7 +57,7 @@ class TestConstants(unittest.TestCase):
         self.assertEqual(py8x.I8X_NOTE_UNHANDLED, -198)
         self.assertEqual(py8x.I8X_NOTE_INVALID, -197)
 
-        self.assertEqual(py8x.I8X_UNRESOLVED_FUNC, -299)
+        self.assertEqual(py8x.I8X_UNRESOLVED_FUNCTION, -299)
         self.assertEqual(py8x.I8X_STACK_OVERFLOW, -298)
         self.assertEqual(py8x.I8X_RELOC_FAILED, -297)
         self.assertEqual(py8x.I8X_READ_MEM_FAILED, -296)

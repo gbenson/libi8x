@@ -451,7 +451,7 @@ error_message_for (i8x_err_e code)
     case I8X_NOTE_INVALID:
       return _("Invalid note");
 
-    case I8X_UNRESOLVED_FUNC:
+    case I8X_UNRESOLVED_FUNCTION:
       return _("Unresolved function");
 
     case I8X_STACK_OVERFLOW:
