@@ -78,6 +78,10 @@ static void py8x_logf (struct i8x_ctx *ctx, int priority,
 
 static PyObject *py8x_ctx_get_object_factory_fn (struct i8x_ctx *ctx);
 
+/* Exceptions.  */
+
+static PyObject *py8x_I8XError;
+
 /* Userdata for all libi8x objects we create.  May be extended.
    Every libi8x object we pass into Python-space has one of these.
    It can be supplied to py8x_encapsulate* by the object's creator
@@ -159,10 +163,6 @@ py8x_userdata_free (void *ud_p)
 #define py8x_get_userdata(o)						\
   ((struct py8x_userdata *)						\
      i8x_ob_get_userdata ((struct i8x_object *) (o)))
-
-/* Exceptions.  */
-
-static PyObject *py8x_I8XError;
 
 /* Pointer used as a flag for _py8x_check_call.
    Can be anything that isn't a real i8x_object or NULL.  */
