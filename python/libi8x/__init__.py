@@ -66,3 +66,32 @@ __all__ = (
     "UnhandledNoteError",
     "UnresolvedFunctionError",
 )
+
+# Add accessor properties and __str__ to I8XError.
+
+def _add_I8XError_properties(*args):
+    for index, name_doc in enumerate(args):
+        name, doc = name_doc
+        exec("setattr(I8XError, "
+             + repr(name)
+             + ", property(lambda self: self.args[%d], " % index
+             + "doc=%s))" % repr(doc))
+_add_I8XError_properties(
+    ("strerror",  "Description of the libi8x i8x_err_e error code."),
+    ("srcname",   "Name of the note this error occurred in."),
+    ("srcoffset", "Offset into the note where this error occurred."),
+)
+del _add_I8XError_properties
+
+def _I8XError__str__(self):
+    prefix = ""
+    if self.srcname is not None:
+        prefix += self.srcname
+    if self.srcoffset is not None:
+        prefix += "[0x%x]" % self.srcoffset
+    if prefix:
+        prefix += ": "
+    return prefix + self.strerror
+
+I8XError.__str__ = _I8XError__str__
+del _I8XError__str__
