@@ -45,7 +45,9 @@ class API(object):
         for name in sorted(self.__constants):
             if name == "I8X_OK":
                 continue
-            print('  PY8X_CONSTANT (m, %s);' % name, file=fp)
+            print('  PyModule_AddIntConstant (m, "%s", %s);'
+                  % (name.startswith("I8X_") and name[4:] or name,
+                     name), file=fp)
 
     def add_type(self, name):
         self.__types[name] = True

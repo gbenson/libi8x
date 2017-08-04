@@ -35,7 +35,9 @@ class TestAllTested(unittest.TestCase):
         for attr in dir(py8x):
             if attr.startswith("__"):
                 continue
-            if attr.startswith("I8"):
+            if type(getattr(py8x, attr)) == type(0):
+                continue
+            if attr == "I8XError":
                 continue
             if os.path.exists(format % attr):
                 continue

@@ -29,8 +29,8 @@ import unittest
 class TestConstants(unittest.TestCase):
     def test_i8x_ctx_new_flags(self):
         """Test i8x_ctx_new flags."""
-        self.assertEqual(py8x.I8X_LOG_TRACE, 0x08)
-        self.assertEqual(py8x.I8X_DBG_MEM, 0x10)
+        self.assertEqual(py8x.LOG_TRACE, 0x08)
+        self.assertEqual(py8x.DBG_MEM, 0x10)
 
     def test_chunk_types(self):
         """Test chunk types constants."""
@@ -42,22 +42,22 @@ class TestConstants(unittest.TestCase):
 
     def test_byte_orderings(self):
         """Test byte order constants."""
-        self.assertEqual(py8x.I8X_BYTE_ORDER_UNKNOWN, 0)
-        self.assertEqual(py8x.I8X_BYTE_ORDER_NATIVE, 1)
-        self.assertEqual(py8x.I8X_BYTE_ORDER_REVERSED, 2)
+        self.assertEqual(py8x.BYTE_ORDER_UNKNOWN, 0)
+        self.assertEqual(py8x.BYTE_ORDER_NATIVE, 1)
+        self.assertEqual(py8x.BYTE_ORDER_REVERSED, 2)
 
     def test_error_codes(self):
         """Test error codes."""
-        self.assertEqual(py8x.I8X_ENOMEM, -99)
-        self.assertEqual(py8x.I8X_EINVAL, -98)
+        self.assertEqual(py8x.ENOMEM, -99)
+        self.assertEqual(py8x.EINVAL, -98)
 
-        self.assertEqual(py8x.I8X_NOTE_CORRUPT, -199)
-        self.assertEqual(py8x.I8X_NOTE_UNHANDLED, -198)
-        self.assertEqual(py8x.I8X_NOTE_INVALID, -197)
+        self.assertEqual(py8x.NOTE_CORRUPT, -199)
+        self.assertEqual(py8x.NOTE_UNHANDLED, -198)
+        self.assertEqual(py8x.NOTE_INVALID, -197)
 
-        self.assertEqual(py8x.I8X_UNRESOLVED_FUNCTION, -299)
-        self.assertEqual(py8x.I8X_STACK_OVERFLOW, -298)
-        self.assertEqual(py8x.I8X_RELOC_FAILED, -297)
-        self.assertEqual(py8x.I8X_READ_MEM_FAILED, -296)
-        self.assertEqual(py8x.I8X_DIVIDE_BY_ZERO, -295)
-        self.assertEqual(py8x.I8X_NATCALL_FAILED, -294)
+        self.assertEqual(py8x.UNRESOLVED_FUNCTION, -299)
+        self.assertEqual(py8x.STACK_OVERFLOW, -298)
+        self.assertEqual(py8x.RELOC_FAILED, -297)
+        self.assertEqual(py8x.READ_MEM_FAILED, -296)
+        self.assertEqual(py8x.DIVIDE_BY_ZERO, -295)
+        self.assertEqual(py8x.NATCALL_FAILED, -294)
