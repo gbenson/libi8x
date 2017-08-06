@@ -27,14 +27,14 @@ import _libi8x as py8x
 from . import common
 
 class TestPy8xXctxCall(common.PopulatedTestCase):
-    def test_correct(self):
-        """Test a correct py8x_xctx_call."""
+    def test_success(self):
+        """Test py8x_xctx_call when i8x_xctx_call returns I8X_OK."""
         rets = py8x.xctx_call(self.xctx, self.funcref, self.inf, (5,))
         self.assertEqual(rets, (120,))
 
-    def test_unresolved(self):
-        """Test py8x_xctx_call of an unresolved function."""
-        ref = py8x.ctx_get_funcref (self.ctx, "exmapel", "factorial", "i", "i")
+    def test_failure(self):
+        """Test py8x_xctx_call when i8x_xctx_call returns an error."""
+        ref = py8x.ctx_get_funcref(self.ctx, "exmapel", "factorial", "i", "i")
         self.assertRaises(py8x.UnresolvedFunctionError,
                           py8x.xctx_call,
                           self.xctx, ref, self.inf, (5,))

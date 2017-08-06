@@ -27,14 +27,14 @@ import _libi8x as py8x
 from . import common
 
 class TestPy8xCtxUnregisterFunc(common.PopulatedTestCase):
-    def test_basic(self):
-        """Test py8x_ctx_unregister_func"""
+    def test_success(self):
+        """Test py8x_ctx_unregister_func succeeding"""
         self.assertTrue(py8x.funcref_is_resolved(self.funcref))
         self.assertIsNone(py8x.ctx_unregister_func(self.ctx, self.func))
         self.assertFalse(py8x.funcref_is_resolved(self.funcref))
 
-    def test_unregistered(self):
-        """Test py8x_ctx_unregister_func on an unregistered function"""
+    def test_failure(self):
+        """Test py8x_ctx_unregister_func failing"""
         py8x.ctx_unregister_func(self.ctx, self.func)
         self.assertRaises(ValueError,
                           py8x.ctx_unregister_func,

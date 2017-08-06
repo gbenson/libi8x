@@ -27,13 +27,22 @@ import _libi8x as py8x
 from . import common
 
 class TestPy8xCtxGetFuncref(common.PopulatedTestCase):
-    def test_exists(self):
-        """Test py8x_ctx_get_funcref on existing function."""
-        ref = py8x.ctx_get_funcref (self.ctx, "example", "factorial", "i", "i")
+    # Note that test_existing and test_creating test the same code
+    # in py8x_ctx_get_funcref, but they're testing different paths
+    # in py8x_encapsulate_2.
+
+    def test_existing(self):
+        """Test py8x_ctx_get_funcref returning an existing funcref."""
+        ref = py8x.ctx_get_funcref(self.ctx, "example", "factorial", "i", "i")
         self.assertIsNotNone(ref)
 
-    def test_new(self):
-        """Test py8x_ctx_get_funcref on nonexistent function."""
-        ctx = self.ctx_new()
-        ref = py8x.ctx_get_funcref (self.ctx, "exmapel", "factorial", "i", "i")
+    def test_creating(self):
+        """Test py8x_ctx_get_funcref creating a new funcref."""
+        ref = py8x.ctx_get_funcref(self.ctx, "not", "registered", "p", "o")
         self.assertIsNotNone(ref)
+
+    def test_failure(self):
+        """Test py8x_ctx_get_funcref failing."""
+        self.assertRaises(ValueError,
+                          py8x.ctx_get_funcref,
+                          self.ctx, "3xample", "factorial", "i", "i")

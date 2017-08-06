@@ -27,6 +27,10 @@ import _libi8x as py8x
 from . import common
 
 class TestPy8xInfNew(common.TestCase):
+    # Note that i8x_inf_new only returns I8X_OK or I8X_ENOMOM,
+    # so there's no obvious way to test the return != I8X_OK
+    # case.
+
     def test_basic(self):
         """Test py8x_inf_new."""
         ctx = self.ctx_new()
