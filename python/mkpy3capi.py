@@ -43,11 +43,7 @@ class API(object):
 
     def emit_constants(self, fp):
         for name in sorted(self.__constants):
-            if name in ("I8X_OK", "I8X_ENOMEM"):
-                continue
-            if name == "I8X_EINVAL":
-                pyname = "INVALID_ARGUMENT"
-            elif name.startswith("I8X_"):
+            if name.startswith("I8X_"):
                 pyname = name[4:]
             else:
                 pyname = name
@@ -376,8 +372,9 @@ class ASTVisitor(pycparser.c_ast.NodeVisitor):
         self.api = api
 
     def visit_Enum(self, node):
-        for enumerator in node.values.enumerators:
-            self.api.add_constant(enumerator.name)
+        names = [e.name for e in node.values.enumerators]
+        if "I8X_OK" not in names:
+            list(map(self.api.add_constant, names))
 
     def visit_Decl(self, node):
         name = node.name
