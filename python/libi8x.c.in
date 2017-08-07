@@ -78,9 +78,43 @@ static void py8x_logf (struct i8x_ctx *ctx, int priority,
 
 static PyObject *py8x_ctx_get_object_factory_fn (struct i8x_ctx *ctx);
 
-/* Exceptions.  */
+/* Exceptions raised when a libi8x function returns an i8x_err_e
+   value other than I8X_OK.
+
+   I8XError
+    +-- NoteError
+    |    +-- CorruptNoteError		I8X_NOTE_CORRUPT
+    |    +-- InvalidNoteError		I8X_NOTE_INVALID
+    |    +-- UnhandledNoteError		I8X_NOTE_UNHANDLED
+    +-- ExecutionError
+         +-- DivideByZeroError		I8X_DIVIDE_BY_ZERO
+         +-- StackOverflowError		I8X_STACK_OVERFLOW
+         +-- UnresolvedFunctionError	I8X_UNRESOLVED_FUNCTION
+
+   Note that not all i8x_err_e values have a corresponding class
+   in this heirachy:
+
+   * I8X_ENOMEM is handled with Python MemoryError.
+   * I8X_EINVAL is handled with Python ValueError.
+   * I8X_RELOC_FAILED, I8X_READ_MEM_FAILED and I8X_NATCALL_FAILED
+     only occur when something fails
+       a) in this file, or
+       b) in user-supplied Python functions called by something
+          in this file.
+     These errors result in Python exceptions.  */
 
 static PyObject *py8x_I8XError;
+
+static PyObject *py8x_NoteError;
+static PyObject *py8x_ExecutionError;
+
+static PyObject *py8x_CorruptNoteError;
+static PyObject *py8x_InvalidNoteError;
+static PyObject *py8x_UnhandledNoteError;
+
+static PyObject *py8x_DivideByZeroError;
+static PyObject *py8x_StackOverflowError;
+static PyObject *py8x_UnresolvedFunctionError;
 
 /* Set an exception from a libi8x error code.  Note that ctx will
    be NULL if the error occurred during i8x_ctx_new.  This function
@@ -108,6 +142,38 @@ py8x_set_exception (struct i8x_ctx *ctx, i8x_err_e code)
       return;
     }
 
+  /* Choose which exception to set.  */
+  PyObject *errorclass;
+  switch (code)
+    {
+    case I8X_NOTE_CORRUPT:
+      errorclass = py8x_CorruptNoteError;
+      break;
+
+    case I8X_NOTE_INVALID:
+      errorclass = py8x_InvalidNoteError;
+      break;
+
+    case I8X_NOTE_UNHANDLED:
+      errorclass = py8x_UnhandledNoteError;
+      break;
+
+    case I8X_UNRESOLVED_FUNCTION:
+      errorclass = py8x_UnresolvedFunctionError;
+      break;
+
+    case I8X_STACK_OVERFLOW:
+      errorclass = py8x_StackOverflowError;
+      break;
+
+    case I8X_DIVIDE_BY_ZERO:
+      errorclass = py8x_DivideByZeroError;
+      break;
+
+    default:
+      errorclass = py8x_I8XError;
+    }
+
   /* Get the error location, if set.  */
   PyObject *last_error_src_offset;
   ssize_t tmp = i8x_ctx_get_last_error_src_offset (ctx);
@@ -132,7 +198,7 @@ py8x_set_exception (struct i8x_ctx *ctx, i8x_err_e code)
     return;
 
   /* Set the error.  */
-  PyErr_SetObject (py8x_I8XError, args);
+  PyErr_SetObject (errorclass, args);
   Py_DECREF (args);
 }
 
@@ -1403,19 +1469,33 @@ static struct PyModuleDef libi8x_moduledef =
 
 /* Module initialization function.  */
 
+#define PY8X_EXCEPTION(name, parent)					\
+  do {									\
+    py8x_ ## name = PyErr_NewException ("_libi8x." #name, parent, NULL);\
+									\
+    if (py8x_ ## name == NULL						\
+	|| PyModule_AddObject (m, #name, py8x_ ## name) != 0)		\
+      return NULL;							\
+  } while (0)
+
 MODULE_INIT_FUNC (_libi8x)
 {
   PyObject *m = PyModule_Create (&libi8x_moduledef);
   if (m == NULL)
     return NULL;
 
-  py8x_I8XError = PyErr_NewException ("_libi8x.I8XError",
-				   PyExc_RuntimeError, NULL);
-  if (py8x_I8XError == NULL)
-    return NULL;
+  PY8X_EXCEPTION (I8XError, PyExc_Exception);
 
-  if (PyModule_AddObject (m, "I8XError", py8x_I8XError) != 0)
-    return NULL;
+  PY8X_EXCEPTION (NoteError, py8x_I8XError);
+  PY8X_EXCEPTION (ExecutionError, py8x_I8XError);
+
+  PY8X_EXCEPTION (CorruptNoteError, py8x_NoteError);
+  PY8X_EXCEPTION (InvalidNoteError, py8x_NoteError);
+  PY8X_EXCEPTION (UnhandledNoteError, py8x_NoteError);
+
+  PY8X_EXCEPTION (DivideByZeroError, py8x_ExecutionError);
+  PY8X_EXCEPTION (StackOverflowError, py8x_ExecutionError);
+  PY8X_EXCEPTION (UnresolvedFunctionError, py8x_ExecutionError);
 
 #pragma libi8x_api_constants
 

@@ -62,7 +62,9 @@ class TestAPI(unittest.TestCase):
         for attr in libi8x.__all__:
             if attr in self.CONSTANTS:
                 continue
-            if attr in ("Object", "I8XError"):
+            if attr == "Object":
+                continue
+            if attr.endswith("Error"):
                 continue
 
             # Check this class has a testfile.

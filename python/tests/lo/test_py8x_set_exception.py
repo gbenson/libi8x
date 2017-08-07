@@ -40,26 +40,82 @@ class TestPy8xSetException(common.TestCase):
         with self.assertRaises(ValueError):
             py8x.ctx_get_funcref(ctx, "", "", "", "")
 
-    def __decorated_test(self, sname, soff):
-        print(sname, soff)
-        if soff < 0:
-            expect_soff = None
-        else:
-            expect_soff = soff + 38
+    def test_corrupt_note(self):
+        """Test a function returning I8X_NOTE_CORRUPT."""
+        self.__test_I8XError(py8x.CorruptNoteError,
+                             self.CORRUPT_NOTE,
+                             self.CORRUPT_NOTE_ERROR_OFFSET)
 
+    def test_unhandled_note(self):
+        """Test a function returning I8X_NOTE_UNHANDLED."""
+        self.__test_I8XError(py8x.UnhandledNoteError,
+                             self.UNHANDLED_NOTE,
+                             self.UNHANDLED_NOTE_ERROR_OFFSET)
+
+    def test_invalid_note(self):
+        """Test a function returning I8X_NOTE_INVALID."""
+        self.__test_I8XError(py8x.InvalidNoteError,
+                             self.INVALID_NOTE,
+                             self.INVALID_NOTE_ERROR_OFFSET)
+
+    def test_divide_by_zero(self):
+        """Test a function returning I8X_DIVIDE_BY_ZERO."""
+        self.__test_I8XError(py8x.DivideByZeroError,
+                             self.DIVIDE_BY_ZERO_NOTE,
+                             self.DIVIDE_BY_ZERO_NOTE_ERROR_OFFSET)
+
+    def test_stack_overflow(self):
+        """Test a function returning I8X_STACK_OVERFLOW."""
+        self.__test_I8XError(py8x.StackOverflowError,
+                             self.STACK_OVERFLOW_NOTE,
+                             self.STACK_OVERFLOW_NOTE_ERROR_OFFSET)
+
+    def test_unresolved_function(self):
+        """Test a function returning I8X_UNRESOLVED_FUNCTION."""
         ctx = self.ctx_new()
-        with self.assertRaises(py8x.I8XError) as cm:
-            py8x.ctx_import_bytecode(ctx, self.CORRUPT_NOTE, sname, soff)
+        ref = py8x.ctx_get_funcref(ctx, "example", "factorial", "i", "i")
+        inf = py8x.inf_new(ctx)
+        xctx = py8x.xctx_new(ctx, 512)
+        with self.assertRaises(py8x.UnresolvedFunctionError):
+            py8x.xctx_call(xctx, ref, inf, (5,))
+
+    # Helpers
+
+    def __test_I8XError(self, exception, note, error_offset, *call_args):
+        for srcname in (None, "testnote"):
+            for srcoffset in (-4, -1, 0, 5, 23):
+                if issubclass(exception, py8x.NoteError):
+                    assert not call_args
+                    call_args = None
+                else:
+                    assert issubclass(exception, py8x.ExecutionError)
+
+                if srcoffset < 0:
+                    expect_offset = None
+                else:
+                    expect_offset = srcoffset + error_offset
+
+                self.__test_I8XError_1(exception, expect_offset,
+                                       (note, srcname, srcoffset),
+                                       call_args)
+
+    def __test_I8XError_1(self, exception, expect_offset, import_args,
+                          call_args):
+        ctx = self.ctx_new()
+        if call_args is None:
+            # NoteError (raised on import).
+            with self.assertRaises(exception) as cm:
+                py8x.ctx_import_bytecode(ctx, *import_args)
+        else:
+            # ExecutionError (raised on execution).
+            func = py8x.ctx_import_bytecode(ctx, *import_args)
+            ref = py8x.func_get_funcref(func)
+            inf = py8x.inf_new(ctx)
+            xctx = py8x.xctx_new(ctx, 512)
+            with self.assertRaises(exception) as cm:
+                py8x.xctx_call(xctx, ref, inf, call_args)
         args = cm.exception.args
 
         self.assertEqual(len(args), 4)
-        self.assertEqual(args[0], py8x.NOTE_CORRUPT)
-        self.assertEqual(args[1], "Corrupt note")
-        self.assertEqual(args[2], sname)
-        self.assertEqual(args[3], expect_soff)
-
-    def test_decorated(self):
-        """Test a decorated I8XError (one caused by a note)."""
-        for srcname in (None, "testnote"):
-            for srcoffset in (-4, -1, 0, 5, 23):
-                self.__decorated_test(srcname, srcoffset)
+        self.assertEqual(args[2], import_args[1])
+        self.assertEqual(args[3], expect_offset)

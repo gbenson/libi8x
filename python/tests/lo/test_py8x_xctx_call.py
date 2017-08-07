@@ -35,7 +35,7 @@ class TestPy8xXctxCall(common.PopulatedTestCase):
     def test_unresolved(self):
         """Test py8x_xctx_call of an unresolved function."""
         ref = py8x.ctx_get_funcref (self.ctx, "exmapel", "factorial", "i", "i")
-        self.assertRaises(py8x.I8XError,
+        self.assertRaises(py8x.UnresolvedFunctionError,
                           py8x.xctx_call,
                           self.xctx, ref, self.inf, (5,))
 

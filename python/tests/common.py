@@ -53,8 +53,54 @@ class TestCase(unittest.TestCase):
         0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x00,   # |example.|
         0x69, 0x00))                                      # |i.|
 
-    # Corrupt version of GOOD_NOTE.
+    # Version of GOOD_NOTE that should be rejected as corrupt
+    # (the string table chunk is truncated by one byte).
     CORRUPT_NOTE = GOOD_NOTE[:-1]
+    CORRUPT_NOTE_ERROR_OFFSET = 0x26
+
+    # Version of GOOD_NOTE that should be rejected as unhandled
+    # (the third instruction is an operation we don't support).
+    UNHANDLED_NOTE = GOOD_NOTE[:11] + b"\x97" + GOOD_NOTE[12:]
+    UNHANDLED_NOTE_ERROR_OFFSET = 11
+
+    # Version of GOOD_NOTE that should be rejected as invalid
+    # (a "dup" has been replaced with a "swap", messing up the
+    # stack).
+    INVALID_NOTE = GOOD_NOTE[:9] + b"\x16" + GOOD_NOTE[10:]
+    INVALID_NOTE_ERROR_OFFSET = 9
+
+    # 32-bit little-endian note that divides by zero.
+    #
+    # define test::DZ returns int
+    #   load 0
+    #   dup
+    #   div
+    DIVIDE_BY_ZERO_NOTE = bytes((
+        # 0x00..0x0f
+        0x05, 0x01, 0x03, 0x18, 0x49, 0x02, 0x02, 0x03,   # |....I...|
+        0x03, 0x30, 0x12, 0x1b, 0x01, 0x02, 0x04, 0x00,   # |.0......|
+
+        # 0x10..0x1f
+        0x05, 0x04, 0x08, 0x04, 0x01, 0x0a, 0x74, 0x65,   # |......te|
+        0x73, 0x74, 0x00, 0x44, 0x5a, 0x00, 0x69, 0x00))  # |st.DZ.i.|
+    DIVIDE_BY_ZERO_NOTE_ERROR_OFFSET = 11
+
+    # 32-bit little-endian note that overflows the stack.
+    #
+    # define test::overflow
+    #   call overflow
+    STACK_OVERFLOW_NOTE = bytes((
+        # 0x00..0x0f
+        0x05, 0x01, 0x03, 0x18, 0x49, 0x01, 0x02, 0x03,   # |....I...|
+        0x05, 0xff, 0x01, 0x00, 0xff, 0x00, 0x01, 0x02,   # |........|
+
+        # 0x10..0x1f
+        0x04, 0x09, 0x00, 0x08, 0x08, 0x04, 0x01, 0x0e,   # |........|
+        0x6f, 0x76, 0x65, 0x72, 0x66, 0x6c, 0x6f, 0x77,   # |overflow|
+
+        # 0x20..0x25
+        0x00, 0x74, 0x65, 0x73, 0x74, 0x00))              # |.test.|
+    STACK_OVERFLOW_NOTE_ERROR_OFFSET = 9
 
     # 32-bit little-endian note to test pointer dereferencing.
     #

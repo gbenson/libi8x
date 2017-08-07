@@ -45,6 +45,6 @@ class TestPy8xFuncGetUniqueChunk(common.PopulatedTestCase):
     def test_absent_fail(self):
         """Test py8x_func_get_unique_chunk on a required absent chunk."""
         note = py8x.func_get_note (self.func)
-        self.assertRaises(py8x.I8XError,
+        self.assertRaises(py8x.UnhandledNoteError,
                           py8x.note_get_unique_chunk,
                           note, self.ABSENT, True)

@@ -251,7 +251,7 @@ class _TestBadArgTypes(common.TestCase):
                 # We got into py8x_ctx_get_funcref or py8x_ctx_import_native
                 self.assertIn(func, (py8x.ctx_get_funcref,
                                      py8x.ctx_import_native))
-            except py8x.I8XError as e:
+            except py8x.UnhandledNoteError as e:
                 # We got into py8x_ctx_import_bytecode
                 self.assertIs(func, py8x.ctx_import_bytecode)
             self.__valid_args = args
@@ -316,7 +316,9 @@ class _TestBadArgTypes(common.TestCase):
             return TypeError
 
     def OPTIONAL_STRING(self, test_value):
-        return test_value is self.tv_string and py8x.I8XError or TypeError
+        return (test_value is self.tv_string
+                and py8x.UnhandledNoteError
+                or TypeError)
 
     def ZERO_LENGTH_SEQUENCE(self, test_value):
         try:
@@ -346,6 +348,6 @@ class TestBadArgTypes(_TestBadArgTypes):
         self._BAT_runTest(py8x.%s)""" % (attr, attr, attr)
                 for attr in dir(py8x)
                 if attr[:2] not in ("__", "I8")
-                   and type(getattr(py8x, attr)) != type(0))
+                   and type(getattr(py8x, attr)) not in (type, type(0)))
 exec(_setup())
 del _setup

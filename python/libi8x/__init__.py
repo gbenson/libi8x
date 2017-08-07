@@ -24,9 +24,17 @@ from __future__ import print_function
 #  __future__.unicode_literals breaks "from libi8x import *"
 
 from _libi8x import (
-    I8XError,
+    CorruptNoteError,
     DBG_MEM,
+    DivideByZeroError,
+    ExecutionError,
+    I8XError,
+    InvalidNoteError,
     LOG_TRACE,
+    NoteError,
+    StackOverflowError,
+    UnhandledNoteError,
+    UnresolvedFunctionError,
 )
 from .core import (
     Context,
@@ -40,13 +48,21 @@ from .core import (
 
 __all__ = (
     "Context",
+    "CorruptNoteError",
     "DBG_MEM",
+    "DivideByZeroError",
     "ExecutionContext",
+    "ExecutionError",
     "Function",
     "FunctionReference",
     "I8XError",
     "Inferior",
+    "InvalidNoteError",
     "LOG_TRACE",
+    "NoteError",
     "Object",
     "Relocation",
+    "StackOverflowError",
+    "UnhandledNoteError",
+    "UnresolvedFunctionError",
 )
