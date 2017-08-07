@@ -34,6 +34,12 @@ class TestPy8xSetException(common.TestCase):
         with self.assertRaises(MemoryError):
             py8x.xctx_new(ctx, sys.maxsize * 2 + 1)
 
+    def test_invalid_argument(self):
+        """Test a function returning I8X_EINVAL."""
+        ctx = self.ctx_new()
+        with self.assertRaises(ValueError):
+            py8x.ctx_get_funcref(ctx, "", "", "", "")
+
     def __decorated_test(self, sname, soff):
         print(sname, soff)
         if soff < 0:

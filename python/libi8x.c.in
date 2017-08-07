@@ -101,6 +101,13 @@ py8x_set_exception (struct i8x_ctx *ctx, i8x_err_e code)
   char buf[32];
   const char *msg = i8x_strerror_r (code, buf, sizeof (buf));
 
+  /* Use PyExc_ValueError for I8X_EINVAL.  */
+  if (code == I8X_EINVAL)
+    {
+      PyErr_SetString (PyExc_ValueError, msg);
+      return;
+    }
+
   /* Get the error location, if set.  */
   PyObject *last_error_src_offset;
   ssize_t tmp = i8x_ctx_get_last_error_src_offset (ctx);

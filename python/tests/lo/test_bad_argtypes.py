@@ -247,10 +247,13 @@ class _TestBadArgTypes(common.TestCase):
                 # We got into py8x_xctx_call
                 self.assertIs(func, py8x.xctx_call)
                 self.assertGreaterEqual(e.args[0].find("relocate_address"), 0)
-            except py8x.I8XError as e:
+            except ValueError as e:
+                # We got into py8x_ctx_get_funcref or py8x_ctx_import_native
                 self.assertIn(func, (py8x.ctx_get_funcref,
-                                     py8x.ctx_import_bytecode,
                                      py8x.ctx_import_native))
+            except py8x.I8XError as e:
+                # We got into py8x_ctx_import_bytecode
+                self.assertIs(func, py8x.ctx_import_bytecode)
             self.__valid_args = args
             raise self.GotValidArguments
         except TypeError as e:
