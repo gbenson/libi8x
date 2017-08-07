@@ -190,7 +190,7 @@ py8x_set_exception (struct i8x_ctx *ctx, i8x_err_e code)
     }
 
   /* Build the arguments.  */
-  PyObject *args = Py_BuildValue("(issO)", code, msg,
+  PyObject *args = Py_BuildValue("(ssO)", msg,
 				 i8x_ctx_get_last_error_src_name (ctx),
 				 last_error_src_offset);
   Py_DECREF (last_error_src_offset);

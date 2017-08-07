@@ -116,6 +116,6 @@ class TestPy8xSetException(common.TestCase):
                 py8x.xctx_call(xctx, ref, inf, call_args)
         args = cm.exception.args
 
-        self.assertEqual(len(args), 4)
-        self.assertEqual(args[2], import_args[1])
-        self.assertEqual(args[3], expect_offset)
+        self.assertEqual(len(args), 3)
+        self.assertEqual(args[1], import_args[1])
+        self.assertEqual(args[2], expect_offset)
