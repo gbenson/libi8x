@@ -38,7 +38,7 @@ class TestCase(common.TestCase):
     def setUp(self):
         self.__objects = []
 
-    def __new_i8xobj(self, type):
+    def _new_i8xobj(self, type):
         result = TestObject(type)
         self.__objects.append(weakref.ref(result))
         return result
@@ -63,7 +63,7 @@ class TestCase(common.TestCase):
 
     def ctx_new(self, flags=0, log_fn=None):
         """Standard way to create an i8x_ctx for tests."""
-        return py8x.ctx_new(self.__new_i8xobj, flags | py8x.DBG_MEM, log_fn)
+        return py8x.ctx_new(self._new_i8xobj, flags | py8x.DBG_MEM, log_fn)
 
 class PopulatedTestCase(TestCase):
     """A testcase with a context and a loaded function."""
