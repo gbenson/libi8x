@@ -22,4 +22,8 @@ Makefile.in
 /libtool
 /stamp-h1
 
+*.gcno
+*.gcda
+*.gcov
+
 core.*
