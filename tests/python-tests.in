@@ -1,4 +1,5 @@
-# Copyright (C) 2016-17 Red Hat, Inc.
+#!/bin/sh
+# Copyright (C) 2017 Red Hat, Inc.
 # This file is part of the Infinity Note Execution Library.
 #
 # The Infinity Note Execution Library is free software; you can
@@ -17,32 +18,8 @@
 # License along with the Infinity Note Execution Library; if not,
 # see <http://www.gnu.org/licenses/>.
 
-SUBDIRS = corpus
+test -z "@PYTHON@" && exit 77
 
-AM_CPPFLAGS = \
-	-include $(top_builddir)/config.h \
-	-I${top_srcdir}/libi8x \
-	-I${top_srcdir}/libi8x-test
-
-AM_CFLAGS = ${my_CFLAGS}
-
-AM_LDFLAGS = \
-	$(top_builddir)/libi8x-test/libi8x-test.la
-
-check_PROGRAMS = \
-	bugs/test-bug-0001 \
-	bugs/test-bug-0002 \
-	bugs/test-bug-0003 \
-	exec/ops/test-deref \
-	exec/test-factorial \
-	exec/test-smoke \
-	valid/test-corpus
-
-check_SCRIPTS = \
-	python-tests
-
-python-tests: python-tests.in
-	$(SED) -e 's,\@PYTHON\@,$(PYTHON),g' < $< > $@ || $(RM) $@
-	chmod +x $@
-
-TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
+cd $(dirname $0 && pwd)
+cd ../python
+exec @PYTHON@ setup.py test
