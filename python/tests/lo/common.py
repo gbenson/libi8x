@@ -23,8 +23,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from libi8xtest import *
 import _libi8x as py8x
-from .. import common
 import weakref
 
 class TestObject(object):
@@ -34,7 +34,7 @@ class TestObject(object):
     def __str__(self):
         return "<%s>" % self.type
 
-class TestCase(common.TestCase):
+class TestCase(BaseTestCase):
     def setUp(self):
         self.__objects = []
 

@@ -27,16 +27,30 @@ import sys
 import unittest
 
 if sys.version_info < (3,):
-    bytes = lambda seq: "".join(chr(c).decode("iso-8859-1")
-                                for c in seq).encode("iso-8859-1")
+    def compat_bytes(iterable_of_ints):
+        encoding = "iso-8859-1"
+        return "".join(chr(value).decode(encoding)
+                       for value in iterable_of_ints).encode(encoding)
 
-class TestCase(unittest.TestCase):
+    def compat_all(*items):
+        return tuple(item.encode("us-ascii") for item in items)
+else:
+    compat_bytes = bytes
+    compat_all = lambda *items: items
+
+__all__ = compat_all(
+    "BaseTestCase",
+    "compat_all",
+    "compat_bytes",
+)
+
+class BaseTestCase(unittest.TestCase):
     def do_not_call(self, *args):
         """Callable object to be passed to things that need them."""
         self.fail("crowbar called")
 
     # 32-bit little-endian version of I8C's factorial.i8 example.
-    GOOD_NOTE = bytes((
+    GOOD_NOTE = compat_bytes((
         # 0x00..0x0f
         0x05, 0x01, 0x03, 0x18, 0x49, 0x03, 0x02, 0x03,   # |....I...|
         0x13, 0x12, 0x31, 0x2b, 0x28, 0x04, 0x00, 0x31,   # |..1+(..1|
@@ -75,7 +89,7 @@ class TestCase(unittest.TestCase):
     #   load 0
     #   dup
     #   div
-    DIVIDE_BY_ZERO_NOTE = bytes((
+    DIVIDE_BY_ZERO_NOTE = compat_bytes((
         # 0x00..0x0f
         0x05, 0x01, 0x03, 0x18, 0x49, 0x02, 0x02, 0x03,   # |....I...|
         0x03, 0x30, 0x12, 0x1b, 0x01, 0x02, 0x04, 0x00,   # |.0......|
@@ -89,7 +103,7 @@ class TestCase(unittest.TestCase):
     #
     # define test::overflow
     #   call overflow
-    STACK_OVERFLOW_NOTE = bytes((
+    STACK_OVERFLOW_NOTE = compat_bytes((
         # 0x00..0x0f
         0x05, 0x01, 0x03, 0x18, 0x49, 0x01, 0x02, 0x03,   # |....I...|
         0x05, 0xff, 0x01, 0x00, 0xff, 0x00, 0x01, 0x02,   # |........|
@@ -107,7 +121,7 @@ class TestCase(unittest.TestCase):
     # define test::deref returns ptr
     #   argument ptr x
     #   deref ptr
-    DEREF_NOTE = bytes((
+    DEREF_NOTE = compat_bytes((
         # 0x00..0x0f
         0x05, 0x01, 0x03, 0x18, 0x49, 0x01, 0x02, 0x03,   # |....I...|
         0x01, 0x06, 0x01, 0x02, 0x04, 0x06, 0x00, 0x0b,   # |........|
@@ -124,7 +138,7 @@ class TestCase(unittest.TestCase):
     # extern ptr extptr
     # define test::extern returns ptr
     #   load extptr
-    RELOC_NOTE = bytes((
+    RELOC_NOTE = compat_bytes((
         # 0x00..0x0f
         0x05, 0x01, 0x03, 0x18, 0x49, 0x01, 0x02, 0x03,   # |....I...|
         0x05, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02,   # |........|
@@ -146,7 +160,7 @@ class TestCase(unittest.TestCase):
     #   add 1
     #   swap
     #   call
-    FUNC_ARG_NOTE = bytes((
+    FUNC_ARG_NOTE = compat_bytes((
         # 0x00..0x0f
         0x05, 0x01, 0x03, 0x18, 0x49, 0x03, 0x02, 0x03,   # |....I...|
         0x07, 0x32, 0x1e, 0x23, 0x01, 0x16, 0xff, 0x00,   # |.2.#....|
@@ -164,7 +178,7 @@ class TestCase(unittest.TestCase):
     # extern func int (int) example::factorial
     # define test::func_ret returns func int (int)
     #   load example::factorial
-    FUNC_RET_NOTE = bytes((
+    FUNC_RET_NOTE = compat_bytes((
         # 0x00..0x0f
         0x05, 0x01, 0x03, 0x18, 0x49, 0x01, 0x02, 0x03,   # |....I...|
         0x03, 0xff, 0x01, 0x01, 0x01, 0x02, 0x04, 0x21,   # |.......!|

@@ -23,11 +23,11 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from .. import common
+from libi8xtest import *
 import libi8x
 import syslog
 
-class TestCase(common.TestCase):
+class TestCase(BaseTestCase):
     def setUp(self):
         self._i8xlog = []
 
