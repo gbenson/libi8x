@@ -30,17 +30,39 @@ import sys
 
 here = os.path.realpath(os.path.dirname(__file__))
 
-# Link libi8x statically if we're in a libi8x tree (tarball or git).
+# Link libi8x statically if we're in a libi8x tree (tarball or git),
+# and run C libi8x's Python tests too as well as our own.
 if os.path.basename(here) == "python":
     # Ensure everything is up-to-date.
     if "MAKELEVEL" not in os.environ:
         subprocess.check_call(("make", "-C", os.path.dirname(here)))
+
+    # Set up what to build.
     import glob
     print("warning: building static _libi8x")
     extargs = {"include_dirs": ["../libi8x"],
                "extra_objects": glob.glob("../libi8x/.libs/*.o")}
+
+    # Collect C libi8x tests as well as our own.
+    def collector(*args):
+        import nose, unittest
+        suite = unittest.TestSuite()
+        cwd = os.getcwd()
+        tmp = os.path.join(here, "tests")
+        for root in (os.path.join(tmp, "lo"),
+                     os.path.join(tmp, "hi"),
+                     os.path.dirname(here)):
+            os.chdir(root)
+            try:
+                suite.addTest(nose.collector())
+            finally:
+                os.chdir(cwd)
+        return suite
+
+    testsuite="setup.collector"
 else:
     extargs = {"libraries": ["i8x"]}
+    testsuite="nose.collector"
 
 # Regenerate libi8x.c if we're running in a checked-out git tree.
 hdrdir = os.path.join(here, "pycparser", "utils", "fake_libc_include")
@@ -68,4 +90,4 @@ setup(
         Extension("_libi8x", sources=["libi8x.c"], **extargs),
     ],
     tests_require=["nose"],
-    test_suite="nose.collector")
+    test_suite=testsuite)
