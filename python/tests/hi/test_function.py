@@ -36,6 +36,11 @@ class FunctionTestCase(object):
         ref = self.func.ref
         self.assertIsInstance(ref, libi8x.FunctionReference)
 
+    def test_signature(self):
+        """Test Function.signature."""
+        sig = self.func.signature
+        self.assertEqual(sig, self.signature)
+
     def test_relocations(self):
         """Test Function.relocations."""
         relocs = self.func.relocations
@@ -46,9 +51,12 @@ class TestBytecodeFunction(common.TestCase, FunctionTestCase):
         super(TestBytecodeFunction, self).setUp()
         self.ctx = self.ctx_new()
         self.func = self.ctx.import_bytecode(self.GOOD_NOTE)
+        self.signature = "example::factorial(i)i"
 
 class TestNativeFunction(common.TestCase, FunctionTestCase):
     def setUp(self):
         super(TestNativeFunction, self).setUp()
         self.ctx = self.ctx_new()
-        self.func = self.ctx.import_native("test::func()", self.do_not_call)
+        self.signature = "test::func()"
+        self.func = self.ctx.import_native(self.signature,
+                                           self.do_not_call)

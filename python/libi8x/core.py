@@ -98,6 +98,11 @@ class Function(ChildObject):
         return py8x.func_get_funcref(self)
 
     @property
+    def signature(self):
+        """This function's signature."""
+        return self.ref.signature
+
+    @property
     def relocations(self):
         """This function's relocations."""
         return py8x.func_get_relocs(self) or ()
