@@ -104,6 +104,11 @@ class Function(ChildObject):
 
 class FunctionReference(ChildObject):
     @property
+    def signature(self):
+        """This reference's function signature."""
+        return py8x.funcref_get_signature(self)
+
+    @property
     def is_resolved(self):
         """Does this reference resolve to a callable function?"""
         return py8x.funcref_is_resolved(self)

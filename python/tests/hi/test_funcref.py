@@ -45,3 +45,7 @@ class TestFunctionReference(common.TestCase):
         """Test FunctionReference.is_resolved returning False."""
         self.ctx.import_native("example::factorial(i)i", self.do_not_call)
         self.assertFalse(self.funcref.is_resolved)
+
+    def test_signature(self):
+        """Test FunctionReference.signature."""
+        self.assertEqual(self.funcref.signature, "example::factorial(i)i")
