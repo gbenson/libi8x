@@ -53,11 +53,6 @@ i8x_type_get_rtypes (struct i8x_type *type)
 }
 
 static i8x_err_e
-i8x_type_list_skip_to (struct i8x_ctx *ctx, const char *ptr,
-		       const char *limit, struct i8x_note *src_note,
-		       char stop_char, const char **stop_char_ptr);
-
-static i8x_err_e
 i8x_functype_get_bounds (struct i8x_ctx *ctx, const char *ptr,
 			 const char *limit, struct i8x_note *src_note,
 			 const char **ptypes_start,
@@ -178,7 +173,7 @@ i8x_tld_helper (struct i8x_ctx *ctx,
   return I8X_OK;
 }
 
-static i8x_err_e
+i8x_err_e
 i8x_type_list_skip_to (struct i8x_ctx *ctx, const char *ptr,
 		       const char *limit, struct i8x_note *src_note,
 		       char stop_char, const char **stop_char_ptr)

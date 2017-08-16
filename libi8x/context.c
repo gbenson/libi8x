@@ -685,14 +685,72 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
   return err;
 }
 
-I8X_EXPORT i8x_err_e
-i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *provider,
-		     const char *name, const char *ptypes,
-		     const char *rtypes, struct i8x_funcref **refp)
+/* Parse a function signature, storing the components in provider_p,
+   name_p, ptypes_p and rtypes_p.  Note that the signature argument
+   is modified.  Note also that very little checking is done; the
+   caller is responsible for ensuring the returned components are
+   valid.  */
+
+static i8x_err_e
+i8x_ctx_parse_signature (struct i8x_ctx *ctx, char *signature,
+			 const char **provider_p, const char **name_p,
+			 const char **ptypes_p, const char **rtypes_p)
 {
-  return i8x_ctx_get_funcref_with_note (ctx, provider, name,
-					ptypes, rtypes, NULL,
-					NULL, NULL, refp);
+  char *provider = signature;
+
+  char *name = strstr (provider, "::");
+  if (name == NULL)
+    return i8x_invalid_argument (ctx);
+
+  *name = '\0';
+  name += 2;
+
+  char *ptypes = strchr (name, '(');
+  if (ptypes == NULL)
+    return i8x_invalid_argument (ctx);
+
+  *(ptypes++) = '\0';
+
+  char *rtypes;
+  i8x_err_e err = i8x_type_list_skip_to (ctx, ptypes,
+					 ptypes + strlen (ptypes),
+					 NULL, ')',
+					 (const char **) &rtypes);
+  if (err != I8X_OK)
+    return err;
+
+  *(rtypes++) = '\0';
+
+  *provider_p = provider;
+  *name_p = name;
+  *ptypes_p = ptypes;
+  *rtypes_p = rtypes;
+
+  return I8X_OK;
+}
+
+I8X_EXPORT i8x_err_e
+i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *signature,
+		     struct i8x_funcref **refp)
+{
+  const char *provider, *name, *ptypes, *rtypes;
+  char *buf;
+  i8x_err_e err;
+
+  buf = strdup (signature);
+  if (buf == NULL)
+    return i8x_out_of_memory (ctx);
+
+  err = i8x_ctx_parse_signature (ctx, buf, &provider, &name,
+				 &ptypes, &rtypes);
+
+  if (err == I8X_OK)
+    err = i8x_ctx_get_funcref_with_note (ctx, provider, name,
+					 ptypes, rtypes, NULL,
+					 NULL, NULL, refp);
+  free (buf);
+
+  return err;
 }
 
 void
@@ -906,16 +964,14 @@ i8x_ctx_import_bytecode (struct i8x_ctx *ctx,
 /* convenience */
 
 I8X_EXPORT i8x_err_e
-i8x_ctx_import_native (struct i8x_ctx *ctx, const char *provider,
-		       const char *name, const char *ptypes,
-		       const char *rtypes, i8x_nat_fn_t *impl_fn,
-		       struct i8x_func **func)
+i8x_ctx_import_native (struct i8x_ctx *ctx, const char *signature,
+		       i8x_nat_fn_t *impl_fn, struct i8x_func **func)
 {
   struct i8x_funcref *sig;
   struct i8x_func *f;
   i8x_err_e err;
 
-  err = i8x_ctx_get_funcref (ctx, provider, name, ptypes, rtypes, &sig);
+  err = i8x_ctx_get_funcref (ctx, signature, &sig);
   if (err != I8X_OK)
     return err;
 

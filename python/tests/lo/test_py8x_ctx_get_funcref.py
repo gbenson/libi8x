@@ -33,16 +33,16 @@ class TestPy8xCtxGetFuncref(common.PopulatedTestCase):
 
     def test_existing(self):
         """Test py8x_ctx_get_funcref returning an existing funcref."""
-        ref = py8x.ctx_get_funcref(self.ctx, "example", "factorial", "i", "i")
+        ref = py8x.ctx_get_funcref(self.ctx, "example::factorial(i)i")
         self.assertIsNotNone(ref)
 
     def test_creating(self):
         """Test py8x_ctx_get_funcref creating a new funcref."""
-        ref = py8x.ctx_get_funcref(self.ctx, "not", "registered", "p", "o")
+        ref = py8x.ctx_get_funcref(self.ctx, "not::registered(p)o")
         self.assertIsNotNone(ref)
 
     def test_failure(self):
         """Test py8x_ctx_get_funcref failing."""
         self.assertRaises(ValueError,
                           py8x.ctx_get_funcref,
-                          self.ctx, "3xample", "factorial", "i", "i")
+                          self.ctx, "3xample::factorial(i)i")

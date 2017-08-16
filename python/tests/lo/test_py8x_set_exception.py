@@ -38,7 +38,7 @@ class TestPy8xSetException(common.TestCase):
         """Test a function returning I8X_EINVAL."""
         ctx = self.ctx_new()
         with self.assertRaises(ValueError):
-            py8x.ctx_get_funcref(ctx, "", "", "", "")
+            py8x.ctx_get_funcref(ctx, "")
 
     def test_corrupt_note(self):
         """Test a function returning I8X_NOTE_CORRUPT."""
@@ -73,7 +73,7 @@ class TestPy8xSetException(common.TestCase):
     def test_unresolved_function(self):
         """Test a function returning I8X_UNRESOLVED_FUNCTION."""
         ctx = self.ctx_new()
-        ref = py8x.ctx_get_funcref(ctx, "example", "factorial", "i", "i")
+        ref = py8x.ctx_get_funcref(ctx, "example::factorial(i)i")
         inf = py8x.inf_new(ctx)
         xctx = py8x.xctx_new(ctx, 512)
         with self.assertRaises(py8x.UnresolvedFunctionError):

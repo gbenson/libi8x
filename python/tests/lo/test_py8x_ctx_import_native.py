@@ -30,8 +30,7 @@ class TestPy8xCtxImportNative(common.TestCase):
     def test_success(self):
         """Test py8x_ctx_import_native succeeding."""
         ctx = self.ctx_new()
-        func = py8x.ctx_import_native(ctx, "test", "func", "", "",
-                                      self.do_not_call)
+        func = py8x.ctx_import_native(ctx, "test::func()", self.do_not_call)
         self.assertIsNotNone(func)
 
     def test_failure(self):
@@ -39,5 +38,4 @@ class TestPy8xCtxImportNative(common.TestCase):
         ctx = self.ctx_new()
         self.assertRaises(ValueError,
                           py8x.ctx_import_native,
-                          ctx,
-                          "1", "func", "", "", self.do_not_call)
+                          ctx, "1::func()", self.do_not_call)

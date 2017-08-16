@@ -202,9 +202,9 @@ class Context(Object):
         """Create a new inferior."""
         return py8x.inf_new(self)
 
-    def get_funcref(self, provider, name, ptypes, rtypes):
+    def get_funcref(self, signature):
         """Return a reference to the specified function."""
-        return py8x.ctx_get_funcref(self, provider, name, ptypes, rtypes)
+        return py8x.ctx_get_funcref(self, signature)
 
     @property
     def functions(self):
@@ -219,7 +219,6 @@ class Context(Object):
         """Load and register a bytecode function."""
         return py8x.ctx_import_bytecode(self, buf, srcname, srcoffset)
 
-    def import_native(self, provider, name, ptypes, rtypes, impl):
+    def import_native(self, signature, impl):
         """Load and register a native function."""
-        return py8x.ctx_import_native(self, provider, name, ptypes,
-                                      rtypes, impl)
+        return py8x.ctx_import_native(self, signature, impl)

@@ -1116,11 +1116,10 @@ static PyObject *
 py8x_ctx_import_native (PyObject *self, PyObject *args)
 {
   PyObject *ctxc;
-  const char *provider, *name, *ptypes, *rtypes;
+  const char *signature;
   PyObject *impl;
 
-  if (!PyArg_ParseTuple (args, "OssssO", &ctxc,
-			 &provider, &name, &ptypes, &rtypes, &impl))
+  if (!PyArg_ParseTuple (args, "OsO", &ctxc, &signature, &impl))
     return NULL;
 
   PY8X_CHECK_CALLABLE (impl);
@@ -1134,8 +1133,7 @@ py8x_ctx_import_native (PyObject *self, PyObject *args)
 
   struct i8x_ctx *ctx = PY8X_FROM_CAPSULE (ctx);
   struct i8x_func *func;
-  i8x_err_e err = i8x_ctx_import_native (ctx,
-					 provider, name, ptypes, rtypes,
+  i8x_err_e err = i8x_ctx_import_native (ctx, signature,
 					 py8x_natfunc_impl, &func);
 
   PY8X_CHECK_CALL_DEREF_UD (ctx, err, func, ud);

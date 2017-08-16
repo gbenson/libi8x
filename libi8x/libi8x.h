@@ -234,10 +234,7 @@ void i8x_ctx_set_func_available_cb (struct i8x_ctx *ctx,
 void i8x_ctx_set_func_unavailable_cb (struct i8x_ctx *ctx,
 				      i8x_notify_fn_t *func_unavail_cb_fn);
 i8x_err_e i8x_ctx_get_funcref (struct i8x_ctx *ctx,
-			       const char *provider,
-			       const char *name,
-			       const char *encoded_ptypes,
-			       const char *encoded_rtypes,
+			       const char *signature,
 			       struct i8x_funcref **ref);
 i8x_err_e i8x_ctx_register_func (struct i8x_ctx *ctx,
 				 struct i8x_func *func);
@@ -248,8 +245,7 @@ i8x_err_e i8x_ctx_import_bytecode (struct i8x_ctx *ctx,
 				   const char *srcname, ssize_t srcoffset,
 				   struct i8x_func **func);
 i8x_err_e i8x_ctx_import_native (struct i8x_ctx *ctx,
-				 const char *provider, const char *name,
-				 const char *ptypes, const char *rtypes,
+				 const char *signature,
 				 i8x_nat_fn_t *impl_fn,
 				 struct i8x_func **func);
 struct i8x_list *i8x_ctx_get_functions (struct i8x_ctx *ctx);

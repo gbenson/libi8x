@@ -36,7 +36,7 @@ class TestList(common.TestCase):
         return ctx.import_bytecode(self.GOOD_NOTE)
 
     def import_2(self, ctx):
-        return ctx.import_native("test", "func1", "", "", self.do_not_call)
+        return ctx.import_native("test::func1()", self.do_not_call)
 
     def import_3(self, ctx):
         return ctx.import_bytecode(self.DEREF_NOTE)
@@ -45,7 +45,7 @@ class TestList(common.TestCase):
         return ctx.import_bytecode(self.GOOD_NOTE)
 
     def import_5(self, ctx):
-        return ctx.import_native("test", "func2", "", "", self.do_not_call)
+        return ctx.import_native("test::func2()", self.do_not_call)
 
     # List testing framework.
 

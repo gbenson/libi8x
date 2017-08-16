@@ -822,8 +822,8 @@ td_ta_init_libi8x (td_thragent_t *ta)
 #define REGISTER(name, args, rets, impl)			    \
   do {								    \
     err = i8x_ctx_import_native (ta->ctx,			    \
-				 "procservice", #name,		    \
-				 args, rets,			    \
+				 "procservice::" #name		    \
+				 "(" args ")"rets,		    \
 				 impl, NULL);			    \
     if (err != I8X_OK)						    \
       return td_err_from_i8x_err (err);				    \
@@ -843,7 +843,8 @@ td_ta_init_libi8x (td_thragent_t *ta)
 #define GET_FUNCREF(provider, name, args, rets)			    \
   do {								    \
     err = i8x_ctx_get_funcref (ta->ctx,				    \
-			       #provider, #name, args, rets,	    \
+			       #provider "::" #name		    \
+			       "(" args ")" rets,		    \
 			       &ta->provider ## _ ## name);	    \
     if (err != I8X_OK)						    \
       return td_err_from_i8x_err (err);				    \
@@ -870,8 +871,7 @@ td_ta_init_libi8x (td_thragent_t *ta)
   struct i8x_func *func;
 
   err = i8x_ctx_import_native (ta->ctx,
-			       "libthread_db", "thr_iter_cb",
-			       "po", "i",
+			       "libthread_db::thr_iter_cb(po)i",
 			       td_ta_thr_iter_cb, &func);
   if (err != I8X_OK)
     return td_err_from_i8x_err (err);

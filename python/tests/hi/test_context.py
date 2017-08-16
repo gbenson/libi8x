@@ -134,7 +134,7 @@ class TestContext(common.TestCase):
     def test_get_funcref(self):
         """Test Context.get_funcref."""
         ctx = self.ctx_new()
-        ref = ctx.get_funcref("test", "function", "oop", "ii")
+        ref = ctx.get_funcref("test::function(oop)ii")
         self.assertIsInstance(ref, libi8x.FunctionReference)
 
     def test_functions(self):
@@ -159,5 +159,5 @@ class TestContext(common.TestCase):
     def test_import_native(self):
         """Test Context.import_native."""
         ctx = self.ctx_new()
-        func = ctx.import_native("test", "func", "", "", self.do_not_call)
+        func = ctx.import_native("test::func()", self.do_not_call)
         self.assertIsInstance(func, libi8x.Function)

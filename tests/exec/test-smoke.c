@@ -266,8 +266,8 @@ i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
   i8x_inf_set_relocate_fn (inf, relocate_addr);
 
   i8x_err_e err = i8x_ctx_import_native (ctx,
-					 "smoketest", "dummy_function",
-					 "", "", call_unresolved,
+					 "smoketest::dummy_function()",
+					 call_unresolved,
 					 &dummy_function);
   CHECK_CALL (ctx, err);
 

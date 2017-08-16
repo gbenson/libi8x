@@ -279,7 +279,7 @@ class TestPy8xLog(common.TestCase):
             self.__badlog_test(test,
                                py8x.ctx_get_funcref,
                                self.__badlog_ctx(),
-                               "test", "func", "Fi(oo)i", "iop")
+                               "test::func(Fi(oo)i)iop")
 
     def test_badlog_ctx_import_bytecode(self):
         """Test py8x_ctx_import_bytecode with bad loggers."""
@@ -294,8 +294,8 @@ class TestPy8xLog(common.TestCase):
         for test in self.BADLOG_TESTS:
             self.__badlog_test(test,
                                py8x.ctx_import_native,
-                               self.__badlog_ctx(), "test", "func",
-                               "", "", self.do_not_call)
+                               self.__badlog_ctx(), "test::func()",
+                               self.do_not_call)
 
     def test_badlog_inf_new(self):
         """Test py8x_inf_new with bad loggers."""

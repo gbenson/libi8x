@@ -30,7 +30,7 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
     def test_exec(self):
         """Test calling a native function."""
         func = py8x.ctx_import_native(self.ctx,
-                                      "test", "func", "ipo", "poi",
+                                      "test::func(ipo)poi",
                                       lambda x, i, f, a, b, c: (a + b - c,
                                                                 b + c - a,
                                                                 c + a - b))
@@ -44,7 +44,8 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
             self.fail()
         for i in (0, 2):
             func = py8x.ctx_import_native(self.ctx,
-                                          "test", "func", "i" * i, "", impl)
+                                          "test::func(%s)" % ("i" * i),
+                                          impl)
             ref = py8x.func_get_funcref(func)
             self.assertRaises(TypeError,
                               py8x.xctx_call,
@@ -56,7 +57,8 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
             return (4,)
         for i in (0, 2):
             func = py8x.ctx_import_native(self.ctx,
-                                          "test", "func", "", "i" * i, impl)
+                                          "test::func()%s" % ("i" * i),
+                                          impl)
             ref = py8x.func_get_funcref(func)
             with self.assertRaises(ValueError) as cm:
                 py8x.xctx_call(self.xctx, ref, self.inf, ())
@@ -70,7 +72,7 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
             pass
         def impl(xctx, inf, func):
             raise Error("boom")
-        func = py8x.ctx_import_native(self.ctx, "test", "func", "", "", impl)
+        func = py8x.ctx_import_native(self.ctx, "test::func()", impl)
         ref = py8x.func_get_funcref(func)
         self.assertRaises(Error,
                           py8x.xctx_call,
@@ -81,7 +83,7 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
         def impl(xctx, inf, this_func, func_arg, int_arg):
             return py8x.xctx_call(xctx, func_arg, self.inf, (int_arg - 3,))
         func = py8x.ctx_import_native(self.ctx,
-                                      "test", "func", "Fi(i)i", "i", impl)
+                                      "test::func(Fi(i)i)i", impl)
         ref = py8x.func_get_funcref(func)
         rets = py8x.xctx_call(self.xctx, ref, self.inf, (self.funcref, 10))
         self.assertEqual(rets, (5040,))
@@ -91,7 +93,7 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
         def impl(xctx, inf, func, arg1, arg2):
             return (arg1 + arg2, self.funcref, arg1 - arg2)
         func = py8x.ctx_import_native(self.ctx,
-                                      "test", "func", "ii", "pFi(i)p", impl)
+                                      "test::func(ii)pFi(i)p", impl)
         ref = py8x.func_get_funcref(func)
         rets = py8x.xctx_call(self.xctx, ref, self.inf, (3, 4))
         self.assertEqual(rets, (7, self.funcref,

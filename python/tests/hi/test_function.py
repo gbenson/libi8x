@@ -51,5 +51,4 @@ class TestNativeFunction(common.TestCase, FunctionTestCase):
     def setUp(self):
         super(TestNativeFunction, self).setUp()
         self.ctx = self.ctx_new()
-        self.func = self.ctx.import_native("test", "func", "", "",
-                                           self.do_not_call)
+        self.func = self.ctx.import_native("test::func()", self.do_not_call)

@@ -43,6 +43,5 @@ class TestFunctionReference(common.TestCase):
 
     def test_unresolved(self):
         """Test FunctionReference.is_resolved returning False."""
-        self.ctx.import_native("example", "factorial", "i", "i",
-                               self.do_not_call)
+        self.ctx.import_native("example::factorial(i)i", self.do_not_call)
         self.assertFalse(self.funcref.is_resolved)

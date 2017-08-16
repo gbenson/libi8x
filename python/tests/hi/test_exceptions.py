@@ -110,7 +110,7 @@ class TestExceptions(common.TestCase):
     def test_unresolved_function(self):
         """Test UnresolvedFunctionError."""
         ctx = self.ctx_new()
-        ref = ctx.get_funcref("x", "x", "", "")
+        ref = ctx.get_funcref("x::x()")
         inf = ctx.new_inferior()
         xctx = ctx.new_xctx()
         with self.assertRaises(libi8x.UnresolvedFunctionError) as cm:

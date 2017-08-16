@@ -36,9 +36,7 @@ class TestOutOfOrderUnref(common.TestCase):
     def test_ctx_import_native(self):
         """Test out-of-order unref of ctx_import_native result."""
         ctx = self.ctx_new()
-        func = py8x.ctx_import_native(ctx,
-                                      "test", "func", "", "",
-                                      self.do_not_call)
+        func = py8x.ctx_import_native(ctx, "test::func()", self.do_not_call)
         del ctx
 
     def test_inf_new(self):

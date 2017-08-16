@@ -330,6 +330,12 @@ i8x_err_e i8x_type_new_functype (struct i8x_ctx *ctx,
 				 const char *rtypes_limit,
 				 struct i8x_note *src_note,
 				 struct i8x_type **type);
+i8x_err_e i8x_type_list_skip_to (struct i8x_ctx *ctx,
+				 const char *ptr,
+				 const char *limit,
+				 struct i8x_note *src_note,
+				 char stop_char,
+				 const char **stop_char_ptr);
 
 #ifdef __cplusplus
 } /* extern "C" */
