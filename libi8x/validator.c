@@ -110,7 +110,7 @@ i8x_code_validate_1 (struct i8x_code *code, struct i8x_funcref *ref,
   i8x_err_e err;
 
   if (i8x_ctx_get_log_priority (ctx) > LOG_DEBUG)
-    trace_prefix = i8x_funcref_get_fullname (ref);
+    trace_prefix = i8x_funcref_get_signature (ref);
 
   while (true)
     {

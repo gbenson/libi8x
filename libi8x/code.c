@@ -747,7 +747,7 @@ i8x_code_init (struct i8x_code *code)
       info (ctx, "%s[" LHEX "]: %s\n",
 	    i8x_note_get_src_name (note),
 	    i8x_note_get_src_offset (note),
-	    i8x_funcref_get_fullname (ref));
+	    i8x_funcref_get_signature (ref));
     }
 
   err = i8x_code_unpack_info (code, ref);
@@ -944,7 +944,7 @@ i8x_code_dump_itable (struct i8x_code *code, const char *where)
 
       if (op->ext1 != NULL)
 	{
-	  fname = i8x_funcref_get_fullname (op->ext1);
+	  fname = i8x_funcref_get_signature (op->ext1);
 	  strncpy (bnext, " / ", sizeof (bnext));
 	}
       else if (op->code == I8_OP_warn)

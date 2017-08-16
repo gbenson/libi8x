@@ -65,6 +65,6 @@ i8x_xctx_trace (struct i8x_xctx *xctx,  struct i8x_funcref *ref,
   SLOT_TO_STR (stack1, 1);
 
   trace (ctx, "%-39s %10s\t%-23s %4s\t%-18s\t%-18s\n",
-	 ref->fullname, offset, op->desc->name,
+	 ref->signature, offset, op->desc->name,
 	 depth, stack0, stack1);
 }

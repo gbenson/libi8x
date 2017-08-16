@@ -22,14 +22,14 @@
 #include "funcref-private.h"
 
 static i8x_err_e
-i8x_funcref_init (struct i8x_funcref *ref, const char *fullname,
+i8x_funcref_init (struct i8x_funcref *ref, const char *signature,
 		  struct i8x_type *type)
 {
-  ref->fullname = strdup (fullname);
-  if (ref->fullname == NULL)
+  ref->signature = strdup (signature);
+  if (ref->signature == NULL)
     return i8x_out_of_memory (i8x_funcref_get_ctx (ref));
 
-  if (strstr (fullname, "::__") != NULL)
+  if (strstr (signature, "::__") != NULL)
     ref->is_private = true;
 
   ref->type = i8x_type_ref (type);
@@ -55,8 +55,8 @@ i8x_funcref_free (struct i8x_object *ob)
 {
   struct i8x_funcref *ref = (struct i8x_funcref *) ob;
 
-  if (ref->fullname != NULL)
-    free (ref->fullname);
+  if (ref->signature != NULL)
+    free (ref->signature);
 }
 
 static const struct i8x_object_ops i8x_funcref_ops =
@@ -68,7 +68,7 @@ static const struct i8x_object_ops i8x_funcref_ops =
   };
 
 i8x_err_e
-i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
+i8x_funcref_new (struct i8x_ctx *ctx, const char *signature,
 		 struct i8x_type *type, struct i8x_funcref **ref)
 {
   struct i8x_funcref *r;
@@ -78,7 +78,7 @@ i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
   if (err != I8X_OK)
     return err;
 
-  err = i8x_funcref_init (r, fullname, type);
+  err = i8x_funcref_init (r, signature, type);
   if (err != I8X_OK)
     {
       r = i8x_funcref_unref (r);
@@ -86,7 +86,7 @@ i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
       return err;
     }
 
-  dbg (ctx, "funcref %p is %s\n", r, fullname);
+  dbg (ctx, "funcref %p is %s\n", r, signature);
 
   *ref = r;
 
@@ -94,9 +94,9 @@ i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
 }
 
 I8X_EXPORT const char *
-i8x_funcref_get_fullname (struct i8x_funcref *ref)
+i8x_funcref_get_signature (struct i8x_funcref *ref)
 {
-  return ref->fullname;
+  return ref->signature;
 }
 
 I8X_EXPORT bool

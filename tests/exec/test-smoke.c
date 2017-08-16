@@ -165,7 +165,7 @@ resolve_and_execute (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
       set_dummy_values (i8x_funcref_get_ptypes(ref), args);
 
       i8x_err_e expect_err
-	= (strcmp (i8x_funcref_get_fullname (ref),
+	= (strcmp (i8x_funcref_get_signature (ref),
 		   "test::fold_load_test()") == 0
 	   ? I8X_STACK_OVERFLOW : I8X_OK);
 

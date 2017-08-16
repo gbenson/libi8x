@@ -381,7 +381,7 @@ i8x_ctx_fire_availability_observer (struct i8x_func *func,
 {
   struct i8x_ctx *ctx = i8x_func_get_ctx (func);
 
-  info (ctx, "%s became %s\n", i8x_func_get_fullname (func),
+  info (ctx, "%s became %s\n", i8x_func_get_signature (func),
 	is_available ? "available" : "unavailable");
 
   i8x_notify_fn_t *callback = is_available
@@ -616,8 +616,8 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
   struct i8x_listitem *li;
   struct i8x_funcref *ref;
   struct i8x_type *functype;
-  size_t fullname_size;
-  char *fullname;
+  size_t signature_size;
+  char *signature;
   i8x_err_e err;
 
   /* Ensure the provider and name are valid.  */
@@ -628,19 +628,19 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
     return err;
 
   /* Build the full name.  */
-  fullname_size = (strlen (provider)
-		   + 2   /* "::"  */
-		   + strlen (name)
-		   + 1   /* '('  */
-		   + strlen (ptypes)
-		   + 1   /* ')'  */
-		   + strlen (rtypes)
-		   + 1); /* '\0'  */
-  fullname = malloc (fullname_size);
-  if (fullname == NULL)
+  signature_size = (strlen (provider)
+		    + 2   /* "::"  */
+		    + strlen (name)
+		    + 1   /* '('  */
+		    + strlen (ptypes)
+		    + 1   /* ')'  */
+		    + strlen (rtypes)
+		    + 1); /* '\0'  */
+  signature = malloc (signature_size);
+  if (signature == NULL)
     return i8x_out_of_memory (ctx);
 
-  snprintf (fullname, fullname_size,
+  snprintf (signature, signature_size,
 	    "%s::%s(%s)%s", provider, name, ptypes, rtypes);
 
   /* If we have this reference already then return it.  */
@@ -648,7 +648,7 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
     {
       ref = i8x_listitem_get_funcref (li);
 
-      if (strcmp (i8x_funcref_get_fullname (ref), fullname) == 0)
+      if (strcmp (i8x_funcref_get_signature (ref), signature) == 0)
 	{
 	  *refp = i8x_funcref_ref (ref);
 
@@ -664,7 +664,7 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
   if (err != I8X_OK)
     goto cleanup;
 
-  err = i8x_funcref_new (ctx, fullname, functype, &ref);
+  err = i8x_funcref_new (ctx, signature, functype, &ref);
   i8x_type_unref (functype);
   if (err != I8X_OK)
     goto cleanup;
@@ -680,7 +680,7 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
   *refp = ref;
 
  cleanup:
-  free (fullname);
+  free (signature);
 
   return err;
 }

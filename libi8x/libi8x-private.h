@@ -271,7 +271,7 @@ i8x_nat_fn_t *i8x_func_get_native_impl (struct i8x_func *func);
 
 I8X_LIST_FUNCTIONS (funcref);
 
-i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *fullname,
+i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *signature,
 			   struct i8x_type *functype,
 			   struct i8x_funcref **ref);
 void i8x_funcref_reset_is_resolved (struct i8x_funcref *ref);

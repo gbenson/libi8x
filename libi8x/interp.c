@@ -198,11 +198,11 @@ enum
   STORE_VSP_CSP();						\
 								\
   trace (i8x_xctx_get_ctx (xctx), "%s: native call\n",		\
-	 callee->fullname)
+	 callee->signature)
 
 #define LEAVE_NATIVE()						\
   trace (i8x_xctx_get_ctx (xctx), "%s: native return\n",	\
-	 callee->fullname);					\
+	 callee->signature);					\
 								\
   RESTORE_VSP_CSP();						\
 								\
@@ -667,7 +667,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 
   OPERATION (I8_OP_warn):
     warn (i8x_xctx_get_ctx (xctx), "%s: %s\n",
-	  i8x_funcref_get_fullname (ref), (const char *) op->arg1.p);
+	  i8x_funcref_get_signature (ref), (const char *) op->arg1.p);
     CONTINUE;
 
   OPERATION (I8X_OP_return):

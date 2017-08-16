@@ -273,8 +273,8 @@ struct i8x_note *i8x_func_get_note (struct i8x_func *func);
 struct i8x_list *i8x_func_get_externals (struct i8x_func *func);
 struct i8x_list *i8x_func_get_relocs (struct i8x_func *func);
 
-#define i8x_func_get_fullname(func) \
-  i8x_funcref_get_fullname (i8x_func_get_funcref (func))
+#define i8x_func_get_signature(func) \
+  i8x_funcref_get_signature (i8x_func_get_funcref (func))
 
 #define i8x_func_is_private(func) \
   i8x_funcref_is_private (i8x_func_get_funcref (func))
@@ -287,7 +287,7 @@ struct i8x_list *i8x_func_get_relocs (struct i8x_func *func);
 I8X_COMMON_OBJECT_FUNCTIONS (funcref);
 I8X_LISTABLE_OBJECT_FUNCTIONS (funcref);
 
-const char *i8x_funcref_get_fullname (struct i8x_funcref *ref);
+const char *i8x_funcref_get_signature (struct i8x_funcref *ref);
 bool i8x_funcref_is_private (struct i8x_funcref *ref);
 bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
 struct i8x_type *i8x_funcref_get_type (struct i8x_funcref *ref);

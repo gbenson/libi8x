@@ -79,7 +79,7 @@ i8x_bcf_unpack_signature (struct i8x_func *func)
   if (err == I8X_OK)
     dbg (i8x_func_get_ctx (func),
 	 "func %p is %s\n", func,
-	 i8x_funcref_get_fullname (func->ref));
+	 i8x_funcref_get_signature (func->ref));
 
   return err;
 }
@@ -209,7 +209,7 @@ i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcref *sig,
   if (err != I8X_OK)
     return err;
 
-  dbg (ctx, "func %p is %s\n", f, i8x_funcref_get_fullname (sig));
+  dbg (ctx, "func %p is %s\n", f, i8x_funcref_get_signature (sig));
 
   f->ref = i8x_funcref_ref (sig);
   f->native_impl = impl_fn;

@@ -28,6 +28,6 @@ from . import common
 
 class TestPy8xFuncRefGetFullname(common.PopulatedTestCase):
     def test_basic(self):
-        """Test py8x_funcref_get_fullname."""
-        fullname = py8x.funcref_get_fullname(self.funcref)
-        self.assertEqual(fullname, "example::factorial(i)i")
+        """Test py8x_funcref_get_signature."""
+        signature = py8x.funcref_get_signature(self.funcref)
+        self.assertEqual(signature, "example::factorial(i)i")

@@ -28,7 +28,7 @@ struct i8x_funcref
 {
   I8X_OBJECT_FIELDS;
 
-  char *fullname;	/* Fully qualified name.  */
+  char *signature;	/* This function's signature.  */
   bool is_private;	/* Is this function API-private?  */
 
   struct i8x_type *type;	/* The function's type.  */
