@@ -88,13 +88,35 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
         rets = py8x.xctx_call(self.xctx, ref, self.inf, (self.funcref, 10))
         self.assertEqual(rets, (5040,))
 
-    def test_func_ret(self):
-        """Test calling a native function with a function return."""
+    def test_func_ret_funcref(self):
+        """Test calling a native function returning a funcref."""
+        self.__do_test_funcret(self.funcref)
+
+    def test_func_ret_good_string(self):
+        """Test calling a native function returning a function signature."""
+        self.__do_test_funcret("example::factorial(i)i")
+
+    def test_func_ret_bad_string(self):
+        """Test calling a native function returning a bad signature."""
+        with self.assertRaises(ValueError):
+            self.__do_test_funcret("example:factorial(i)i")
+
+    def test_func_ret_bad_type(self):
+        """Test calling a native function returning a non-function object."""
+        for ret in (None, 4, self.func):
+            with self.assertRaises(TypeError) as cm:
+                self.__do_test_funcret(ret)
+            self.assertEqual(str(cm.exception),
+                             "an i8x_funcref or string is required")
+
+    def __do_test_funcret(self, ret):
         def impl(xctx, inf, func, arg1, arg2):
-            return (arg1 + arg2, self.funcref, arg1 - arg2)
+            return (arg1 + arg2, ret, arg1 - arg2)
         func = py8x.ctx_import_native(self.ctx,
                                       "test::func(ii)pFi(i)p", impl)
-        ref = py8x.func_get_funcref(func)
-        rets = py8x.xctx_call(self.xctx, ref, self.inf, (3, 4))
-        self.assertEqual(rets, (7, self.funcref,
-                                py8x.to_unsigned(-1)))
+        try:
+            ref = py8x.func_get_funcref(func)
+            rets = py8x.xctx_call(self.xctx, ref, self.inf, (3, 4))
+            self.assertEqual(rets, (7, self.funcref, py8x.to_unsigned(-1)))
+        finally:
+            py8x.ctx_unregister_func(self.ctx, func)

@@ -48,25 +48,39 @@ class TestPy8xXctxCall(common.PopulatedTestCase):
                              "wrong number of arguments (expected 1, got %d)"
                              % len(args))
 
-    def test_function_arg(self):
-        """Test py8x_xctx_call with a function argument."""
+    def test_function_arg_funcref(self):
+        """Test py8x_xctx_call with a funcref function argument."""
+        self.__do_test_funcarg(self.funcref)
+
+    def test_function_arg_good_string(self):
+        """Test py8x_xctx_call with a string function argument."""
+        self.__do_test_funcarg("example::factorial(i)i")
+
+    def test_function_arg_bad_string(self):
+        """Test py8x_xctx_call with an invalid string function argument."""
+        with self.assertRaises(ValueError) as cm:
+            self.__do_test_funcarg("example:factorial(i)i")
+
+    def __do_test_funcarg(self, ref_or_sig):
         func = py8x.ctx_import_bytecode(self.ctx, self.FUNC_ARG_NOTE,
                                         "testnote", 0)
         self.assertEqual(py8x.xctx_call(self.xctx,
                                         py8x.func_get_funcref(func),
                                         self.inf,
-                                        (self.funcref, 5)),
+                                        (ref_or_sig, 5)),
                          (39916800,))
 
     def test_function_arg_bad_type(self):
         """Check py8x_xctx_call validates function arguments."""
         func = py8x.ctx_import_bytecode(self.ctx, self.FUNC_ARG_NOTE,
                                         "testnote", 0)
-        with self.assertRaises(TypeError) as cm:
-            py8x.xctx_call(self.xctx,
-                           py8x.func_get_funcref(func),
-                           self.inf, (4, 5))
-        self.assertEqual(str(cm.exception), "an i8x_funcref is required")
+        for arg in (None, 4, func):
+            with self.assertRaises(TypeError) as cm:
+                py8x.xctx_call(self.xctx,
+                               py8x.func_get_funcref(func),
+                               self.inf, (arg, 5))
+            self.assertEqual(str(cm.exception),
+                             "an i8x_funcref or string is required")
 
     def test_function_ret(self):
         """Test py8x_xctx_call with a function that returns a function."""
