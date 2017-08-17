@@ -315,7 +315,6 @@ i8x_ctx_new (int flags, i8x_log_fn_t *log_fn, struct i8x_ctx **ctx)
       c->use_debug_interpreter_default = true;
     }
 
-  dbg (c, "log_priority=%d\n", c->log_priority);
   dbg (c, "use_debug_allocator=%d\n", c->_ob.use_debug_allocator);
 
   err = i8x_ctx_init (c);

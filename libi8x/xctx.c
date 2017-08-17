@@ -87,7 +87,6 @@ i8x_xctx_new (struct i8x_ctx *ctx, size_t stack_slots,
     }
 
   dbg (ctx, "stack_slots=" LDEC "\n", stack_slots);
-  dbg (ctx, "use_debug_interpreter=%d\n", x->use_debug_interpreter);
 
   *xctx = x;
 
