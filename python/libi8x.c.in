@@ -871,33 +871,6 @@ py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-/* Function (i8x_func) userdata.  */
-
-struct py8x_func_userdata
-{
-  PY8X_USERDATA_FIELDS;
-
-  /* Implementation (native only).  */
-  PyObject *impl;
-};
-
-static void
-py8x_func_userdata_cleanup (struct py8x_userdata *ud_p)
-{
-  struct py8x_func_userdata *ud = (struct py8x_func_userdata *) ud_p;
-
-  Py_XDECREF (ud->impl);
-}
-
-static const struct py8x_userdata_ops py8x_func_udops =
-  {
-    "i8x_func",
-    sizeof (struct py8x_func_userdata),
-    py8x_func_userdata_cleanup,
-  };
-
-PY8X_USERDATA_FUNCTIONS (func)
-
 /* Actions for py8x_unpack_tuple.  */
 
 typedef enum
@@ -1025,6 +998,33 @@ py8x_unpack_tuple (union i8x_value *dst, PyObject *src,
 
 #define py8x_unpack_rets(dst, src, ref) 				\
   py8x_unpack_tuple (dst, src, ref, PY8X_RETS)
+
+/* Function (i8x_func) userdata.  */
+
+struct py8x_func_userdata
+{
+  PY8X_USERDATA_FIELDS;
+
+  /* Implementation (native only).  */
+  PyObject *impl;
+};
+
+static void
+py8x_func_userdata_cleanup (struct py8x_userdata *ud_p)
+{
+  struct py8x_func_userdata *ud = (struct py8x_func_userdata *) ud_p;
+
+  Py_XDECREF (ud->impl);
+}
+
+static const struct py8x_userdata_ops py8x_func_udops =
+  {
+    "i8x_func",
+    sizeof (struct py8x_func_userdata),
+    py8x_func_userdata_cleanup,
+  };
+
+PY8X_USERDATA_FUNCTIONS (func)
 
 /* Helper for py8x_natfunc_impl.  */
 
