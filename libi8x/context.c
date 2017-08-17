@@ -77,12 +77,6 @@ i8x_ctx_log (struct i8x_ctx *ctx,
 {
   va_list args;
 
-  /* We have a super-low internal priority, LOG_TRACE, but
-     user-supplied logging functions are likely to expect
-     the RFC 5424 value 0..7, so we cap what we supply.  */
-  if (priority > LOG_DEBUG)
-    priority = LOG_DEBUG;
-
   va_start (args, format);
   ctx->log_fn (ctx, priority, file, line, fn, format, args);
   va_end (args);
