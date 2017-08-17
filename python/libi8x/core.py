@@ -87,9 +87,9 @@ class _I8XListItem(InternalObject):
 # Public objects
 
 class ExecutionContext(ChildObject):
-    def call(self, reference, inferior, *args):
+    def call(self, ref_or_sig, inferior, *args):
         """Execute an Infinity function."""
-        return py8x.xctx_call(self, reference, inferior, args)
+        return py8x.xctx_call(self, ref_or_sig, inferior, args)
 
 class Function(ChildObject):
     @property

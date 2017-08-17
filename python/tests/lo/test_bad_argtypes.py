@@ -74,6 +74,7 @@ class _TestBadArgTypes(common.TestCase):
             (py8x.ctx_new, 2): self.OPTIONAL_CALLABLE,
             (py8x.ctx_set_log_fn, 1): self.OPTIONAL_CALLABLE,
             (py8x.ctx_import_bytecode, 2): self.OPTIONAL_STRING,
+            (py8x.xctx_call, 1): self.FUNCREF_OR_STRING,
             (py8x.xctx_call, 3): self.ZERO_LENGTH_SEQUENCE,
         }
 
@@ -93,7 +94,7 @@ class _TestBadArgTypes(common.TestCase):
 
     def value_of_type(self, type):
         if type.startswith("i8x_"):
-            type = type[4:]
+            type = type.split(" or ", 1)[0][4:]
         return getattr(self, "tv_" + type)
 
     def _BAT_runTest(self, func):
@@ -152,7 +153,7 @@ class _TestBadArgTypes(common.TestCase):
     WRONG_ARGC = re.compile(
         r"^function takes exactly (\d+) arguments? \(0 given\)$")
 
-    X_REQUIRED_1 = re.compile(r"^an? (\w+) is required(?: \(got (.+)\))?$")
+    X_REQUIRED_1 = re.compile(r"^an? (.+) is required(?: \(got (.+)\))?$")
     X_REQUIRED_2 = re.compile(r"^an? (.+) is required, not (.+)$")
     MUST_BE_X = re.compile(r"^(?:argument (\d+) )?must be (.+), not (.+)$")
     NOT_INTEGER = re.compile(
@@ -319,6 +320,12 @@ class _TestBadArgTypes(common.TestCase):
         return (test_value is self.tv_string
                 and py8x.UnhandledNoteError
                 or TypeError)
+
+    def FUNCREF_OR_STRING(self, test_value):
+        if test_value is self.tv_string:
+            return ValueError
+        elif test_value is not self.tv_funcref:
+            return TypeError
 
     def ZERO_LENGTH_SEQUENCE(self, test_value):
         try:

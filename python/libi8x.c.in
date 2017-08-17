@@ -871,6 +871,83 @@ py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+/* Convert a Python object to an i8x_funcref.  If the Python
+   object is a wrapped capsule then it will be unwrapped and
+   type-checked as a funcref.  If it's not a wrapped capsule
+   it's assumed to be a string containing the signature of a
+   function registered in the context.  Returns a borrowed
+   reference.  */
+
+static struct i8x_funcref *
+py8x_unpack_funcref (struct i8x_ctx *ctx, PyObject *ref_or_sig)
+{
+  struct i8x_funcref *ref;
+  const char *signature = NULL;
+
+  /* If this looks like a wrapped capsule then unpack it.  */
+  if (PyObject_HasAttrString (ref_or_sig, PY8X_CNAME_ATTR))
+    {
+      ref = py8x_funcref_from_capsule (ref_or_sig);
+      if (ref != NULL)
+	return ref;
+    }
+  else
+    {
+      /* The other valid alternative is a string signature.  */
+      Py_ssize_t size;
+
+      signature = PyStr_AsUTF8AndSize (ref_or_sig, &size);
+
+      /* Embedded NULs in the signature could indicate something
+	 sneaky going on.  Disallow it.  */
+      if (signature != NULL && strlen (signature) != (size_t) size)
+	{
+	  char buf[32];
+	  const char *msg = i8x_strerror_r (I8X_EINVAL, buf,
+					    sizeof (buf));
+
+	  PyErr_SetString (PyExc_ValueError, msg);
+
+	  return NULL;
+	}
+    }
+
+  /* Handle any exceptions from py8x_funcref_from_capsule or
+     PyStr_AsUTF8AndSize.  */
+  if (signature == NULL)
+    {
+      PyObject *exception = PyErr_Occurred ();
+
+      if (exception == NULL || exception == PyExc_TypeError)
+	{
+	  PyErr_SetString (PyExc_TypeError,
+			   "an i8x_funcref or string is required");
+	}
+
+      return NULL;
+    }
+
+  /* Get an i8x_funcref representing the signature.  */
+  i8x_err_e err = i8x_ctx_get_funcref (ctx, signature, &ref);
+
+  PY8X_CHECK_CALL_DEREF (ctx, err, ref);
+
+  /* We want to return a borrowed reference, but what we have
+     is a new reference.  If the function is resolved then the
+     context owns a reference: we can dereference without it
+     being freed.  This is a hack I'm going to regret but YOLO.  */
+  if (!i8x_funcref_is_resolved (ref))
+    {
+      i8x_ctx_clear_last_error (ctx);
+      err = I8X_UNRESOLVED_FUNCTION;
+    }
+  i8x_funcref_unref (ref);
+
+  PY8X_CHECK_CALL (ctx, err);
+
+  return ref;
+}
+
 /* Actions for py8x_unpack_tuple.  */
 
 typedef enum
@@ -1146,15 +1223,19 @@ py8x_ctx_import_native (PyObject *self, PyObject *args)
 static PyObject *
 py8x_xctx_call (PyObject *self, PyObject *args)
 {
-  PyObject *xctxc, *refc, *infc, *tmp;
+  PyObject *xctxc, *ref_or_sig, *infc, *tmp;
 
-  if (!PyArg_ParseTuple (args, "OOOO", &xctxc, &refc, &infc, &tmp))
+  if (!PyArg_ParseTuple (args, "OOOO", &xctxc, &ref_or_sig, &infc, &tmp))
     return NULL;
   args = tmp;
 
-  struct i8x_funcref *ref = PY8X_FROM_CAPSULE_2 (funcref, ref);
   struct i8x_xctx *xctx = PY8X_FROM_CAPSULE (xctx);
   struct i8x_inf *inf = PY8X_FROM_CAPSULE (inf);
+
+  struct i8x_ctx *ctx = i8x_xctx_get_ctx (xctx);
+  struct i8x_funcref *ref = py8x_unpack_funcref (ctx, ref_or_sig);
+  if (ref == NULL)
+    return NULL;
 
   size_t argc = i8x_funcref_get_num_params (ref);
   size_t retc = i8x_funcref_get_num_returns (ref);
@@ -1164,7 +1245,6 @@ py8x_xctx_call (PyObject *self, PyObject *args)
   if (!py8x_unpack_args (argv, args, ref))
     return NULL;
 
-  struct i8x_ctx *ctx = i8x_xctx_get_ctx (xctx);
   i8x_err_e err = i8x_xctx_call (xctx, ref, inf, argv, retv);
 
   PY8X_CHECK_CALL (ctx, err);
