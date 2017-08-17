@@ -306,7 +306,7 @@ i8x_ctx_new (int flags, i8x_log_fn_t *log_fn, struct i8x_ctx **ctx)
   if (flags & I8X_DBG_MEM)
     c->_ob.use_debug_allocator = true;
 
-  env = secure_getenv ("I8X_DEBUG");
+  env = secure_getenv ("I8X_DBG_MEM");
   if (env != NULL && strtobool (env))
     c->_ob.use_debug_allocator = true;
 
