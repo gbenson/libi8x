@@ -224,7 +224,6 @@ struct i8x_type *i8x_ctx_get_integer_type (struct i8x_ctx *ctx);
 struct i8x_type *i8x_ctx_get_pointer_type (struct i8x_ctx *ctx);
 struct i8x_type *i8x_ctx_get_opaque_type (struct i8x_ctx *ctx);
 struct i8x_type *i8x_ctx_get_int_or_ptr_type (struct i8x_ctx *ctx);
-bool i8x_ctx_get_use_debug_interpreter_default (struct i8x_ctx *ctx);
 i8x_err_e i8x_ctx_set_error (struct i8x_ctx *ctx, i8x_err_e code,
 			     struct i8x_note *cause_note,
 			     const char *cause_ptr);

@@ -26,7 +26,7 @@ i8x_xctx_init (struct i8x_xctx *xctx, size_t nslots)
   struct i8x_ctx *ctx = i8x_xctx_get_ctx (xctx);
 
   xctx->use_debug_interpreter =
-    i8x_ctx_get_use_debug_interpreter_default (ctx);
+    i8x_ctx_get_log_priority (ctx) >= LOG_DEBUG;
 
   xctx->stack_base = calloc (nslots, sizeof (union i8x_value));
   if (xctx->stack_base == NULL)

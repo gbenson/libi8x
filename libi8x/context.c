@@ -42,8 +42,6 @@ struct i8x_ctx
   i8x_log_fn_t *log_fn;
   int log_priority;
 
-  bool use_debug_interpreter_default;
-
   struct i8x_note *error_note;	/* Note that caused the last error.  */
   const char *error_ptr;	/* Pointer into error_note.  */
 
@@ -310,10 +308,7 @@ i8x_ctx_new (int flags, i8x_log_fn_t *log_fn, struct i8x_ctx **ctx)
 
   env = secure_getenv ("I8X_DEBUG");
   if (env != NULL && strtobool (env))
-    {
-      c->_ob.use_debug_allocator = true;
-      c->use_debug_interpreter_default = true;
-    }
+    c->_ob.use_debug_allocator = true;
 
   dbg (c, "use_debug_allocator=%d\n", c->_ob.use_debug_allocator);
 
@@ -371,13 +366,6 @@ i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority)
 {
   ctx->log_priority = priority;
 }
-
-bool
-i8x_ctx_get_use_debug_interpreter_default (struct i8x_ctx *ctx)
-{
-  return ctx->use_debug_interpreter_default;
-}
-
 
 I8X_EXPORT void
 i8x_ctx_set_func_available_cb (struct i8x_ctx *ctx,
