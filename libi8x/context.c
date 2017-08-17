@@ -221,7 +221,7 @@ i8x_ctx_unlink (struct i8x_object *ob)
 {
   struct i8x_ctx *ctx = (struct i8x_ctx *) ob;
 
-  ctx->error_note = i8x_note_unref (ctx->error_note);
+  i8x_ctx_clear_last_error (ctx);
 
   ctx->functions = i8x_list_unref (ctx->functions);
 
@@ -392,6 +392,12 @@ i8x_ctx_fire_availability_observer (struct i8x_func *func,
     callback (func);
 }
 
+I8X_EXPORT void
+i8x_ctx_clear_last_error (struct i8x_ctx *ctx)
+{
+  ctx->error_note = i8x_note_unref (ctx->error_note);
+}
+
 i8x_err_e
 i8x_ctx_set_error (struct i8x_ctx *ctx, i8x_err_e code,
 		   struct i8x_note *cause_note, const char *cause_ptr)
@@ -400,9 +406,9 @@ i8x_ctx_set_error (struct i8x_ctx *ctx, i8x_err_e code,
 
   if (ctx != NULL)
     {
-      ctx->error_note = i8x_note_unref (ctx->error_note);
-      ctx->error_note = i8x_note_ref (cause_note);
+      i8x_ctx_clear_last_error (ctx);
 
+      ctx->error_note = i8x_note_ref (cause_note);
       ctx->error_ptr = cause_ptr;
     }
 
