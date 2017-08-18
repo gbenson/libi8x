@@ -24,7 +24,8 @@
 #include <string.h>
 #include <ftw.h>
 
-static struct i8x_func *dummy_function;
+static struct i8x_func *dummy_function_Fp_i;
+static struct i8x_func *dummy_function_Fi_po;
 
 static void
 set_dummy_values (struct i8x_list *types, union i8x_value *value)
@@ -51,8 +52,17 @@ set_dummy_values (struct i8x_list *types, union i8x_value *value)
 	  break;
 
 	case 'F':
-	  value->f = i8x_func_get_funcref (dummy_function);
-	  break;
+	  if (strcmp (encoded, "Fp(i)") == 0)
+	    {
+	      value->f = i8x_func_get_funcref (dummy_function_Fp_i);
+	      break;
+	    }
+	  if (strcmp (encoded, "Fi(po)") == 0)
+	    {
+	      value->f = i8x_func_get_funcref (dummy_function_Fi_po);
+	      break;
+	    }
+	  /* fall through */
 
 	default:
 	  FAIL ("unhandled type '%s'", encoded);
@@ -85,7 +95,7 @@ call_unresolved (struct i8x_xctx *xctx, struct i8x_inf *inf,
 		 struct i8x_func *func, union i8x_value *args,
 		 union i8x_value *rets)
 {
-  if (func != dummy_function)
+  if (func != dummy_function_Fp_i && func != dummy_function_Fi_po)
     {
       struct i8x_funcref *ref = i8x_func_get_funcref (func);
 
@@ -266,9 +276,15 @@ i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
   i8x_inf_set_relocate_fn (inf, relocate_addr);
 
   i8x_err_e err = i8x_ctx_import_native (ctx,
-					 "smoketest::dummy_function()",
+					 "smoketest::dummy_function(i)p",
 					 call_unresolved,
-					 &dummy_function);
+					 &dummy_function_Fp_i);
+  CHECK_CALL (ctx, err);
+
+  err = i8x_ctx_import_native (ctx,
+			       "smoketest::dummy_function(po)i",
+			       call_unresolved,
+			       &dummy_function_Fi_po);
   CHECK_CALL (ctx, err);
 
   ftw_ctx = ctx;
@@ -277,5 +293,6 @@ i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
 
   CHECK (ftw ("corpus", ftw_callback, 16) == 0);
 
-  i8x_func_unref (dummy_function);
+  i8x_func_unref (dummy_function_Fp_i);
+  i8x_func_unref (dummy_function_Fi_po);
 }

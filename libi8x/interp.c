@@ -62,6 +62,62 @@
 # define IF_64BIT(expr)
 #endif
 
+/* Runtime type checking.  */
+
+static bool
+type_check_helper (const struct i8x_object_ops *funcref_ops,
+		   struct i8x_listitem *li, union i8x_value *value)
+{
+  struct i8x_type *type = i8x_listitem_get_type (li);
+
+  if (__i8x_likely (!i8x_type_is_functype (type)))
+    return true;
+
+  struct i8x_funcref *ref = value->f;
+  if (__i8x_unlikely (ref == NULL))
+    return false;
+
+  if (__i8x_unlikely (ref->_ob.ops != funcref_ops))
+    return false;
+
+  if (__i8x_unlikely (ref->type != type))
+    return false;
+
+  return true;
+}
+
+static i8x_err_e
+type_check_args (struct i8x_funcref *ref, union i8x_value *args)
+{
+  const struct i8x_object_ops *funcref_ops = ref->_ob.ops;
+  struct i8x_listitem *li;
+
+  i8x_list_foreach (i8x_type_get_ptypes (ref->type), li)
+    {
+      if (__i8x_unlikely (!type_check_helper (funcref_ops, li, args++)))
+	return i8x_invalid_argument (i8x_funcref_get_ctx (ref));
+    }
+
+  return I8X_OK;
+}
+
+static i8x_err_e
+type_check_rets (struct i8x_funcref *ref, union i8x_value *rets)
+{
+  const struct i8x_object_ops *funcref_ops = ref->_ob.ops;
+  struct i8x_listitem *li;
+
+  i8x_list_foreach_reversed (i8x_type_get_rtypes (ref->type), li)
+    {
+      if (__i8x_unlikely (!type_check_helper (funcref_ops, li, rets++)))
+	return i8x_ctx_set_error (i8x_funcref_get_ctx (ref),
+				  I8X_NATCALL_BAD_FUNCREF_RET,
+				  NULL, NULL);
+    }
+
+  return I8X_OK;
+}
+
 /* Value stack macros.  */
 
 #define STACK_DEPTH() ((size_t) (vsp - vsp_floor))
@@ -213,9 +269,14 @@ call_native (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   i8x_assert (ref->resolved != NULL);
   i8x_assert (ref->native_impl != NULL);
 
+  /* Call the function.  */
   i8x_err_e err = ref->native_impl (xctx, inf, ref->resolved, args, rets);
 
   trace (i8x_xctx_get_ctx (xctx), "%s: native return\n", ref->signature);
+
+  /* Type check the returns.  */
+  if (__i8x_likely (err == I8X_OK))
+    err = type_check_rets (ref, rets);
 
   return err;
 }
@@ -398,6 +459,11 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       return I8X_OK;
     }
 
+  /* Type check the arguments.  */
+  i8x_err_e err = type_check_args (ref, args);
+  if (__i8x_unlikely (err != I8X_OK))
+    return err;
+
   /* If this is a native function then execute it.  */
   if (ref->native_impl != NULL)
     return call_native (xctx, ref, inf, args, rets);
@@ -424,7 +490,6 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   /* Push an entry frame (with CS_CALLER = NULL) onto the call
      stack, then set vsp_floor for the function we're entering.  */
   union i8x_value *vsp_floor = NULL;
-  i8x_err_e err = I8X_OK;
 
   SETUP_CALL (NULL, NULL, ref, vsp);
 
