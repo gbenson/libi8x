@@ -53,18 +53,33 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
 
     def test_bad_retc(self):
         """Check py8x_natfunc_impl catches wrong numbers of returns."""
-        def impl(xctx, inf, func):
-            return (4,)
-        for i in (0, 2):
+        def testfunc(*args):
+            return rets
+
+        for expect_retc in range(5):
             func = py8x.ctx_import_native(self.ctx,
-                                          "test::func()%s" % ("i" * i),
-                                          impl)
+                                          "test::func()%s"
+                                          % ("i" * expect_retc),
+                                          testfunc)
             ref = py8x.func_get_funcref(func)
-            with self.assertRaises(ValueError) as cm:
-                py8x.xctx_call(self.xctx, ref, self.inf, ())
-            self.assertEqual(cm.exception.args[0],
-                             "wrong number of returns (expected %d, got 1)"
-                             % i)
+
+            for rets in (None, (), [], (4,), [4], (2, 3), [2, 3]):
+                print("%s: %s" % (expect_retc, rets))
+                if rets is None:
+                    actual_retc = 0
+                else:
+                    actual_retc = len(rets)
+
+                if actual_retc == expect_retc:
+                    py8x.xctx_call(self.xctx, ref, self.inf, ())
+                    continue
+
+                with self.assertRaises(ValueError) as cm:
+                    py8x.xctx_call(self.xctx, ref, self.inf, ())
+                self.assertEqual(cm.exception.args[0],
+                                 "wrong number of returns "
+                                 + "(expected %d, got %d)"
+                                 % (expect_retc, actual_retc))
 
     def test_exception(self):
         """Check py8x_natfunc_impl propagates exceptions."""

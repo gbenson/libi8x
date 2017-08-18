@@ -1010,24 +1010,35 @@ py8x_unpack_tuple (union i8x_value *dst, PyObject *src,
   struct i8x_ctx *ctx = i8x_funcref_get_ctx (ref);
   struct i8x_list *types =  py8x_pack_unpack_types (ref, what);
   size_t length = i8x_list_size (types);
+  size_t check_length;
   struct i8x_listitem *li;
   size_t i;
 
-  if (!PySequence_Check (src))
+  if (what == PY8X_RETS && src == Py_None)
     {
-      PyErr_Format (PyExc_TypeError,
-		    "must be sequence, not '%.200s'",
-		    src->ob_type->tp_name);
-      return false;
+      /* Native functions with no returns may return None.  */
+      check_length = 0;
+    }
+  else
+    {
+      if (!PySequence_Check (src))
+	{
+	  PyErr_Format (PyExc_TypeError,
+			"must be sequence, not '%.200s'",
+			src->ob_type->tp_name);
+	  return false;
+	}
+
+      check_length = (size_t) PySequence_Length (src);
     }
 
-  if (PySequence_Length (src) != (Py_ssize_t) length)
+  if (length != check_length)
     {
       PyErr_Format (PyExc_ValueError,
 		    "wrong number of %s (expected " ULDEC ", got "
 		    LDEC  ")",
 		    what == PY8X_ARGS ? "arguments" : "returns",
-		    length, PySequence_Length (src));
+		    length, check_length);
       return false;
     }
 
