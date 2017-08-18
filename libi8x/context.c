@@ -247,7 +247,7 @@ i8x_ctx_free (struct i8x_object *ob)
     free (ctx->dispatch_dbg);
 }
 
-const struct i8x_object_ops i8x_ctx_ops =
+static const struct i8x_object_ops i8x_ctx_ops =
   {
     "ctx",			/* Object name.  */
     sizeof (struct i8x_ctx),	/* Object size.  */

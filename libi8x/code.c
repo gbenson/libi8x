@@ -810,7 +810,7 @@ i8x_code_free (struct i8x_object *ob)
     free (code->itable);
 }
 
-const struct i8x_object_ops i8x_code_ops =
+static const struct i8x_object_ops i8x_code_ops =
   {
     "code",			/* Object name.  */
     sizeof (struct i8x_code),	/* Object size.  */

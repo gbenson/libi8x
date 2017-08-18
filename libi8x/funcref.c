@@ -59,7 +59,7 @@ i8x_funcref_free (struct i8x_object *ob)
     free (ref->fullname);
 }
 
-const struct i8x_object_ops i8x_funcref_ops =
+static const struct i8x_object_ops i8x_funcref_ops =
   {
     "funcref",				/* Object name.  */
     sizeof (struct i8x_funcref),	/* Object size.  */

@@ -33,7 +33,7 @@ struct i8x_chunk
   const char *encoded;	/* Encoded data.  */
 };
 
-const struct i8x_object_ops i8x_chunk_ops =
+static const struct i8x_object_ops i8x_chunk_ops =
   {
     "chunk",			/* Object name.  */
     sizeof (struct i8x_chunk),	/* Object size.  */

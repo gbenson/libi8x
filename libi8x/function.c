@@ -161,7 +161,7 @@ i8x_func_unlink (struct i8x_object *ob)
   func->note = i8x_note_unref (func->note);
 }
 
-const struct i8x_object_ops i8x_func_ops =
+static const struct i8x_object_ops i8x_func_ops =
   {
     "func",			/* Object name.  */
     sizeof (struct i8x_func),	/* Object size.  */

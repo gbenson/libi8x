@@ -68,7 +68,7 @@ i8x_listitem_unlink (struct i8x_object *ob)
     li->next = i8x_listitem_unref (li->next);
 }
 
-const struct i8x_object_ops i8x_list_ops =
+static const struct i8x_object_ops i8x_list_ops =
   {
     "list",				/* Object name.  */
     sizeof (struct i8x_list),		/* Object size.  */
@@ -76,7 +76,7 @@ const struct i8x_object_ops i8x_list_ops =
     NULL,				/* Free function.  */
   };
 
-const struct i8x_object_ops i8x_listitem_ops =
+static const struct i8x_object_ops i8x_listitem_ops =
   {
     "listitem",				/* Object name.  */
     sizeof (struct i8x_listitem),	/* Object size.  */

@@ -261,7 +261,7 @@ i8x_type_free (struct i8x_object *ob)
     free (type->encoded);
 }
 
-const struct i8x_object_ops i8x_type_ops =
+static const struct i8x_object_ops i8x_type_ops =
   {
     "type",			/* Object name.  */
     sizeof (struct i8x_type),	/* Object size.  */

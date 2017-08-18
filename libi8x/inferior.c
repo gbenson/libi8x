@@ -52,7 +52,7 @@ i8x_inf_unlink (struct i8x_object *ob)
   i8x_inf_invalidate_relocs (inf);
 }
 
-const struct i8x_object_ops i8x_inf_ops =
+static const struct i8x_object_ops i8x_inf_ops =
   {
     "inferior",			/* Object name.  */
     sizeof (struct i8x_inf),	/* Object size.  */

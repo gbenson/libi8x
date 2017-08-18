@@ -31,7 +31,7 @@ struct i8x_readbuf
   i8x_byte_order_e byte_order;	/* Byte order for multibyte values.  */
 };
 
-const struct i8x_object_ops i8x_readbuf_ops =
+static const struct i8x_object_ops i8x_readbuf_ops =
   {
     "readbuf",				/* Object name.  */
     sizeof (struct i8x_readbuf),	/* Object size.  */

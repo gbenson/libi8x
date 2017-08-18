@@ -130,7 +130,7 @@ i8x_note_free (struct i8x_object *ob)
     free (note->encoded);
 }
 
-const struct i8x_object_ops i8x_note_ops =
+static const struct i8x_object_ops i8x_note_ops =
   {
     "note",			/* Object name.  */
     sizeof (struct i8x_note),	/* Object size.  */

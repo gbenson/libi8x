@@ -59,7 +59,7 @@ i8x_xctx_free (struct i8x_object *ob)
     free (xctx->stack_base);
 }
 
-const struct i8x_object_ops i8x_xctx_ops =
+static const struct i8x_object_ops i8x_xctx_ops =
   {
     "xctx",			/* Object name.  */
     sizeof (struct i8x_xctx),	/* Object size.  */

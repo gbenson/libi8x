@@ -51,7 +51,7 @@ i8x_reloc_init (struct i8x_reloc *reloc, ssize_t srcoffset,
   return I8X_OK;
 }
 
-const struct i8x_object_ops i8x_reloc_ops =
+static const struct i8x_object_ops i8x_reloc_ops =
   {
     "reloc",			/* Object name.  */
     sizeof (struct i8x_reloc),	/* Object size.  */
