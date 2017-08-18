@@ -329,7 +329,9 @@ class _TestBadArgTypes(common.TestCase):
 
     def ZERO_LENGTH_SEQUENCE(self, test_value):
         try:
-            if len(test_value) == 0 and test_value is not self.tv_dict:
+            if (len(test_value) == 0
+                and test_value not in (self.tv_dict,
+                                       self.tv_string)):
                 return AttributeError
         except:
             pass

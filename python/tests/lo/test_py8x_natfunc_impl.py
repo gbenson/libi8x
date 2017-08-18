@@ -63,12 +63,15 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
                                           testfunc)
             ref = py8x.func_get_funcref(func)
 
-            for rets in (None, (), [], (4,), [4], (2, 3), [2, 3]):
+            for rets in (None, (), [], 1, (4,), [4], (2, 3), [2, 3]):
                 print("%s: %s" % (expect_retc, rets))
                 if rets is None:
                     actual_retc = 0
                 else:
-                    actual_retc = len(rets)
+                    try:
+                        actual_retc = len(rets)
+                    except TypeError:
+                        actual_retc = 1
 
                 if actual_retc == expect_retc:
                     py8x.xctx_call(self.xctx, ref, self.inf, ())

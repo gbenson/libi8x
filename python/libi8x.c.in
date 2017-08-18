@@ -948,7 +948,7 @@ py8x_unpack_funcref (struct i8x_ctx *ctx, PyObject *ref_or_sig)
   return ref;
 }
 
-/* Actions for py8x_unpack_tuple.  */
+/* Actions for py8x_{pack,unpack}_tuple.  */
 
 typedef enum
 {
@@ -1011,25 +1011,28 @@ py8x_unpack_tuple (union i8x_value *dst, PyObject *src,
   struct i8x_list *types =  py8x_pack_unpack_types (ref, what);
   size_t length = i8x_list_size (types);
   size_t check_length;
+  bool src_is_sequence = (PySequence_Check (src)
+#if !IS_PY3
+			  && !PyString_Check (src)
+#endif /* !IS_PY3 */
+			  && !PyUnicode_Check (src));
   struct i8x_listitem *li;
   size_t i;
 
-  if (what == PY8X_RETS && src == Py_None)
+  if (src_is_sequence)
+    check_length = (size_t) PySequence_Length (src);
+  else if (what == PY8X_RETS)
     {
-      /* Native functions with no returns may return None.  */
-      check_length = 0;
+      /* Native functions with no returns may return None.
+	 Native functions with one return may return unboxed.  */
+      check_length = src == Py_None ? 0 : 1;
     }
   else
     {
-      if (!PySequence_Check (src))
-	{
-	  PyErr_Format (PyExc_TypeError,
-			"must be sequence, not '%.200s'",
-			src->ob_type->tp_name);
-	  return false;
-	}
-
-      check_length = (size_t) PySequence_Length (src);
+      PyErr_Format (PyExc_TypeError,
+		    "must be sequence, not '%.200s'",
+		    src->ob_type->tp_name);
+      return false;
     }
 
   if (length != check_length)
@@ -1045,11 +1048,21 @@ py8x_unpack_tuple (union i8x_value *dst, PyObject *src,
   i8x_list_foreach_indexed (types, li, i)
     {
       struct i8x_type *type = i8x_listitem_get_type (li);
-      int index = what == PY8X_ARGS ? i : length - i - 1;
-      PyObject *item = PySequence_GetItem (src, index);
+      PyObject *item;
 
-      if (item == NULL)
-	return false;
+      if (src_is_sequence)
+	{
+	  int index = what == PY8X_ARGS ? i : length - i - 1;
+
+	  item = PySequence_GetItem (src, index);
+	  if (item == NULL)
+	    return false;
+	}
+      else
+	{
+	  Py_INCREF (src);
+	  item = src;
+	}
 
       if (i8x_type_is_functype (type))
 	{
