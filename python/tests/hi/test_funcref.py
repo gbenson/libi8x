@@ -23,10 +23,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from . import common
-import libi8x
+from . import *
 
-class TestFunctionReference(common.TestCase):
+class TestFunctionReference(TestCase):
     def setUp(self):
         self.ctx = self.ctx_new()
         func = self.ctx.import_bytecode(self.GOOD_NOTE)

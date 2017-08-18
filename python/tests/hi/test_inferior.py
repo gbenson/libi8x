@@ -23,19 +23,18 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from . import common
-import libi8x
+from . import *
 import struct
 import sys
 
-class TestInferior(common.TestCase):
+class TestInferior(TestCase):
     def test_context(self):
         """Test Inferior.context."""
         ctx = self.ctx_new()
         inf = ctx.new_inferior()
         self.assertIs(inf.context, ctx)
 
-class ReadMemRelocTestCase(common.TestCase):
+class ReadMemRelocTestCase(TestCase):
     def _do_readmem_reloc_test(self, inf):
         ctx = inf.context
         func = ctx.import_bytecode(self.TESTNOTE).ref

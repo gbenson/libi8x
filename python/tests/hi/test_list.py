@@ -23,10 +23,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from . import common
-import libi8x
+from . import *
 
-class TestList(common.TestCase):
+class TestList(TestCase):
 
     # Functions to import notes.  We use Context.functions as
     # our test list.  These functions are called by __do_test

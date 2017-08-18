@@ -23,13 +23,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from . import common
-import libi8x
+from . import *
 import os
 import syslog
 import weakref
 
-class TestContext(common.TestCase):
+class TestContext(TestCase):
     def test_context(self):
         """Check there is no Context.context method."""
         ctx = self.ctx_new()

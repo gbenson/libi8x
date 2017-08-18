@@ -23,10 +23,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from . import common
-import libi8x
+from . import *
 
-class TestRelocation(common.TestCase):
+class TestRelocation(TestCase):
     IMPORT_OFFSET = 23
     EXPECT_OFFSET = IMPORT_OFFSET + 10
 

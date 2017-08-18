@@ -23,8 +23,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from . import common
-import libi8x
+from . import *
 
 class FunctionTestCase(object):
     def test_context(self):
@@ -46,13 +45,13 @@ class FunctionTestCase(object):
         relocs = self.func.relocations
         self.assertIsSequence(relocs)
 
-class TestBytecodeFunction(common.TestCase, FunctionTestCase):
+class TestBytecodeFunction(TestCase, FunctionTestCase):
     def setUp(self):
         self.ctx = self.ctx_new()
         self.func = self.ctx.import_bytecode(self.GOOD_NOTE)
         self.signature = "example::factorial(i)i"
 
-class TestNativeFunction(common.TestCase, FunctionTestCase):
+class TestNativeFunction(TestCase, FunctionTestCase):
     def setUp(self):
         self.ctx = self.ctx_new()
         self.signature = "test::func()"

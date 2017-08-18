@@ -23,10 +23,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from . import common
-import libi8x
+from . import *
 
-class TestExecutionContext(common.TestCase):
+class TestExecutionContext(TestCase):
     def test_context(self):
         """Test ExecutionContext.context."""
         ctx = self.ctx_new()
