@@ -186,7 +186,7 @@ enum
   } while (0)
 #endif
 
-/* Native calling macros.  */
+/* Native calls.  */
 
 #define ENTER_NATIVE()						\
   int saved_wordsize = xctx->wordsize;				\
@@ -195,19 +195,30 @@ enum
   xctx->wordsize = code->wordsize;				\
   xctx->byte_order = code->byte_order;				\
 								\
-  STORE_VSP_CSP();						\
-								\
-  trace (i8x_xctx_get_ctx (xctx), "%s: native call\n",		\
-	 callee->signature)
+  STORE_VSP_CSP()
 
 #define LEAVE_NATIVE()						\
-  trace (i8x_xctx_get_ctx (xctx), "%s: native return\n",	\
-	 callee->signature);					\
-								\
   RESTORE_VSP_CSP();						\
 								\
   xctx->wordsize = saved_wordsize;				\
   xctx->byte_order = saved_byte_order
+
+static i8x_err_e
+call_native (struct i8x_xctx *xctx, struct i8x_funcref *ref,
+	     struct i8x_inf *inf, union i8x_value *args,
+	     union i8x_value *rets)
+{
+  trace (i8x_xctx_get_ctx (xctx), "%s: native call\n", ref->signature);
+
+  i8x_assert (ref->resolved != NULL);
+  i8x_assert (ref->native_impl != NULL);
+
+  i8x_err_e err = ref->native_impl (xctx, inf, ref->resolved, args, rets);
+
+  trace (i8x_xctx_get_ctx (xctx), "%s: native return\n", ref->signature);
+
+  return err;
+}
 
 /* Dispatch macros.  */
 
@@ -389,7 +400,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 
   /* If this is a native function then execute it.  */
   if (ref->native_impl != NULL)
-    return ref->native_impl (xctx, inf, ref->resolved, args, rets);
+    return call_native (xctx, ref, inf, args, rets);
 
   /* Get the bytecode.  */
   struct i8x_code *code;
@@ -644,8 +655,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       ADJUST_STACK (callee->num_rets);
 
       ENTER_NATIVE ();
-      err = callee->native_impl (xctx, inf, callee->resolved,
-				 arg0, ret0);
+      err = call_native (xctx, callee, inf, arg0, ret0);
       LEAVE_NATIVE ();
       if (__i8x_unlikely (err != I8X_OK))
 	goto unwind_and_return;
