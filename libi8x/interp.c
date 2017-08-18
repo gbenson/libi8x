@@ -328,20 +328,18 @@ i8x_err_e
 i8x_ctx_init_dispatch_table (struct i8x_ctx *ctx, void **table,
 			     size_t table_size, bool is_debug)
 {
-  struct i8x_funcref r;
   struct i8x_xctx x;
 
   dbg (ctx, "populating dispatch_%s\n",
        is_debug == false ? "std" : "dbg");
 
-  memset (&r, 0, sizeof (r));
   memset (&x, 0, sizeof (x));
 
   x.use_debug_interpreter = is_debug;
   x.dispatch_table_to_init = table;
   x.dispatch_table_size = table_size;
 
-  return i8x_xctx_call (&x, &r, NULL, NULL, NULL);
+  return i8x_xctx_call (&x, NULL, NULL, NULL, NULL);
 }
 #endif /* DEBUG_INTERPRETER */
 
@@ -369,17 +367,13 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 	     struct i8x_inf *inf, union i8x_value *args,
 	     union i8x_value *rets)
 {
-  /* If this function is native then we're in the wrong place.  */
-  if (ref->native_impl != NULL)
-    return ref->native_impl (xctx, inf, ref->resolved, args, rets);
-
-  /* Likewise if we should be in the debug interpreter but aren't.  */
+  /* Switch to the debug interpreter if requested.  */
 #ifndef DEBUG_INTERPRETER
   if (__i8x_unlikely (xctx->use_debug_interpreter))
     return i8x_xctx_call_dbg (xctx, ref, inf, args, rets);
 #endif
 
-  /* Are we being asked to emit our dispatch table?  */
+  /* Emit our dispatch table if requested.  */
   if (__i8x_unlikely (xctx->dispatch_table_to_init != NULL))
     {
       void **dtable = xctx->dispatch_table_to_init;
@@ -392,6 +386,10 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 
       return I8X_OK;
     }
+
+  /* If this is a native function then execute it.  */
+  if (ref->native_impl != NULL)
+    return ref->native_impl (xctx, inf, ref->resolved, args, rets);
 
   /* Get the bytecode.  */
   struct i8x_code *code;
