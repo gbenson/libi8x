@@ -31,8 +31,6 @@ import sys
 
 class _TestBadArgTypes(common.TestCase):
     def setUp(self):
-        super(_TestBadArgTypes, self).setUp()
-
         # libi8x types.
         self.tv_ctx = self.ctx_new()
         self.tv_xctx = py8x.xctx_new(self.tv_ctx, 512)

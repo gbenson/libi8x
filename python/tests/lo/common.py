@@ -35,15 +35,18 @@ class TestObject(object):
         return "<%s>" % self.type
 
 class TestCase(BaseTestCase):
-    def setUp(self):
+    def _libi8xtest_setUp(self):
         self.__objects = []
+        self._libi8xtest_user_setUp()
 
     def _new_i8xobj(self, type):
         result = TestObject(type)
         self.__objects.append(weakref.ref(result))
         return result
 
-    def tearDown(self):
+    def _libi8xtest_tearDown(self):
+        self._libi8xtest_user_tearDown()
+
         # Delete any objects we're referencing.
         keys = [key
                 for key, value in self.__dict__.items()
@@ -70,8 +73,8 @@ class PopulatedTestCase(TestCase):
 
     TESTNOTE = TestCase.GOOD_NOTE
 
-    def setUp(self):
-        super(PopulatedTestCase, self).setUp()
+    def _libi8xtest_setUp(self):
+        super(PopulatedTestCase, self)._libi8xtest_setUp()
         self.ctx = self.ctx_new()
         self.func = py8x.ctx_import_bytecode(self.ctx, self.TESTNOTE,
                                              "testnote", 0)

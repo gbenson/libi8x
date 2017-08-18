@@ -31,7 +31,6 @@ class TestRelocation(common.TestCase):
     EXPECT_OFFSET = IMPORT_OFFSET + 10
 
     def setUp(self):
-        super(TestRelocation, self).setUp()
         self.ctx = self.ctx_new()
         self.func = self.ctx.import_bytecode(self.RELOC_NOTE,
                                              srcoffset=self.IMPORT_OFFSET)

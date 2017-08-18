@@ -48,14 +48,12 @@ class FunctionTestCase(object):
 
 class TestBytecodeFunction(common.TestCase, FunctionTestCase):
     def setUp(self):
-        super(TestBytecodeFunction, self).setUp()
         self.ctx = self.ctx_new()
         self.func = self.ctx.import_bytecode(self.GOOD_NOTE)
         self.signature = "example::factorial(i)i"
 
 class TestNativeFunction(common.TestCase, FunctionTestCase):
     def setUp(self):
-        super(TestNativeFunction, self).setUp()
         self.ctx = self.ctx_new()
         self.signature = "test::func()"
         self.func = self.ctx.import_native(self.signature,

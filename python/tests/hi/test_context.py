@@ -84,7 +84,7 @@ class TestContext(common.TestCase):
         ctx = self.ctx_new()
 
         # The testsuite default stores messages in self._i8xlog.
-        self.assertEqual(ctx.logger, self._logger)
+        self.assertEqual(ctx.logger, self._libi8xtest_logger)
         startlen = len(self._i8xlog)
 
         # Install a new logger.
@@ -107,8 +107,8 @@ class TestContext(common.TestCase):
             self.assertGreater(len(testlog), 0)
         finally:
             # Put the old logger back.
-            ctx.logger = self._logger
-            self.assertEqual(ctx.logger, self._logger)
+            ctx.logger = self._libi8xtest_logger
+            self.assertEqual(ctx.logger, self._libi8xtest_logger)
 
             # Check we didn't leak references.
             self.assertIsNone(tlwr())

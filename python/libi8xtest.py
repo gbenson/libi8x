@@ -48,6 +48,13 @@ __all__ = compat_all(
 )
 
 class BaseTestCase(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(BaseTestCase, self).__init__(*args, **kwargs)
+        self._libi8xtest_user_setUp = self.setUp
+        self.setUp = self._libi8xtest_setUp
+        self._libi8xtest_user_tearDown = self.tearDown
+        self.tearDown = self._libi8xtest_tearDown
+
     def do_not_call(self, *args):
         """Callable object to be passed to things that need them."""
         self.fail("crowbar called")
@@ -215,7 +222,7 @@ class Libi8xTestCase(BaseTestCase):
         if flags is None:
             self.assertIsNone(logger)
             flags = syslog.LOG_DEBUG | libi8x.DBG_MEM
-            logger = self._logger
+            logger = self._libi8xtest_logger
 
         # Don't randomly log to stderr.
         self.assertTrue(flags & 15 == 0 or logger is not None)
@@ -227,13 +234,16 @@ class Libi8xTestCase(BaseTestCase):
 
         return klass(flags, logger)
 
-    def setUp(self):
+    def _libi8xtest_setUp(self):
         self._i8xlog = []
+        self._libi8xtest_user_setUp()
 
-    def _logger(self, *args):
+    def _libi8xtest_logger(self, *args):
         self._i8xlog.append(args)
 
-    def tearDown(self):
+    def _libi8xtest_tearDown(self):
+        self._libi8xtest_user_tearDown()
+
         # Delete any objects we're referencing.
         keys = [key
                 for key, value in self.__dict__.items()

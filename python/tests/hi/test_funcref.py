@@ -28,7 +28,6 @@ import libi8x
 
 class TestFunctionReference(common.TestCase):
     def setUp(self):
-        super(TestFunctionReference, self).setUp()
         self.ctx = self.ctx_new()
         func = self.ctx.import_bytecode(self.GOOD_NOTE)
         self.funcref = func.ref
