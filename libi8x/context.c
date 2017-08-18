@@ -456,6 +456,9 @@ error_message_for (i8x_err_e code)
     case I8X_NATCALL_FAILED:
       return _("Native call failed");
 
+    case I8X_NATCALL_BAD_FUNCREF_RET:
+      return _("Native call returned invalid function reference");
+
     default:
       return NULL;
     }
