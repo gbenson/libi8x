@@ -90,6 +90,7 @@ static PyObject *py8x_ctx_get_object_factory_fn (struct i8x_ctx *ctx);
          +-- DivideByZeroError		I8X_DIVIDE_BY_ZERO
          +-- StackOverflowError		I8X_STACK_OVERFLOW
          +-- UnresolvedFunctionError	I8X_UNRESOLVED_FUNCTION
+         +-- ReturnTypeError		I8X_NATCALL_BAD_FUNCREF_RET
 
    Note that not all i8x_err_e values have a corresponding class
    in this heirachy:
@@ -115,6 +116,7 @@ static PyObject *py8x_UnhandledNoteError;
 static PyObject *py8x_DivideByZeroError;
 static PyObject *py8x_StackOverflowError;
 static PyObject *py8x_UnresolvedFunctionError;
+static PyObject *py8x_ReturnTypeError;
 
 /* Set an exception from a libi8x error code.  Note that ctx will
    be NULL if the error occurred during i8x_ctx_new.  This function
@@ -132,7 +134,7 @@ py8x_set_exception (struct i8x_ctx *ctx, i8x_err_e code)
     }
 
   /* Get the error message.  */
-  char buf[32];
+  char buf[64];
   const char *msg = i8x_strerror_r (code, buf, sizeof (buf));
 
   /* Use PyExc_ValueError for I8X_EINVAL.  */
@@ -168,6 +170,10 @@ py8x_set_exception (struct i8x_ctx *ctx, i8x_err_e code)
 
     case I8X_DIVIDE_BY_ZERO:
       errorclass = py8x_DivideByZeroError;
+      break;
+
+    case I8X_NATCALL_BAD_FUNCREF_RET:
+      errorclass = py8x_ReturnTypeError;
       break;
 
     default:
@@ -1599,6 +1605,7 @@ MODULE_INIT_FUNC (_libi8x)
   PY8X_EXCEPTION (DivideByZeroError, py8x_ExecutionError);
   PY8X_EXCEPTION (StackOverflowError, py8x_ExecutionError);
   PY8X_EXCEPTION (UnresolvedFunctionError, py8x_ExecutionError);
+  PY8X_EXCEPTION (ReturnTypeError, py8x_ExecutionError);
 
 #pragma libi8x_api_constants
 

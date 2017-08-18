@@ -121,3 +121,22 @@ class TestExceptions(common.TestCase):
         self.assertIs(e.srcoffset, None)
         self.assertEqual(str(e), e.strerror)
         self.assertEqual(e.strerror, "Unresolved function")
+
+    def test_return_type_error(self):
+        """Test ReturnTypeError."""
+        ctx = self.ctx_new()
+        sig = "test::func()Fi(i)"
+        def impl(*args):
+            return (sig,)
+        func = ctx.import_native(sig, impl)
+        inf = ctx.new_inferior()
+        xctx = ctx.new_xctx()
+        with self.assertRaises(libi8x.ReturnTypeError) as cm:
+            xctx.call(sig, inf)
+        e = cm.exception
+
+        self.assertIs(e.srcname, None)
+        self.assertIs(e.srcoffset, None)
+        self.assertEqual(str(e), e.strerror)
+        self.assertEqual(e.strerror,
+                         "Native call returned invalid function reference")

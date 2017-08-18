@@ -79,6 +79,18 @@ class TestPy8xSetException(common.TestCase):
         with self.assertRaises(py8x.UnresolvedFunctionError):
             py8x.xctx_call(xctx, ref, inf, (5,))
 
+    def test_natcall_bad_funcref_ret(self):
+        """Test a function returning I8X_NATCALL_BAD_FUNCREF_RET."""
+        ctx = self.ctx_new()
+        sig = "test::func()Fi(i)"
+        def impl(*args):
+            return sig
+        func = py8x.ctx_import_native(ctx, sig, impl)
+        inf = py8x.inf_new(ctx)
+        xctx = py8x.xctx_new(ctx, 512)
+        with self.assertRaises(py8x.ReturnTypeError):
+            py8x.xctx_call(xctx, sig, inf, ())
+
     # Helpers
 
     def __test_I8XError(self, exception, note, error_offset, *call_args):
