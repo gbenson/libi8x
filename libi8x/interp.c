@@ -328,18 +328,18 @@ i8x_err_e
 i8x_ctx_init_dispatch_table (struct i8x_ctx *ctx, void **table,
 			     size_t table_size, bool is_debug)
 {
-  struct i8x_xctx x;
+  struct i8x_xctx xctx;
 
   dbg (ctx, "populating dispatch_%s\n",
        is_debug == false ? "std" : "dbg");
 
-  memset (&x, 0, sizeof (x));
+  memset (&xctx, 0, sizeof (xctx));
 
-  x.use_debug_interpreter = is_debug;
-  x.dispatch_table_to_init = table;
-  x.dispatch_table_size = table_size;
+  xctx.use_debug_interpreter = is_debug;
+  xctx.dispatch_table_to_init = table;
+  xctx.dispatch_table_size = table_size;
 
-  return i8x_xctx_call (&x, NULL, NULL, NULL, NULL);
+  return i8x_xctx_call (&xctx, NULL, NULL, NULL, NULL);
 }
 #endif /* DEBUG_INTERPRETER */
 
