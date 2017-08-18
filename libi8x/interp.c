@@ -657,8 +657,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       ENTER_NATIVE ();
       err = call_native (xctx, callee, inf, arg0, ret0);
       LEAVE_NATIVE ();
-      if (__i8x_unlikely (err != I8X_OK))
-	goto unwind_and_return;
+      CALLBACK_ERROR_CHECK ();
 
       if (__i8x_likely (num_args != 0))
 	{
