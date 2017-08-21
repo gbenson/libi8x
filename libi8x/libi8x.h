@@ -443,8 +443,6 @@ i8x_err_e i8x_xctx_call (struct i8x_xctx *xctx,
 			 struct i8x_inf *inf,
 			 union i8x_value *args,
 			 union i8x_value *rets);
-int i8x_xctx_get_wordsize (struct i8x_xctx *xctx);
-i8x_byte_order_e i8x_xctx_get_byte_order (struct i8x_xctx *xctx);
 
 #ifdef __cplusplus
 } /* extern "C" */

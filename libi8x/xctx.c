@@ -105,15 +105,3 @@ i8x_xctx_set_use_debug_interpreter (struct i8x_xctx *xctx,
 {
   xctx->use_debug_interpreter = use_debug_interpreter;
 }
-
-I8X_EXPORT int
-i8x_xctx_get_wordsize (struct i8x_xctx *xctx)
-{
-  return xctx->wordsize;
-}
-
-I8X_EXPORT i8x_byte_order_e
-i8x_xctx_get_byte_order (struct i8x_xctx *xctx)
-{
-  return xctx->byte_order;
-}

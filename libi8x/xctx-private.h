@@ -50,10 +50,17 @@ struct i8x_xctx
      Slots in the call stack are csp <= SLOT < stack_limit.  */
   union i8x_value *csp;
 
-  /* Wordsize of the current interpreter frame, or 0 if unknown.  */
+  /* Wordsize of the current interpreter frame, or 0 if unknown.
+     Deprecated; the public method i8x_xctx_get_wordsize is now
+     removed.  This field will be removed along with the code in
+     the interpreter that updates it unless something needs it
+     prior to 1.0.0.  */
   int wordsize;
 
-  /* Byte order of the current frame.  */
+  /* Byte order of the current frame.  Deprecated; the public
+     method i8x_xctx_get_byte_order is now removed.  This field
+     will be removed along with the interpreter code that updates
+     it unless something needs it prior to 1.0.0.  */
   i8x_byte_order_e byte_order;
 
   /* Bytecode counter.  Only updated by the debug interpreter.  */
