@@ -50,4 +50,12 @@ __all__ = compat_all(
 )
 
 class TestCase(Libi8xTestCase):
-    pass
+    def _libi8xtest_tearDown(self):
+        # Ensure we're testing the static local build we expect
+        self.assertTrue(libi8x.__file__.startswith(PYDIR + os.sep))
+        self.assertTrue(libi8x.__version__.endswith("-static"))
+        if len(self._i8xlog) > 0:
+            self.assertEqual(self._i8xlog[0][-1],
+                             "using py8x %s\n" % libi8x.__version__)
+
+        super(TestCase, self)._libi8xtest_tearDown()
