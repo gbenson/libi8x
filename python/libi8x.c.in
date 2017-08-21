@@ -640,6 +640,10 @@ struct py8x_ctx_userdata
   /* Logging function.  May be Py_None, in which case
      messages will be output on stderr.  */
   PyObject *log_fn;
+
+  /* True if we've attempted to log our name and version
+     on this context's debug log.  */
+  bool py8x_announced;
 };
 
 static void
@@ -701,6 +705,13 @@ py8x_log (struct i8x_ctx *ctx, int priority, const char *filename,
     {
       py8x_log_stderr (priority, filename, linenumber, function, msg);
       py8x_internal_error ("context userdata == NULL");
+    }
+
+  /* Announce ourselves.  */
+  if (!ud->py8x_announced)
+    {
+      ud->py8x_announced = true;
+      dbg (ctx, "using py8x %s\n", PY8X_VERSION);
     }
 
   /* Call the user-defined logging function if there is one.  */

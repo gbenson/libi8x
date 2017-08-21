@@ -110,8 +110,8 @@ class TestPy8xLog(common.TestCase):
 
     def check_pkgver(self, func, msg):
         """Check a log entry is a name+version announcement."""
-        self.assertEqual(func, "i8x_ctx_new")
-        self.assertTrue(msg.startswith("libi8x "))
+        self.assertEqual(func, "py8x_log")
+        self.assertTrue(msg.startswith("using py8x "))
 
     def __check_action(self, cls, action, msg):
         self.assertTrue(msg.startswith(cls + " 0x"))

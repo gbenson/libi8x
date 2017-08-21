@@ -41,11 +41,21 @@ class TestPy8xCtxNew(common.TestCase):
         """Test py8x_ctx_new with logging and a log function."""
         messages = []
         def log_func(*args):
+            print(args)
             messages.append(args)
         self.ctx_new(syslog.LOG_DEBUG, log_func)
         self.assertGreater(len(messages), 0)
         self.assertEqual(len(messages[0]), 5)
+
+        # Check a message from py8x.
         priority, filename, line, function, message = messages[0]
+        self.assertEqual(priority, syslog.LOG_DEBUG)
+        assert filename.endswith("libi8x.c")
+        self.assertEqual(function, "py8x_log")
+        self.assertEqual(message, "using py8x %s\n" % py8x.__version__)
+
+        # Check a message from C libi8x.
+        priority, filename, line, function, message = messages[1]
         self.assertEqual(priority, syslog.LOG_DEBUG)
         assert filename.endswith("context.c")
         self.assertEqual(function, "i8x_ctx_new")
