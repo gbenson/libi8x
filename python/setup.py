@@ -28,10 +28,13 @@ import os
 import subprocess
 import sys
 
+VERSION = "0.0.1"
+
 here = os.path.realpath(os.path.dirname(__file__))
 
 # Link libi8x statically if we're in a libi8x tree (tarball or git),
 # and run C libi8x's Python tests too as well as our own.
+py8x_version = VERSION
 if os.path.basename(here) == "python":
     # Ensure everything is up-to-date.
     if "MAKELEVEL" not in os.environ:
@@ -40,6 +43,7 @@ if os.path.basename(here) == "python":
     # Set up what to build.
     import glob
     print("warning: building static _libi8x")
+    py8x_version += "-static"
     extargs = {"include_dirs": ["../libi8x"],
                "extra_objects": glob.glob("../libi8x/.libs/*.o")}
 
@@ -64,6 +68,10 @@ else:
     extargs = {"libraries": ["i8x"]}
     testsuite="nose.collector"
 
+if not "define_macros" in extargs:
+    extargs["define_macros"] = []
+extargs["define_macros"].append(("PY8X_VERSION", '"%s"' % py8x_version))
+
 # Regenerate libi8x.c if we're running in a checked-out git tree.
 hdrdir = os.path.join(here, "pycparser", "utils", "fake_libc_include")
 if not os.path.exists(hdrdir):
@@ -79,7 +87,7 @@ else:
 
 setup(
     name="libi8x",
-    version="0.0.1",
+    version=VERSION,
     description="Python bindings for libi8x",
     license="LGPLv2.1+",
     author="Gary Benson",

@@ -24,6 +24,7 @@ from __future__ import print_function
 #  __future__.unicode_literals breaks "from libi8x import *"
 
 from _libi8x import (
+    __version__,
     CorruptNoteError,
     DBG_MEM,
     DivideByZeroError,

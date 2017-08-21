@@ -1593,6 +1593,8 @@ MODULE_INIT_FUNC (_libi8x)
   if (m == NULL)
     return NULL;
 
+  PyModule_AddStringConstant (m, "__version__", PY8X_VERSION);
+
   PY8X_EXCEPTION (I8XError, PyExc_Exception);
 
   PY8X_EXCEPTION (NoteError, py8x_I8XError);
