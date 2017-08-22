@@ -35,6 +35,8 @@ from _libi8x import (
     NoteError,
     ReturnTypeError,
     StackOverflowError,
+    to_signed,
+    to_unsigned,
     UnhandledNoteError,
     UnresolvedFunctionError,
 )
@@ -66,6 +68,8 @@ __all__ = (
     "Relocation",
     "ReturnTypeError",
     "StackOverflowError",
+    "to_signed",
+    "to_unsigned",
     "UnhandledNoteError",
     "UnresolvedFunctionError",
 )

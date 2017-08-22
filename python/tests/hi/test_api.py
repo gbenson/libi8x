@@ -23,6 +23,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import _libi8x as py8x
 import libi8x
 import os
 import unittest
@@ -31,6 +32,8 @@ class TestAPI(unittest.TestCase):
     CONSTANTS = {
         "DBG_MEM": 16,
         "LOG_TRACE": 8,
+        "to_signed": py8x.to_signed,
+        "to_unsigned": py8x.to_unsigned,
         }
 
     def test_payload(self):
