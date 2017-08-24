@@ -1093,13 +1093,13 @@ py8x_unpack_tuple (union i8x_value *dst, PyObject *src,
 	}
       else
 	{
-	  long value = PyLong_AsLong (item);
+	  void *value = PyLong_AsVoidPtr (item);
 
 	  Py_DECREF (item);
-	  if (value == -1 && PyErr_Occurred () != NULL)
+	  if (PyErr_Occurred () != NULL)
 	    return false;
 
-	  dst[i].i = value;
+	  dst[i].p = value;
 	}
     }
 

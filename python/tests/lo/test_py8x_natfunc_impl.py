@@ -138,3 +138,21 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
             self.assertEqual(rets, (7, self.funcref, py8x.to_unsigned(-1)))
         finally:
             py8x.ctx_unregister_func(self.ctx, func)
+
+    def __do_integer_return_test(self, value_in, value_out):
+        def impl(xctx, inf, func):
+            return value_in
+        func = py8x.ctx_import_native(self.ctx, "test::func()i", impl)
+        ref = py8x.func_get_funcref(func)
+        rets = py8x.xctx_call(self.xctx, ref, self.inf, ())
+        self.assertEqual(rets, (value_out,))
+
+    def test_return_negative(self):
+        """Test a native function returning a negative value."""
+        self.__do_integer_return_test(-17, py8x.to_unsigned(-17))
+
+    def test_return_large_positive(self):
+        """Test a native function returning a large positive value."""
+        value = py8x.to_unsigned(-23)
+        self.assertGreater(value, 0)
+        self.__do_integer_return_test(value, value)
