@@ -156,3 +156,11 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
         value = py8x.to_unsigned(-23)
         self.assertGreater(value, 0)
         self.__do_integer_return_test(value, value)
+
+    def test_return_convertable(self):
+        """Test a native function returning a convertable object."""
+        class Value(object):
+            def __int__(self):
+                return 14
+        value = Value()
+        self.__do_integer_return_test(value, int(value))

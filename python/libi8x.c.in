@@ -888,6 +888,51 @@ py8x_ctx_set_log_fn (PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+/* Convert a Python number to a C void pointer.  Returns NULL and
+   sets an exception on failure.  May return NULL on success.  */
+
+static void *
+py8x_PyNumber_AsVoidPtr (PyObject *object, bool allow_negative)
+{
+  if (!PyNumber_Check (object))
+    {
+      PyErr_SetString (PyExc_TypeError, "an integer is required");
+      return NULL;
+    }
+
+#if IS_PY3
+    object = PyNumber_Long (object);
+#else
+    object = PyNumber_Int (object);
+#endif  /* IS_PY3 */
+  if (object == NULL)
+    return NULL;
+
+  void *value = PyLong_AsVoidPtr (object);
+  if (PyErr_Occurred () != NULL)
+    value = NULL;
+  else if (!allow_negative)
+    {
+      /* PyLong_AsVoidPtr accepts negative values: catch this.  */
+      PyObject *check = PyLong_FromVoidPtr (value);
+      if (check == NULL)
+	value = NULL;
+      else
+	{
+	  int cmp = PyObject_RichCompareBool (object, check, Py_EQ);
+	  Py_DECREF (check);
+	  if (cmp == 0)
+	    PyErr_SetNone (PyExc_OverflowError);
+	  if (cmp != 1)
+	    value = NULL;
+	}
+    }
+
+  Py_DECREF (object);
+
+  return value;
+}
+
 /* Convert a Python object to an i8x_funcref.  If the Python
    object is a wrapped capsule then it will be unwrapped and
    type-checked as a funcref.  If it's not a wrapped capsule
@@ -1093,10 +1138,9 @@ py8x_unpack_tuple (union i8x_value *dst, PyObject *src,
 	}
       else
 	{
-	  void *value = PyLong_AsVoidPtr (item);
-
+	  void *value = py8x_PyNumber_AsVoidPtr (item, true);
 	  Py_DECREF (item);
-	  if (PyErr_Occurred () != NULL)
+	  if (value == NULL && PyErr_Occurred () != NULL)
 	    return false;
 
 	  dst[i].p = value;
@@ -1499,30 +1543,13 @@ py8x_chunk_get_encoded (PyObject *self, PyObject *args)
 static int
 py8x_pylong_AsUintptr_t (PyObject *object, void *result)
 {
-  void *value = PyLong_AsVoidPtr (object);
-
-  /* Python 2 sets SystemError for non-numeric arguments.  */
-  PyObject *exception = PyErr_Occurred ();
-#if !IS_PY3
-  if (exception == PyExc_SystemError)
-    PyErr_SetString (PyExc_TypeError, "an integer is required");
-#endif /* !IS_PY3 */
-  if (exception != NULL)
+  void *value = py8x_PyNumber_AsVoidPtr (object, false);
+  if (value == NULL && PyErr_Occurred ())
     return 0;
 
-  /* PyLong_AsVoidPtr accepts negative values: catch this.  */
-  PyObject *check = PyLong_FromVoidPtr (value);
-  if (check == NULL)
-    return 0;
+  *(void **) result = value;
 
-  int cmp = PyObject_RichCompareBool (object, check, Py_EQ);
-  Py_DECREF (check);
-  if (cmp == 0)
-    PyErr_SetNone (PyExc_OverflowError);
-  else if (cmp == 1)
-    *(void **) result = value;
-
-  return cmp == 1;
+  return 1;
 }
 
 #pragma libi8x_api_functions

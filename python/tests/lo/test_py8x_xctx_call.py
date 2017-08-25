@@ -90,3 +90,17 @@ class TestPy8xXctxCall(common.PopulatedTestCase):
                               self.inf, ())
         self.assertEqual(len(rets), 1)
         self.assertIs(rets[0], self.funcref)
+
+    def test_convertable_arg(self):
+        """Test py8x_xctx_call with a convertable argument."""
+        class Value(object):
+            def __int__(self):
+                return 8
+        rets = py8x.xctx_call(self.xctx, self.funcref, self.inf, (Value(),))
+        self.assertEqual(rets, (40320,))
+
+    def test_string_not_converted_arg(self):
+        """Test py8x_xctx_call doesn't convert strings to integers."""
+        with self.assertRaises(TypeError) as cm:
+            py8x.xctx_call(self.xctx, self.funcref, self.inf, ("5",))
+        self.assertEqual(str(cm.exception), "an integer is required")
