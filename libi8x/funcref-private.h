@@ -29,6 +29,7 @@ struct i8x_funcref
   I8X_OBJECT_FIELDS;
 
   char *signature;	/* This function's signature.  */
+  bool is_global;	/* Is this function globally registered?  */
   bool is_private;	/* Is this function API-private?  */
 
   struct i8x_type *type;	/* The function's type.  */

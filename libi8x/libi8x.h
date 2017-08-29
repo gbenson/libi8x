@@ -285,6 +285,7 @@ I8X_COMMON_OBJECT_FUNCTIONS (funcref);
 I8X_LISTABLE_OBJECT_FUNCTIONS (funcref);
 
 const char *i8x_funcref_get_signature (struct i8x_funcref *ref);
+bool i8x_funcref_is_global (struct i8x_funcref *ref);
 bool i8x_funcref_is_private (struct i8x_funcref *ref);
 bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
 struct i8x_type *i8x_funcref_get_type (struct i8x_funcref *ref);

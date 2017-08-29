@@ -29,6 +29,9 @@ i8x_funcref_init (struct i8x_funcref *ref, const char *signature,
   if (ref->signature == NULL)
     return i8x_out_of_memory (i8x_funcref_get_ctx (ref));
 
+  if (strncmp (signature, "::", 2) != 0)
+    ref->is_global = true;
+
   if (strstr (signature, "::__") != NULL)
     ref->is_private = true;
 
@@ -97,6 +100,12 @@ I8X_EXPORT const char *
 i8x_funcref_get_signature (struct i8x_funcref *ref)
 {
   return ref->signature;
+}
+
+I8X_EXPORT bool
+i8x_funcref_is_global (struct i8x_funcref *ref)
+{
+  return ref->is_global;
 }
 
 I8X_EXPORT bool

@@ -114,6 +114,11 @@ class FunctionReference(ChildObject):
         return py8x.funcref_get_signature(self)
 
     @property
+    def is_global(self):
+        """Does this reference a globally registered function?"""
+        return py8x.funcref_is_global(self)
+
+    @property
     def is_resolved(self):
         """Does this reference resolve to a callable function?"""
         return py8x.funcref_is_resolved(self)

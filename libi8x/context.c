@@ -579,12 +579,13 @@ i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
 
 static i8x_err_e
 check_funcref_namepart (struct i8x_ctx *ctx, const char *c,
-			struct i8x_note *src_note, const char *optr)
+			struct i8x_note *src_note, const char *optr,
+			bool zero_length_ok)
 {
   const char *limit = c + strlen (c);
 
-  /* Zero-length is invalid.  */
-  if (c == limit)
+  /* Zero-length is invalid for global functions.  */
+  if (!zero_length_ok && c == limit)
     return i8x_funcref_error (ctx, I8X_NOTE_INVALID, src_note, optr);
 
   /* First character cannot be numeric.  */
@@ -617,6 +618,7 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
 			       const char *name_off_ptr,
 			       struct i8x_funcref **refp)
 {
+  bool is_local = src_note == NULL && *provider == '\0';
   struct i8x_listitem *li;
   struct i8x_funcref *ref;
   struct i8x_type *functype;
@@ -625,9 +627,11 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
   i8x_err_e err;
 
   /* Ensure the provider and name are valid.  */
-  err = check_funcref_namepart (ctx, provider, src_note, prov_off_ptr);
+  err = check_funcref_namepart (ctx, provider, src_note,
+				prov_off_ptr, is_local);
   if (err == I8X_OK)
-    err = check_funcref_namepart (ctx, name, src_note, name_off_ptr);
+    err = check_funcref_namepart (ctx, name, src_note,
+				  name_off_ptr, is_local);
   if (err != I8X_OK)
     return err;
 
@@ -647,16 +651,19 @@ i8x_ctx_get_funcref_with_note (struct i8x_ctx *ctx,
   snprintf (signature, signature_size,
 	    "%s::%s(%s)%s", provider, name, ptypes, rtypes);
 
-  /* If we have this reference already then return it.  */
-  i8x_list_foreach (ctx->funcrefs, li)
+  /* Global function references are interned.  */
+  if (!is_local)
     {
-      ref = i8x_listitem_get_funcref (li);
-
-      if (strcmp (i8x_funcref_get_signature (ref), signature) == 0)
+      i8x_list_foreach (ctx->funcrefs, li)
 	{
-	  *refp = i8x_funcref_ref (ref);
+	  ref = i8x_listitem_get_funcref (li);
 
-	  goto cleanup;
+	  if (strcmp (i8x_funcref_get_signature (ref), signature) == 0)
+	    {
+	      *refp = i8x_funcref_ref (ref);
+
+	      goto cleanup;
+	    }
 	}
     }
 
@@ -979,7 +986,10 @@ i8x_ctx_import_native (struct i8x_ctx *ctx, const char *signature,
   if (err != I8X_OK)
     return err;
 
-  err = i8x_func_new_native (ctx, sig, impl_fn, &f);
+  if (!i8x_funcref_is_global (sig) && func == NULL)
+    err = i8x_invalid_argument (ctx);
+  else
+    err = i8x_func_new_native (ctx, sig, impl_fn, &f);
   sig = i8x_funcref_unref (sig);
   if (err != I8X_OK)
     return err;

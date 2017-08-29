@@ -47,3 +47,12 @@ class TestFunctionReference(TestCase):
     def test_signature(self):
         """Test FunctionReference.signature."""
         self.assertEqual(self.funcref.signature, "example::factorial(i)i")
+
+    def test_global(self):
+        """Test FunctionReference.is_global returning True."""
+        self.assertTrue(self.funcref.is_global)
+
+    def test_local(self):
+        """Test FunctionReference.is_global returning False."""
+        func = self.ctx.import_native("::factorial(i)i", self.do_not_call)
+        self.assertFalse(func.ref.is_global)
