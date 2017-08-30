@@ -978,19 +978,19 @@ I8X_EXPORT i8x_err_e
 i8x_ctx_import_native (struct i8x_ctx *ctx, const char *signature,
 		       i8x_nat_fn_t *impl_fn, struct i8x_func **func)
 {
-  struct i8x_funcref *sig;
+  struct i8x_funcref *ref;
   struct i8x_func *f;
   i8x_err_e err;
 
-  err = i8x_ctx_get_funcref (ctx, signature, &sig);
+  err = i8x_ctx_get_funcref (ctx, signature, &ref);
   if (err != I8X_OK)
     return err;
 
-  if (!i8x_funcref_is_global (sig) && func == NULL)
+  if (!i8x_funcref_is_global (ref) && func == NULL)
     err = i8x_invalid_argument (ctx);
   else
-    err = i8x_func_new_native (ctx, sig, impl_fn, &f);
-  sig = i8x_funcref_unref (sig);
+    err = i8x_func_new_native (ctx, ref, impl_fn, &f);
+  ref = i8x_funcref_unref (ref);
   if (err != I8X_OK)
     return err;
 

@@ -196,7 +196,7 @@ i8x_func_new_bytecode (struct i8x_note *note, struct i8x_func **func)
 }
 
 I8X_EXPORT i8x_err_e
-i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcref *sig,
+i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcref *ref,
 		     i8x_nat_fn_t *impl_fn, struct i8x_func **func)
 {
   struct i8x_func *f;
@@ -209,9 +209,9 @@ i8x_func_new_native (struct i8x_ctx *ctx, struct i8x_funcref *sig,
   if (err != I8X_OK)
     return err;
 
-  dbg (ctx, "func %p is %s\n", f, i8x_funcref_get_signature (sig));
+  dbg (ctx, "func %p is %s\n", f, i8x_funcref_get_signature (ref));
 
-  f->ref = i8x_funcref_ref (sig);
+  f->ref = i8x_funcref_ref (ref);
   f->native_impl = impl_fn;
 
   *func = f;

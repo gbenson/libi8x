@@ -261,7 +261,7 @@ I8X_COMMON_OBJECT_FUNCTIONS (func);
 i8x_err_e i8x_func_new_bytecode (struct i8x_note *note,
 				 struct i8x_func **func);
 i8x_err_e i8x_func_new_native (struct i8x_ctx *ctx,
-			       struct i8x_funcref *sig,
+			       struct i8x_funcref *ref,
 			       i8x_nat_fn_t *impl_fn,
 			       struct i8x_func **func);
 bool i8x_func_is_native (struct i8x_func *func);
