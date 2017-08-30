@@ -385,6 +385,9 @@ i8x_ctx_fire_availability_observer (struct i8x_func *func,
   info (ctx, "%s became %s\n", i8x_func_get_signature (func),
 	is_available ? "available" : "unavailable");
 
+  if (!i8x_funcref_is_global (i8x_func_get_funcref (func)))
+    return;
+
   i8x_notify_fn_t *callback = is_available
     ? ctx->func_avail_observer_fn
     : ctx->func_unavail_observer_fn;
