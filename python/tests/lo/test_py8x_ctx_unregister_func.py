@@ -39,26 +39,3 @@ class TestPy8xCtxUnregisterFunc(common.PopulatedTestCase):
         self.assertRaises(ValueError,
                           py8x.ctx_unregister_func,
                           self.ctx, self.func)
-
-    def test_deduplicate(self):
-        """Test py8x_ctx_unregister_func on an ambigious function"""
-        self.assertTrue(py8x.funcref_is_resolved(self.funcref))
-        func2 = py8x.ctx_import_native(self.ctx, "example::factorial(i)i",
-                                       self.do_not_call)
-        self.assertFalse(py8x.funcref_is_resolved(self.funcref))
-        py8x.ctx_unregister_func(self.ctx, func2)
-        self.assertTrue(py8x.funcref_is_resolved(self.funcref))
-        self.assertEqual(py8x.xctx_call(self.xctx, self.funcref,
-                                        self.inf, (8,)), (40320,))
-
-    def test_replace(self):
-        """Test py8x_ctx_unregister_func replacing a function"""
-        self.assertTrue(py8x.funcref_is_resolved(self.funcref))
-        func2 = py8x.ctx_import_native(self.ctx, "example::factorial(i)i",
-                                       lambda x, i, f, a: (-a,))
-        self.assertFalse(py8x.funcref_is_resolved(self.funcref))
-        py8x.ctx_unregister_func(self.ctx, self.func)
-        self.assertTrue(py8x.funcref_is_resolved(self.funcref))
-        self.assertEqual(py8x.xctx_call(self.xctx, self.funcref,
-                                        self.inf, (8,)),
-                         (py8x.to_unsigned(-8),))
