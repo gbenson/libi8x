@@ -24,7 +24,7 @@
 /* Attribute name under which py8x_encapsulate* stores libi8x
    object PyCapsules in the Python wrapper objects it creates.  */
 
-#define PY8X_CNAME_ATTR "__py8x_private"
+#define PY8X_CNAME_ATTR "__py8x_private__"
 
 /* Utilities.  */
 
