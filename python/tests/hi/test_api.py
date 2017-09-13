@@ -25,6 +25,7 @@ from __future__ import unicode_literals
 
 import _libi8x as py8x
 import libi8x
+from libi8x.core import ChildObject
 import os
 import unittest
 
@@ -77,13 +78,24 @@ class TestAPI(unittest.TestCase):
             self.assertTrue(os.path.exists(testfile),
                             testfile + ": file not found")
 
-            # Check the testfile tests generic methods.
+            # Check the testfile tests common methods.
+            is_tested = dict((attr, False)
+                             for attr in dir(ChildObject)
+                             if not attr.startswith("__"))
+            def_to_method = dict(("def test_%s(self):" % attr, attr)
+                                 for attr in is_tested)
             with open(testfile) as fp:
                 for line in fp.readlines():
-                    if line.strip() == "def test_context(self):":
-                        break
-                else:
-                    self.fail(testfile + ": missing tests")
+                    method = def_to_method.get(line.strip(), None)
+                    if method is not None:
+                        is_tested[method] = True
+            if False in is_tested.values():
+                self.fail("%s: missing tests: %s"
+                          % (testfile,
+                             ", ".join(method
+                                       for method, has_test
+                                           in is_tested.items()
+                                       if not has_test)))
 
     def __testfile_for(self, classname):
         return os.path.join(os.path.dirname(__file__),
