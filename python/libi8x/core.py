@@ -210,7 +210,10 @@ class Context(Object):
         if klass is None:
             clsname = self.__LONG_CLASSNAMES.get(clsname, clsname)
             klass = getattr(self, clsname.upper() + "_CLASS")
-        return klass()
+        result = klass()
+        if getattr(result, "__libi8x_persistent__", False):
+            result.is_persistent = True
+        return result
 
     @property
     def log_priority(self):

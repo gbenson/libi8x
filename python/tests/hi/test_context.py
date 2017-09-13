@@ -59,6 +59,22 @@ class TestContext(TestCase):
         self.assertIsInstance(ctx, libi8x.Context)
         self.assertNotEqual(self._i8xlog, [])
 
+    def test_libi8x_persistent(self):
+        """Test __libi8x_persistent__."""
+        class TestInferior(libi8x.Inferior):
+            pass
+        ctx = self.ctx_new()
+        ctx.INFERIOR_CLASS = TestInferior
+        for setting in (False, True, None, 0, 1, -1, [], [0]):
+            TestInferior.__libi8x_persistent__ = setting
+            expect = not not setting
+            inf = ctx.new_inferior()
+            try:
+                self.assertTrue(isinstance(inf, TestInferior))
+                self.assertEqual(inf.is_persistent, expect)
+            finally:
+                inf.is_persistent = False
+
     def test_log_priority(self):
         """Test Context.log_priority."""
         ctx = self.ctx_new()
