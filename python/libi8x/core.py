@@ -147,7 +147,7 @@ class Context(Object):
     def __init__(self, flags=0, log_fn=None):
         check = py8x.ctx_new(self.__new_context, flags, log_fn)
         assert check is self
-        py8x.ctx_set_object_factory(self, self.__new_child)
+        py8x.ctx_set_object_factory(self, Context.__new_child)
 
     # Python wrappers for the underlying objects in C libi8x.
     # May be overridden to provide your own implementations.
@@ -176,19 +176,18 @@ class Context(Object):
         "listitem": _I8XListItem,
     }
 
-    def __new_context(self, clsname):
+    def __new_context(self, ctx, clsname):
         """Object factory used for contexts."""
-        assert clsname == "ctx"
+        assert clsname == "ctx" and ctx is None
         return self
 
-    @classmethod
-    def __new_child(cls, clsname):
+    def __new_child(self, clsname):
         """Object factory used for everything but contexts."""
         assert clsname != "ctx"
-        klass = Context.__INTERNAL_CLASSES.get(clsname, None)
+        klass = self.__INTERNAL_CLASSES.get(clsname, None)
         if klass is None:
-            clsname = cls.__LONG_CLASSNAMES.get(clsname, clsname)
-            klass = getattr(cls, clsname.upper() + "_CLASS")
+            clsname = self.__LONG_CLASSNAMES.get(clsname, clsname)
+            klass = getattr(self, clsname.upper() + "_CLASS")
         return klass()
 
     @property

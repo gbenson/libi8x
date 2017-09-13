@@ -489,7 +489,16 @@ py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
       dbg (ctx, "%s %p capsule created\n", classname, ob);
 
       /* Create a Python object to hold the capsule.  */
-      result = PyObject_CallFunction (obf_fn, "s", classname);
+      struct i8x_object *ctx_ob = (struct i8x_object *) ctx;
+      PyObject *ctxc = py8x_encapsulate_2 (ob == ctx_ob ? NULL : ctx_ob,
+					   NULL);
+      if (ctxc == NULL)
+	{
+	  Py_DECREF (capsule);
+	  return NULL;
+	}
+      result = PyObject_CallFunction (obf_fn, "Os", ctxc, classname);
+      Py_DECREF (ctxc);
       if (result == NULL)
 	{
 	  Py_DECREF (capsule);

@@ -28,7 +28,7 @@ import _libi8x as py8x
 import weakref
 
 class TestObject(object):
-    def __init__(self, type):
+    def __init__(self, ctx, type):
         self.type = type
 
     def __str__(self):
@@ -39,8 +39,8 @@ class TestCase(BaseTestCase):
         self.__objects = []
         self._libi8xtest_user_setUp()
 
-    def _new_i8xobj(self, type):
-        result = TestObject(type)
+    def _new_i8xobj(self, *args):
+        result = TestObject(*args)
         self.__objects.append(weakref.ref(result))
         return result
 

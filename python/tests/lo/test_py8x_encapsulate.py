@@ -31,7 +31,7 @@ class TestPy8xEncapsulate(common.TestCase):
         """Test with an object factory that raises an exception."""
         class Error(Exception):
             pass
-        def obfactory(type):
+        def obfactory(*args):
             raise Error("boom")
         ctx = self.ctx_new()
         py8x.ctx_set_object_factory(ctx, obfactory)
@@ -40,7 +40,7 @@ class TestPy8xEncapsulate(common.TestCase):
 
     def test_immutable_wrapper(self):
         """Test with an object factory that returns unusable wrappers."""
-        def obfactory(type):
+        def obfactory(*args):
             pass
         ctx = self.ctx_new()
         py8x.ctx_set_object_factory(ctx, obfactory)

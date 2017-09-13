@@ -59,7 +59,7 @@ class _TestBadArgTypes(common.TestCase):
         self.tv_sequence = ()
         if sys.version_info >= (3,):
             self.tv_buffer = b""
-        self.tv_callable = lambda *args: common.TestObject("BATobj")
+        self.tv_callable = lambda *args: common.TestObject(None, "BATobj")
 
         # Types used for testing but not required for probing.
         self.tv_none = None

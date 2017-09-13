@@ -89,9 +89,9 @@ class TestPy8xRelocateFn(common.PopulatedTestCase):
         """Test the py8x_encapsulate(reloc) => NULL path."""
         class Error(Exception):
             pass
-        def obf_no_relocs(type):
-            if type != "reloc":
-                return self._new_i8xobj(type)
+        def obf_no_relocs(*args):
+            if "reloc" not in args:
+                return self._new_i8xobj(*args)
             raise Error("bang")
         py8x.ctx_set_object_factory(self.ctx, obf_no_relocs)
         self.inf.relocate_address = self.__relocate

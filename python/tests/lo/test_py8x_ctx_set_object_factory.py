@@ -34,7 +34,7 @@ class TestPy8xCtxSetObjectFactory(common.TestCase):
         ctx = self.ctx_new()
         objects = []
         def obf_func(*args):
-            objects.append(args)
+            objects.append(args[1:])
             return common.TestObject(*args)
         py8x.ctx_set_object_factory(ctx, obf_func)
         py8x.inf_new(ctx) # create an object
