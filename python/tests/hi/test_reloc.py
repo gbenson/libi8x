@@ -39,6 +39,11 @@ class TestRelocation(TestCase):
         """Test Relocation.context."""
         self.assertIs(self.reloc.context, self.ctx)
 
+    def test_is_persistent(self):
+        """Test Relocation.is_persistent."""
+        del self.ctx, self.func
+        self._test_persistence("reloc")
+
     def test_function(self):
         """Test Relocation.function."""
         self.assertIs(self.reloc.function, self.func)

@@ -24,7 +24,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import _libi8x as py8x
+import threading
 import sys
+
+# Base classes
 
 class Object(object):
     """Base class for all libi8x objects."""
@@ -36,6 +39,25 @@ class ChildObject(Object):
     def context(self):
         """Context that created this object."""
         return py8x.ob_get_ctx(self)
+
+    @property
+    def is_persistent(self):
+        """Is this object protected from garbage collection?"""
+        with _gc_protected_lock:
+            return self in _gc_protected
+
+    @is_persistent.setter
+    def is_persistent(self, value):
+        if value:
+            with _gc_protected_lock:
+                _gc_protected[self] = True
+        else:
+            with _gc_protected_lock:
+                _gc_protected.pop(self, None)
+
+_gc_protected_lock = threading.Lock()
+with _gc_protected_lock:
+    _gc_protected = {}
 
 # Internal objects
 

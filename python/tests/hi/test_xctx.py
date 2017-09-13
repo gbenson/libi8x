@@ -32,6 +32,11 @@ class TestExecutionContext(TestCase):
         xctx = ctx.new_xctx()
         self.assertIs(xctx.context, ctx)
 
+    def test_is_persistent(self):
+        """Test ExecutionContext.is_persistent."""
+        self.xctx = self.ctx_new().new_xctx()
+        self._test_persistence("xctx")
+
     def test_call(self):
         """Test ExecutionContext.call."""
         ctx = self.ctx_new()

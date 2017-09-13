@@ -30,6 +30,11 @@ class FunctionTestCase(object):
         """Test Function.context."""
         self.assertIs(self.func.context, self.ctx)
 
+    def test_is_persistent(self):
+        """Test Function.is_persistent."""
+        del self.ctx
+        self._test_persistence("func")
+
     def test_ref(self):
         """Test Function.ref."""
         ref = self.func.ref

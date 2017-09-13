@@ -34,6 +34,11 @@ class TestInferior(TestCase):
         inf = ctx.new_inferior()
         self.assertIs(inf.context, ctx)
 
+    def test_is_persistent(self):
+        """Test Inferior.is_persistent."""
+        self.inf = self.ctx_new().new_inferior()
+        self._test_persistence("inf")
+
 class ReadMemRelocTestCase(TestCase):
     def _do_readmem_reloc_test(self, inf):
         ctx = inf.context

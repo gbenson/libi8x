@@ -35,6 +35,11 @@ class TestFunctionReference(TestCase):
         """Test FunctionReference.context."""
         self.assertIs(self.funcref.context, self.ctx)
 
+    def test_is_persistent(self):
+        """Test FunctionReference.is_persistent."""
+        del self.ctx
+        self._test_persistence("funcref")
+
     def test_resolved(self):
         """Test FunctionReference.is_resolved returning True."""
         self.assertTrue(self.funcref.is_resolved)

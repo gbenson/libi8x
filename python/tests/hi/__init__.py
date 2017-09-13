@@ -25,6 +25,7 @@ from __future__ import unicode_literals
 
 from libi8xtest import *
 import libi8x
+import weakref
 
 __all__ = compat_all(
     "libi8x",
@@ -48,3 +49,36 @@ class TestCase(Libi8xTestCase):
 
         check(len)
         check(loop)
+
+    def _test_persistence(self, attr):
+        """Test getattr(self, attr).is_persistent."""
+        obj = getattr(self, attr, None)
+        self.assertIsNotNone(obj)
+        self.assertTrue(hasattr(obj, "is_persistent"))
+
+        # Ensure we have the only reference.
+        delattr(self, attr)
+
+        # Check objects aren't persistent by default.
+        self.assertFalse(obj.is_persistent)
+
+        # Test making the object persistent.
+        obj.is_persistent = True
+        self.assertTrue(obj.is_persistent)
+
+        # Check the object persists.
+        ref = weakref.ref(obj)
+        del obj
+        obj = ref()
+        self.assertIsNotNone(obj)
+
+        # Test making the object transient.
+        obj.is_persistent = False
+        self.assertFalse(obj.is_persistent)
+
+        # Check the object now gets freed.  If it didn't then we
+        # didn't have the only reference and the above persistence
+        # check was invalid.
+        del obj
+        obj = ref()
+        self.assertIsNone(obj)

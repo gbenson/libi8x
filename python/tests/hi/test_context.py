@@ -34,6 +34,11 @@ class TestContext(TestCase):
         ctx = self.ctx_new()
         self.assertFalse(hasattr(ctx, "context"))
 
+    def test_is_persistent(self):
+        """Check there is no Context.is_persistent method."""
+        ctx = self.ctx_new()
+        self.assertFalse(hasattr(ctx, "is_persistent"))
+
     def test_libi8x_defaults(self):
         """Test Context.__init__ with no flags or logger."""
         ctx = self.ctx_new(flags=0)
