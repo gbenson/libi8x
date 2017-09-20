@@ -46,3 +46,16 @@ class TestPy8xEncapsulate(common.TestCase):
         py8x.ctx_set_object_factory(ctx, obfactory)
         with self.assertRaises(AttributeError):
             py8x.inf_new(ctx)
+
+    def test_parent_reference(self):
+        """Ensure the parent is referenced on capsule recreation."""
+        ctx = self.ctx_new()
+        func = py8x.ctx_import_bytecode(ctx, self.RELOC_NOTE, "testnote", 0)
+        relocs = py8x.func_get_relocs(func)
+        del func
+        py8x.listitem_get_object(py8x.list_get_first(relocs))
+        reloc = py8x.listitem_get_object(py8x.list_get_first(relocs))
+        del relocs
+        # The next line aborts ("code 0xNNNN released with references")
+        # if the reloc capsule does not hold a reference to its parent.
+        del ctx

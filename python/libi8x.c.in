@@ -394,7 +394,7 @@ py8x_ob_unref (PyObject *obc)
   ud->parent = NULL;
 
   i8x_ob_unref (ob);
-  Py_XDECREF (parent);
+  Py_DECREF (parent);
 }
 
 /* Encapsulate and return a libi8x object.  */
@@ -443,17 +443,13 @@ py8x_encapsulate_2 (struct i8x_object *ob, struct py8x_userdata *new_ud)
       ud = new_ud;
     }
 
-  /* Reference the object's parent's wrapper.  */
-  if (new_ud != NULL && ud->parent == NULL)
+  /* Reference the object's parent's wrapper.
+     N.B. for contexts this will reference Py_None.  */
+  if (ud->parent == NULL)
     {
-      struct i8x_object *parent = i8x_ob_get_parent (ob);
-
-      if (parent != NULL)
-	{
-	  ud->parent = py8x_encapsulate_2 (parent, NULL);
-	  if (ud->parent == NULL)
-	    return NULL;
-	}
+      ud->parent = py8x_encapsulate_2 (i8x_ob_get_parent (ob), NULL);
+      if (ud->parent == NULL)
+	return NULL;
     }
 
   /* Try and use a previously-created wrapped capsule.  */
