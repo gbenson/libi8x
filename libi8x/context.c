@@ -747,7 +747,8 @@ I8X_EXPORT i8x_err_e
 i8x_ctx_get_funcref (struct i8x_ctx *ctx, const char *signature,
 		     struct i8x_funcref **refp)
 {
-  const char *provider, *name, *ptypes, *rtypes;
+  const char *provider = NULL, *name = NULL;
+  const char *ptypes = NULL, *rtypes = NULL;
   char *buf;
   i8x_err_e err;
 
