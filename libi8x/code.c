@@ -216,29 +216,30 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
     case I8X_OPR_NONE:
       return I8X_OK;
 
-#define I8X_READ_FIXED_1(LABEL, TYPE, IS_SIGNED, RESULT)	\
-  case LABEL:							\
-    is_signed = IS_SIGNED;					\
-    {								\
-      TYPE tmp;							\
-								\
-      err = i8x_rb_read_ ## TYPE (rb, &tmp);			\
-      if (err == I8X_OK)					\
-	{							\
-	  RESULT = tmp;						\
-	  if (RESULT != tmp)					\
-	    err = i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location); \
-	}							\
-    }								\
-    break
+#define I8X_READ_FIXED_1(LABEL, TYPE, IS_SIGNED, RESULT)		\
+      case LABEL:							\
+	is_signed = IS_SIGNED;						\
+	{								\
+	  TYPE tmp;							\
+									\
+	  err = i8x_rb_read_ ## TYPE (rb, &tmp);			\
+	    if (err == I8X_OK)						\
+	      {								\
+		RESULT = tmp;						\
+		if (RESULT != tmp)					\
+		  err = i8x_rb_error (rb, I8X_NOTE_UNHANDLED,		\
+				      location);			\
+	      }								\
+	}								\
+	break
 
-#define I8X_READ_FIXED(SIZE)					\
-  I8X_READ_FIXED_1 (I8X_OPR_INT ## SIZE,			\
-		    int ## SIZE ## _t,				\
-		    true, signed_result);			\
-  I8X_READ_FIXED_1 (I8X_OPR_UINT ## SIZE,			\
-		    uint ## SIZE ## _t,				\
-		    false, unsigned_result)
+#define I8X_READ_FIXED(SIZE)						\
+      I8X_READ_FIXED_1 (I8X_OPR_INT ## SIZE,				\
+			int ## SIZE ## _t,				\
+			true, signed_result);				\
+      I8X_READ_FIXED_1 (I8X_OPR_UINT ## SIZE,				\
+			uint ## SIZE ## _t,				\
+			false, unsigned_result)
 
     I8X_READ_FIXED (8);
     I8X_READ_FIXED (16);
