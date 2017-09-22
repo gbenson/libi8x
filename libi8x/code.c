@@ -204,13 +204,14 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
 
       switch (code->wordsize)
 	{
-	case 32:
-	  type = I8X_OPR_UINT32;
-	  break;
+#define I8X_SET_TYPE_FOR_ADDR(SIZE)					\
+	  case SIZE:							\
+	    type = I8X_OPR_UINT ## SIZE;				\
+	    break
 
-	case 64:
-	  type = I8X_OPR_UINT64;
-	  break;
+	  FOREACH_TYPESIZE (I8X_SET_TYPE_FOR_ADDR);
+
+#undef I8X_SET_TYPE_FOR_ADDR
 
 	default:
 	  return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
