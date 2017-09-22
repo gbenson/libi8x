@@ -99,7 +99,7 @@ i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
     goto cleanup;
 
   i8x_assert (code->wordsize == 0);
-  for (int wordsize = 32; wordsize <= __WORDSIZE; wordsize += 32)
+  for (int wordsize = 32; wordsize <= __WORDSIZE; wordsize <<= 1)
     {
       for (int is_swapped = 0; is_swapped <= 1; is_swapped++)
 	{
@@ -122,6 +122,18 @@ i8x_code_unpack_info (struct i8x_code *code, struct i8x_funcref *ref)
       err = i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
       goto cleanup;
     }
+
+  /* Crowbar!  We can't support code->wordsize > __WORDSIZE without
+     changing *a lot* of declarations from uintptr_t to something
+     bigger to avoid truncating ptr and int values.  */
+  i8x_assert (code->wordsize <= __WORDSIZE);
+
+  /* Crowbar!  No wordsize should be enabled without tests.  Wordsizes
+     of 16 and 8 *should* work, but I8C only supports ELF and ELF only
+     supports 32 and 64 so there's no straightforward way to test this
+     right now.  Note that architecture specifiers can encode any even
+     wordsize from 0..254 inclusive; odd wordsizes clash.  */
+  i8x_assert (code->wordsize == 32 || code->wordsize == 64);
 
   /* Read max_stack.  */
   location = i8x_rb_get_ptr (rb);
