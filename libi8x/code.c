@@ -211,9 +211,6 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
 
   if (type == I8X_OPR_ADDRESS)
     {
-      if (code->wordsize > __WORDSIZE)
-	return i8x_rb_error (rb, I8X_NOTE_UNHANDLED, location);
-
       switch (code->wordsize)
 	{
 #define I8X_SET_TYPE_FOR_ADDR(SIZE)					\
