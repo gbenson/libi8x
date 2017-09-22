@@ -177,6 +177,12 @@ i8x_code_read_opcode (struct i8x_readbuf *rb, i8x_opcode_t *opcode)
   return I8X_OK;
 }
 
+#define FOREACH_TYPESIZE(DO_THIS)					\
+  DO_THIS (8);								\
+  DO_THIS (16);								\
+  DO_THIS (32);								\
+  DO_THIS (64)
+
 static i8x_err_e
 i8x_code_read_operand (struct i8x_readbuf *rb,
 		       struct i8x_code *code,
@@ -241,10 +247,7 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
 			uint ## SIZE ## _t,				\
 			false, unsigned_result)
 
-    I8X_READ_FIXED (8);
-    I8X_READ_FIXED (16);
-    I8X_READ_FIXED (32);
-    I8X_READ_FIXED (64);
+    FOREACH_TYPESIZE (I8X_READ_FIXED);
 
 #undef I8X_READ_FIXED
 #undef I8X_READ_FIXED_1
@@ -292,6 +295,8 @@ i8x_code_read_operand (struct i8x_readbuf *rb,
 
   return I8X_OK;
 }
+
+#undef FOREACH_TYPESIZE
 
 static i8x_err_e
 i8x_code_unpack_bytecode (struct i8x_code *code)
