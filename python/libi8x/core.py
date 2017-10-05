@@ -164,7 +164,10 @@ class Inferior(ChildObject):
         raise NotImplementedError
 
 class Note(ChildObject):
-    pass
+    @property
+    def srcname(self):
+        """This note's source name, or None if unknown."""
+        return py8x.note_get_src_name(self)
 
 class Relocation(ChildObject):
     @property

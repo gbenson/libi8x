@@ -26,9 +26,11 @@ from __future__ import unicode_literals
 from . import *
 
 class TestNote(TestCase):
+    SRCNAME = "/path/to/a/file"
+
     def setUp(self):
         self.ctx = self.ctx_new()
-        self.func = self.ctx.import_bytecode(self.GOOD_NOTE)
+        self.func = self.ctx.import_bytecode(self.GOOD_NOTE, self.SRCNAME)
         self.note = self.func.note
 
     def test_context(self):
@@ -39,3 +41,8 @@ class TestNote(TestCase):
         """Test Note.is_persistent."""
         del self.ctx, self.func
         self._test_persistence("note")
+
+    def test_srcname(self):
+        """Test Note.srcname."""
+        srcname = self.note.srcname
+        self.assertEqual(srcname, self.SRCNAME)
