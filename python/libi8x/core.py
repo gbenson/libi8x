@@ -258,8 +258,19 @@ class Context(Object):
         """Unregister a previously registered function."""
         return py8x.ctx_unregister_func(self, func)
 
-    def import_bytecode(self, buf, srcname=None, srcoffset=-1):
+    def import_bytecode(self, buf, srcname=None, srcoffset=None):
         """Load and register a bytecode function."""
+        if srcoffset is None:
+            srcoffset = -1
+        else:
+            try:
+                check = int(srcoffset)
+                if (check != srcoffset
+                      or type(check) is not type(srcoffset)
+                      or srcoffset < 0):
+                    raise TypeError
+            except TypeError:
+                raise TypeError("a positive integer or None is required")
         return py8x.ctx_import_bytecode(self, buf, srcname, srcoffset)
 
     def import_native(self, signature, impl):

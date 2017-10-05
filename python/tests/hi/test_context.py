@@ -176,6 +176,16 @@ class TestContext(TestCase):
         func = ctx.import_bytecode(self.GOOD_NOTE)
         self.assertIsInstance(func, libi8x.Function)
 
+    def test_import_bytecode_bad_srcoffset(self):
+        """Test Context.import_bytecode with bad srcoffsets."""
+        ctx = self.ctx_new()
+        for value in (-1, -5000, "4", 4.0, 23+0j, self, os):
+            with self.assertRaises(TypeError) as cm:
+                ctx.import_bytecode(self.GOOD_NOTE, srcoffset=value)
+        self.assertEqual(cm.exception.args[0],
+                         "a positive integer or None is required")
+        del cm
+
     def test_import_native(self):
         """Test Context.import_native."""
         ctx = self.ctx_new()
