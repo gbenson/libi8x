@@ -27,6 +27,10 @@ import _libi8x as py8x
 import threading
 import sys
 
+def _positive_or_None(value):
+    if value >= 0:
+        return value
+
 # Base classes
 
 class Object(object):
@@ -162,8 +166,8 @@ class Relocation(ChildObject):
 
     @property
     def srcoffset(self):
-        """This relocation's source offset, or -1 if unknown."""
-        return py8x.reloc_get_src_offset(self)
+        """This relocation's source offset, or None if unknown."""
+        return _positive_or_None(py8x.reloc_get_src_offset(self))
 
 class Context(Object):
     def __init__(self, flags=0, log_fn=None):

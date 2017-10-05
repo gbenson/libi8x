@@ -51,3 +51,9 @@ class TestRelocation(TestCase):
     def test_srcoffset(self):
         """Test Relocation.srcoffset."""
         self.assertEqual(self.reloc.srcoffset, self.EXPECT_OFFSET)
+
+    def test_no_srcoffset(self):
+        """Test Relocation.srcoffset returning None."""
+        self.func = self.ctx.import_bytecode(self.RELOC_NOTE)
+        self.reloc = list(self.func.relocations)[0]
+        self.assertIsNone(self.reloc.srcoffset)
