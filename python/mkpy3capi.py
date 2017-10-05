@@ -306,7 +306,11 @@ class CString(PyType):
     argfmt = "s"
 
     def do_return(self):
-        return "return PyStr_FromString (%s)" % self.retname
+        return """\
+if (%s == NULL)
+    Py_RETURN_NONE;
+
+  return PyStr_FromString (%s)""" % (self.retname, self.retname)
 
 class CVoid(PyType):
     def do_return(self):
