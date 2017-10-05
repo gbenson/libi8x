@@ -56,9 +56,19 @@ class TestBytecodeFunction(TestCase, FunctionTestCase):
         self.func = self.ctx.import_bytecode(self.GOOD_NOTE)
         self.signature = "example::factorial(i)i"
 
+    def test_note(self):
+        """Test Function.note."""
+        note = self.func.note
+        self.assertIsInstance(note, libi8x.Note)
+
 class TestNativeFunction(TestCase, FunctionTestCase):
     def setUp(self):
         self.ctx = self.ctx_new()
         self.signature = "test::func()"
         self.func = self.ctx.import_native(self.signature,
                                            self.do_not_call)
+
+    def test_note(self):
+        """Test Function.note."""
+        note = self.func.note
+        self.assertIsNone(note)

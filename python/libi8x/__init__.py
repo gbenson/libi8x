@@ -46,6 +46,7 @@ from .core import (
     Function,
     FunctionReference,
     Inferior,
+    Note,
     Object,
     Relocation,
 )
@@ -63,6 +64,7 @@ __all__ = (
     "Inferior",
     "InvalidNoteError",
     "LOG_TRACE",
+    "Note",
     "NoteError",
     "Object",
     "Relocation",

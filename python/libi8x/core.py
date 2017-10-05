@@ -129,6 +129,11 @@ class Function(ChildObject):
         return self.ref.signature
 
     @property
+    def note(self):
+        """The note this function was created from, or None if native."""
+        return py8x.func_get_note(self)
+
+    @property
     def relocations(self):
         """This function's relocations."""
         return py8x.func_get_relocs(self) or ()
@@ -158,6 +163,9 @@ class Inferior(ChildObject):
         """Relocate an address."""
         raise NotImplementedError
 
+class Note(ChildObject):
+    pass
+
 class Relocation(ChildObject):
     @property
     def function(self):
@@ -183,6 +191,7 @@ class Context(Object):
     FUNCTION_CLASS = Function
     FUNCTION_REFERENCE_CLASS = FunctionReference
     INFERIOR_CLASS = Inferior
+    NOTE_CLASS = Note
     RELOCATION_CLASS = Relocation
 
     # Map short classnames from C libi8x to the above names.
