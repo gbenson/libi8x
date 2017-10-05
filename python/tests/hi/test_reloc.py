@@ -26,12 +26,16 @@ from __future__ import unicode_literals
 from . import *
 
 class TestRelocation(TestCase):
+    IMPORT_NAME = r"C:\Some\File\Or another"
+    EXPECT_NAME = IMPORT_NAME
+
     IMPORT_OFFSET = 23
     EXPECT_OFFSET = IMPORT_OFFSET + 10
 
     def setUp(self):
         self.ctx = self.ctx_new()
         self.func = self.ctx.import_bytecode(self.RELOC_NOTE,
+                                             srcname=self.IMPORT_NAME,
                                              srcoffset=self.IMPORT_OFFSET)
         self.reloc = list(self.func.relocations)[0]
 
@@ -47,6 +51,10 @@ class TestRelocation(TestCase):
     def test_function(self):
         """Test Relocation.function."""
         self.assertIs(self.reloc.function, self.func)
+
+    def test_srcname(self):
+        """Test Relocation.srcname."""
+        self.assertEqual(self.reloc.srcname, self.EXPECT_NAME)
 
     def test_srcoffset(self):
         """Test Relocation.srcoffset."""

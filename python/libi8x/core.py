@@ -176,6 +176,11 @@ class Relocation(ChildObject):
         return py8x.reloc_get_func(self)
 
     @property
+    def srcname(self):
+        """This relocation's source name, or None if unknown."""
+        return self.function.note.srcname
+
+    @property
     def srcoffset(self):
         """This relocation's source offset, or None if unknown."""
         return _positive_or_None(py8x.reloc_get_src_offset(self))
