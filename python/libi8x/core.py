@@ -161,7 +161,7 @@ class Relocation(ChildObject):
         return py8x.reloc_get_func(self)
 
     @property
-    def source_offset(self):
+    def srcoffset(self):
         """This relocation's source offset, or -1 if unknown."""
         return py8x.reloc_get_src_offset(self)
 

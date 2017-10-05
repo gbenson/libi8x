@@ -48,6 +48,6 @@ class TestRelocation(TestCase):
         """Test Relocation.function."""
         self.assertIs(self.reloc.function, self.func)
 
-    def test_source_offset(self):
-        """Test Relocation.source_offset."""
-        self.assertEqual(self.reloc.source_offset, self.EXPECT_OFFSET)
+    def test_srcoffset(self):
+        """Test Relocation.srcoffset."""
+        self.assertEqual(self.reloc.srcoffset, self.EXPECT_OFFSET)
