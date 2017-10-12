@@ -48,22 +48,7 @@ if os.path.basename(here) == "python":
                "extra_objects": glob.glob("../libi8x/.libs/*.o")}
 
     # Collect C libi8x tests as well as our own.
-    def collector(*args):
-        import nose, unittest
-        suite = unittest.TestSuite()
-        cwd = os.getcwd()
-        tmp = os.path.join(here, "tests")
-        for root in (os.path.join(tmp, "lo"),
-                     os.path.join(tmp, "hi"),
-                     os.path.dirname(here)):
-            os.chdir(root)
-            try:
-                suite.addTest(nose.collector())
-            finally:
-                os.chdir(cwd)
-        return suite
-
-    testsuite="setup.collector"
+    testsuite="statictest.collector"
 else:
     extargs = {"libraries": ["i8x"]}
     testsuite="nose.collector"
