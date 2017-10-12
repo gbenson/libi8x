@@ -1,0 +1,21 @@
+language: c
+
+env:
+  - PYTHON=python2 PYTHON_DEPS=python-pycparser
+  - PYTHON=python3 PYTHON_DEPS="python3-setuptools python3-pycparser"
+
+before_install:
+  - wget http://lug.mtu.edu/ubuntu/pool/universe/p/py3c/py3c-dev_0.8-1_all.deb
+  - sudo apt-get install -y libelf-dev $PYTHON_DEPS
+  - sudo dpkg -i --force-depends py3c-dev_0.8-1_all.deb
+
+before_script:
+  - ./autogen.sh
+
+script:
+  - ./configure && make
+  - test -x examples/libthread_db.so.1
+  - make check
+
+after_failure:
+  - test -f tests/test-suite.log && cat tests/test-suite.log
