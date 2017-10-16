@@ -27,3 +27,5 @@ Makefile.in
 *.gcov
 
 core.*
+
+/libi8x-[0-9]*
