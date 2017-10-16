@@ -109,6 +109,7 @@ AC_CONFIG_FILES([
 	libi8x-test/Makefile
 	python/Makefile
 	tests/Makefile
-])
+	tests/python-tests
+], [chmod +x tests/python-tests])
 
 AC_OUTPUT

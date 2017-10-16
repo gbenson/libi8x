@@ -20,6 +20,25 @@
 
 test -z "@PYTHON@" && exit 77
 
-cd $(dirname $0 && pwd)
-cd ../python
-exec @PYTHON@ setup.py test
+top_srcdir=$(cd @top_srcdir@ && pwd)
+test -z "$top_srcdir" && exit 99
+
+top_builddir=$(cd @top_builddir@ && pwd)
+test -z "$top_builddir" && exit 99
+
+if [ $top_builddir != $top_srcdir ]; then
+    cd $top_srcdir
+    find python tests -name '*.py' | \
+	xargs tar -cf- python/libi8x.c |\
+	tar -xf- -C $top_builddir
+  export LIBI8X_TEST_SRCDIR=$top_srcdir
+fi
+
+cd $top_builddir/python
+@PYTHON@ setup.py test || exit $?
+
+if [ $top_builddir != $top_srcdir ]; then
+    cd $top_builddir
+    rm -f python/libi8x.c
+    find python tests -name '*.py' | xargs rm -f
+fi

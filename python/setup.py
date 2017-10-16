@@ -44,7 +44,8 @@ if os.path.basename(here) == "python":
     import glob
     print("warning: building static _libi8x")
     py8x_version += "-static"
-    extargs = {"include_dirs": ["../libi8x"],
+    srcdir = os.environ.get("LIBI8X_TEST_SRCDIR", "..")
+    extargs = {"include_dirs": [os.path.join(srcdir, "libi8x")],
                "extra_objects": glob.glob("../libi8x/.libs/*.o")}
 
     # Collect C libi8x tests as well as our own.

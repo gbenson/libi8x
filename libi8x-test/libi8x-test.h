@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -44,6 +44,14 @@ void __i8x_test_fail (const char *file, int line,
 		      struct i8x_ctx *ctx, i8x_err_e err,
 		      const char *format, ...)
   __attribute__ ((__noreturn__, format (printf, 5, 6)));
+
+#ifdef LIBI8X_TEST_SRCDIR
+const char *i8x_test_srcdir = LIBI8X_TEST_SRCDIR;
+#else
+extern const char *i8x_test_srcdir;
+#endif
+
+const char *i8x_test_srcfile (const char *filename);
 
 const char *i8x_byte_order_name (bool bytes_reversed);
 

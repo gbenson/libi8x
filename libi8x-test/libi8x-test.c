@@ -18,6 +18,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
+#include <string.h>
 #include <byteswap.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -25,6 +26,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <limits.h>
 #include <libi8x-test.h>
 
 void
@@ -63,9 +65,38 @@ i8x_byte_order_name (bool bytes_reversed)
   return names[*((unsigned char *) &tmp)];
 }
 
+static void
+i8x_test_init (void *mainfunc)
+{
+  CHECK (mainfunc != NULL);
+  CHECK (i8x_test_srcdir != NULL);
+}
+
+const char *
+i8x_test_srcfile (const char *filename)
+{
+  static char buf[PATH_MAX];
+
+  CHECK (strlen (i8x_test_srcdir) + 1 + strlen (filename) + 1
+	 <= sizeof (buf));
+
+  strcpy (buf, i8x_test_srcdir);
+  strcat (buf, "/");
+  strcat (buf, filename);
+
+  return buf;
+}
+
 void
 i8x_test_mmap (const char *filename, struct i8x_sized_buf *buf)
 {
+  size_t tmp = strlen (i8x_test_srcdir);
+
+  if (strlen (filename) < tmp + 1
+      || filename[tmp] != '/'
+      || strncmp (filename, i8x_test_srcdir, tmp) != 0)
+    filename = i8x_test_srcfile (filename);
+
   int fd = open (filename, O_RDONLY);
   CHECK (fd != -1);
 
@@ -88,7 +119,7 @@ i8x_test_munmap (struct i8x_sized_buf *buf)
 void
 i8x_execution_test_main (void)
 {
-  CHECK (i8x_execution_test != NULL);
+  i8x_test_init (&i8x_execution_test);
 
   /* Run the test with the debug allocator and interpreter, to
      catch any assertion failures or reference-counting errors,
@@ -138,7 +169,7 @@ i8x_validation_test_main (void)
   struct i8x_ctx *ctx;
   i8x_err_e err;
 
-  CHECK (i8x_validation_test != NULL);
+  i8x_test_init (&i8x_validation_test);
 
   /* Run with the debug allocator.  */
   err = i8x_ctx_new (I8X_DBG_MEM | LOG_NOTICE, NULL, &ctx);

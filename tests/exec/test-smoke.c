@@ -291,7 +291,7 @@ i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
   ftw_xctx = xctx;
   ftw_inf = inf;
 
-  CHECK (ftw ("corpus", ftw_callback, 16) == 0);
+  CHECK (ftw (i8x_test_srcfile ("corpus"), ftw_callback, 16) == 0);
 
   i8x_func_unref (dummy_function_Fp_i);
   i8x_func_unref (dummy_function_Fi_po);

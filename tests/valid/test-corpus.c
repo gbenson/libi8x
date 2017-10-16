@@ -154,7 +154,7 @@ i8x_validation_test (struct i8x_ctx *ctx)
   ftw_passcount = 0;
   ftw_failcount = 0;
 
-  CHECK (ftw ("corpus", ftw_callback, 16) == 0);
+  CHECK (ftw (i8x_test_srcfile ("corpus"), ftw_callback, 16) == 0);
   CHECK (ftw_passcount + ftw_failcount == 1528);
   CHECK (ftw_failcount == 0);
 }

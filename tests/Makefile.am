@@ -24,7 +24,8 @@ EXTRA_DIST = \
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
 	-I${top_srcdir}/libi8x \
-	-I${top_srcdir}/libi8x-test
+	-I${top_srcdir}/libi8x-test \
+	-DLIBI8X_TEST_SRCDIR='"${srcdir}"'
 
 AM_CFLAGS = ${my_CFLAGS}
 
@@ -42,9 +43,5 @@ check_PROGRAMS = \
 
 check_SCRIPTS = \
 	python-tests
-
-python-tests: python-tests.in
-	$(SED) -e 's,\@PYTHON\@,$(PYTHON),g' < $< > $@ || $(RM) $@
-	chmod +x $@
 
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
