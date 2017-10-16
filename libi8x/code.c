@@ -875,8 +875,8 @@ ip_to_so (struct i8x_code *code, struct i8x_instr *ip)
   return ip_to_bcp (code, ip) - mem_base + src_base;
 }
 
-/* Format an operand for i8x_code_dump_itable.  Note that I8C's
-   testsuite parses this output so be careful what you alter.  */
+/* Format an operand for i8x_code_dump_itable.  Note that I8X
+   parses this output so be careful what you alter.  */
 
 static void
 i8x_code_fmt_arg (char *buf, size_t bufsiz, i8x_operand_type_e type,
@@ -914,8 +914,8 @@ i8x_code_fmt_arg (char *buf, size_t bufsiz, i8x_operand_type_e type,
     }
 }
 
-/* Dump the instruction table.  Note that I8C's testsuite parses
-   this output so be careful what you alter.  */
+/* Dump the instruction table.  Note that I8X parses this output
+   so be careful what you alter.  */
 
 void
 i8x_code_dump_itable (struct i8x_code *code, const char *where)
