@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Red Hat, Inc.
+# Copyright (C) 2017 Red Hat, Inc.
 # This file is part of the Infinity Note Execution Library.
 #
 # The Infinity Note Execution Library is free software; you can
@@ -17,4 +17,9 @@
 # License along with the Infinity Note Execution Library; if not,
 # see <http://www.gnu.org/licenses/>.
 
-EXTRA_DIST = i8c
+EXTRA_DIST = \
+	setup.py \
+	libi8x.c \
+	statictest.py \
+	libi8xtest.py \
+	$(shell find libi8x tests -name '*.py')

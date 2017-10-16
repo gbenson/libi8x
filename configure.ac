@@ -107,8 +107,8 @@ AC_CONFIG_FILES([
 	examples/Makefile
 	libi8x/Makefile
 	libi8x-test/Makefile
+	python/Makefile
 	tests/Makefile
-	tests/corpus/Makefile
 ])
 
 AC_OUTPUT

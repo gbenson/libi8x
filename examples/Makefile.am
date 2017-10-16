@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Red Hat, Inc.
+# Copyright (C) 2016-17 Red Hat, Inc.
 # This file is part of the Infinity Note Execution Library.
 #
 # The Infinity Note Execution Library is free software; you can
@@ -17,8 +17,7 @@
 # License along with the Infinity Note Execution Library; if not,
 # see <http://www.gnu.org/licenses/>.
 
-EXTRA_DIST =
-CLEANFILES =
+EXTRA_DIST = proc_service.h
 
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \

@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Red Hat, Inc.
+# Copyright (C) 2016-17 Red Hat, Inc.
 # This file is part of the Infinity Note Execution Library.
 #
 # The Infinity Note Execution Library is free software; you can
@@ -19,4 +19,4 @@
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
-SUBDIRS = contrib libi8x libi8x-test examples tests
+SUBDIRS = contrib libi8x libi8x-test examples tests python

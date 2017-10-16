@@ -17,7 +17,9 @@
 # License along with the Infinity Note Execution Library; if not,
 # see <http://www.gnu.org/licenses/>.
 
-SUBDIRS = corpus
+EXTRA_DIST = \
+	corpus \
+	$(shell find . -name '*.py')
 
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
