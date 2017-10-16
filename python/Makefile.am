@@ -23,3 +23,7 @@ EXTRA_DIST = \
 	statictest.py \
 	libi8xtest.py \
 	$(shell find libi8x tests -name '*.py')
+
+mostlyclean-local:
+	rm -rf .eggs build *.egg* *.so
+	find . -name '*.pyc' | xargs rm -f

@@ -45,3 +45,6 @@ check_SCRIPTS = \
 	python-tests
 
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
+
+mostlyclean-local:
+	find . -name '*.pyc' | xargs rm -f
