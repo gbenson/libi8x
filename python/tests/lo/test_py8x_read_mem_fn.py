@@ -28,20 +28,53 @@ from . import common
 import struct
 import sys
 
-class TestPy8xReadMemFn(common.PopulatedTestCase):
-    TESTNOTE = common.PopulatedTestCase.DEREF_NOTE
+TEST_MEMORY = b"HeLlOmUmXoXoX"
+TEST_OFFSET = 3
+
+class TestPy8xReadMemFn_32be(common.PopulatedTestCase):
+    WORDSIZE, BIGENDIAN = 32, True
 
     @staticmethod
     def __readmem(inf, addr, len):
         """A correct read_memory function."""
-        return b"HeLlOmUmXoXoX"[addr:addr + len]
+        return TEST_MEMORY[addr:addr + len]
 
-    EXPECT_RESULT = struct.unpack({"little": b"<",
-                                   "big": b">"}[sys.byteorder] + b"I",
-                                  b"lOmU")
+    @property
+    def EXPECT_RESULT(self):
+        fmt = ((b"<", b">")[self.BIGENDIAN]
+               + {32: b"I", 64: b"Q"}[self.WORDSIZE])
+        len = struct.calcsize(fmt)
+        return struct.unpack(fmt, TEST_MEMORY[TEST_OFFSET:TEST_OFFSET+len])
+
+    def __archspec(self, wordsize, bigendian):
+        base = "i8"
+        if not bigendian:
+            base = reversed(base)
+        return common.compat_bytes(ord(c) ^ wordsize for c in base)
+
+    @property
+    def TESTNOTE(self):
+        want_archspec = self.__archspec(self.WORDSIZE, self.BIGENDIAN)
+
+        note = self.DEREF_NOTE
+        archspec_start = 3
+        archspec_limit = archspec_start + len(want_archspec)
+        # Validate archspec_start before we rewrite the note.
+        check_preamble = b"\5\1\3" # I8_CHUNK_CODEINFO, version 1, size 3
+        check_start = archspec_start - len(check_preamble)
+        self.assertEqual(note[check_start:archspec_limit],
+                         check_preamble
+                         + self.__archspec(32, False))
+        # Rewrite the note with the desired archspec.
+        return note[:archspec_start] + want_archspec + note[archspec_limit:]
+
 
     def __do_test(self):
-        result = py8x.xctx_call(self.xctx, self.funcref, self.inf, (3,))
+        result = py8x.xctx_call(self.xctx, self.funcref, self.inf,
+                                (TEST_OFFSET,))
+        print(self.WORDSIZE, self.BIGENDIAN)
+        print("expect", hex(self.EXPECT_RESULT[0]),
+              "actual", hex(result[0]))
         self.assertEqual(result, self.EXPECT_RESULT)
 
     def test_no_readmem_func(self):
@@ -81,8 +114,9 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
 
     def test_bad_result_length(self):
         """Check py8x_read_mem_fn catches results of the wrong length."""
+        expect_size = self.WORDSIZE >> 3
         for size in range(10):
-            if size != 4:
+            if size != expect_size:
                 def readmem(inf, addr, len):
                     return b"HeLlOmUmXyXyX"[:size]
                 self.inf.read_memory = readmem
@@ -90,7 +124,8 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
                     self.__do_test()
                 self.assertEqual(str(cm.exception),
                                  "read_memory returned bad length"
-                                 + " (expected 4, got %d)" % size)
+                                 + " (expected %d, got %d)" % (
+                                     expect_size, size))
 
     def test_exception(self):
         """Check py8x_read_mem_fn propagates exceptions."""
@@ -100,3 +135,13 @@ class TestPy8xReadMemFn(common.PopulatedTestCase):
             raise Error("boom")
         self.inf.read_memory = readmem
         self.assertRaises(Error, self.__do_test)
+
+class TestPy8xReadMemFn_32el(TestPy8xReadMemFn_32be):
+    BIGENDIAN = False
+
+if sys.maxsize >> 32:
+    class TestPy8xReadMemFn_64be(TestPy8xReadMemFn_32be):
+        WORDSIZE = 64
+
+    class TestPy8xReadMemFn_64el(TestPy8xReadMemFn_64be):
+        BIGENDIAN = False

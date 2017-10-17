@@ -51,8 +51,7 @@ class TestInferiorReadMemory(ReadMemRelocTestCase):
     TESTNOTE = ReadMemRelocTestCase.DEREF_NOTE
     INFERIOR_MEMORY = b"HeLlOmUmXoXoX"
     TESTNOTE_ARGS = (1,)
-    TESTNOTE_EXPECT_RESULT = struct.unpack(
-        {"little": b"<", "big": b">"}[sys.byteorder] + b"I", b"eLlO")
+    TESTNOTE_EXPECT_RESULT = struct.unpack(b"<I", b"eLlO")
 
     def test_no_readmem_func(self):
         """Test reading memory with no memory reader function set."""
