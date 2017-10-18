@@ -685,9 +685,9 @@ py8x_log_stderr (int priority, const char *filename, int linenumber,
   /* PySys_WriteStderr wants 1000 bytes max.  */
   char buf[1000];
   ssize_t size = sizeof (buf);
-  const char *dots = "...\n";
+  static const char dots[] = "...\n";
 
-  if (snprintf (buf, size, "py8x: %s: %s", function, msg) ==  size)
+  if (snprintf (buf, size, "py8x: %s: %s", function, msg) >= size)
     strcpy (buf + size - sizeof (dots), dots);
 
   PySys_WriteStderr ("%s", buf);

@@ -93,6 +93,30 @@ class BaseTestCase(unittest.TestCase):
     INVALID_NOTE = GOOD_NOTE[:9] + b"\x16" + GOOD_NOTE[10:]
     INVALID_NOTE_ERROR_OFFSET = 9
 
+    # Version of GOOD_NOTE with a very long name.
+    @property
+    def LONG_NAME_NOTE(self):
+        offset = 0x1c  # of start of signature chunk.
+        self.assertEqual(self.GOOD_NOTE[offset:offset + 3],
+                         compat_bytes((0x01,    # I8_CHUNK_SIGNATURE
+                                       0x02,    # version 2
+                                       0x04)))  # size (4 bytes)
+        return (self.GOOD_NOTE[:offset]
+                + compat_bytes((0x01,        # I8_CHUNK_SIGNATURE
+                                0x02,        # version 2
+                                0x04,        # size (4 bytes)
+                                0x02,        #   provider_offset
+                                0x02,        #   name_offset
+                                0x00,        #   rtypes_offset
+                                0x00,        #   ptypes_offset
+
+                                0x04,        # I8_CHUNK_STRINGS
+                                0x01,        # version 1
+                                0xf1, 0x03,  # size (497 bytes)
+                                0x69,        # 'i'
+                                0x00))       # '\0'
+                + b"_".join((b"longname",) * 55) + b"\0")
+
     # 32-bit little-endian note that divides by zero.
     #
     # define test::DZ returns int

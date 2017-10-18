@@ -92,7 +92,7 @@ class StderrLog(LoggerMixin, StderrGrabber):
             line = line.decode("utf-8")
             assert line.startswith(prefix)
             assert line[-1] == "\n"
-            yield line[len(prefix):-1].split(": ", 1)
+            yield tuple(line[len(prefix):-1].split(": ", 1))
 
 class UserLogger(LoggerMixin):
     """User logger to pass to py8x_ctx_{new,set_log_fn}."""
@@ -310,3 +310,48 @@ class TestPy8xLog(common.TestCase):
             self.__badlog_test(test,
                                py8x.xctx_new,
                                self.__badlog_ctx(), 512)
+
+    # Helpers for long line tests.
+
+    def __do_longline_test(self, logger=None):
+        ctx = self.ctx_new(syslog.LOG_DEBUG, logger)
+        func = py8x.ctx_import_bytecode(ctx, self.LONG_NAME_NOTE,
+                                        "testnote", 0)
+        ref = py8x.func_get_funcref(func)
+        sig = py8x.funcref_get_signature(ref)
+        self.assertEqual(len(sig), 994)
+        return sig
+
+    def __check_longline_result(self, sig, logger, limit=None):
+        c_func = "i8x_ctx_fire_availability_observer"
+        msg = sig + " became available"
+        if limit is not None:
+            # Rebuild the line py8x_log_stderr was given.
+            prefix = "py8x: %s: " % c_func
+            suffix = "\n"
+            line = prefix + msg + suffix
+            # Limit it.
+            self.assertGreater(len(line), limit)
+            line = line[:limit - 5] + "...\n"
+            self.assertEqual(len(line), limit - 1)
+            # Extract the message once again.
+            self.assertTrue(line.startswith(prefix))
+            self.assertTrue(line.endswith(suffix))
+            msg = line[len(prefix):-len(suffix)]
+        self.assertIn((c_func, msg), logger.messages)
+
+    # Long line tests.
+
+    def test_long_line_stderr(self):
+        """Test logging long lines to stderr."""
+        with StderrLog() as stderr:
+            sig = self.__do_longline_test()
+        self.__check_longline_result(sig, stderr, 1000)
+
+    def test_initial_logger(self):
+        """Test behaviour with a logger passed to py8x_ctx_new."""
+        logger = UserLogger()
+        with StderrLog() as stderr:
+            sig = self.__do_longline_test(logger)
+        self.assertTrue(stderr.is_empty)
+        self.__check_longline_result(sig, logger)
