@@ -166,7 +166,7 @@ i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intptr_t *rp)
 
   while (1)
     {
-      uint8_t byte;
+      uint8_t byte = 0;
       i8x_err_e err;
 
       err = i8x_rb_read_uint8_t (rb, &byte);
@@ -215,7 +215,7 @@ i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintptr_t *rp)
 
   while (1)
     {
-      uint8_t byte;
+      uint8_t byte = 0;
       i8x_err_e err;
 
       err = i8x_rb_read_uint8_t (rb, &byte);

@@ -13,7 +13,7 @@ before_script:
   - ./autogen.sh
 
 script:
-  - ./configure && make
+  - CFLAGS="-g -O3" ./configure && make V=1
   - test -x examples/libthread_db.so.1
   - make check
   - test -f tests/test-suite.log && rm -f tests/test-suite.log

@@ -119,8 +119,8 @@ i8x_tld_helper (struct i8x_ctx *ctx,
 
 	case I8_TYPE_FUNCTION:
 	  {
-	    const char *ptypes_start, *ptypes_limit;
-	    const char *rtypes_start, *rtypes_limit;
+	    const char *ptypes_start, *ptypes_limit = NULL;
+	    const char *rtypes_start, *rtypes_limit = NULL;
 	    i8x_err_e err;
 
 	    err = i8x_functype_get_bounds (ctx, ptr, limit,

@@ -224,7 +224,7 @@ i8x_note_get_unique_chunk (struct i8x_note *note, uintptr_t type_id,
 static i8x_err_e
 i8x_note_locate_strings (struct i8x_note *note)
 {
-  struct i8x_chunk *chunk;
+  struct i8x_chunk *chunk = NULL;
   const char *strings;
   i8x_err_e err;
 
