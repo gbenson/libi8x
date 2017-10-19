@@ -24,6 +24,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import libi8x
+import os
 import sys
 import syslog
 import unittest
@@ -41,11 +42,42 @@ else:
     compat_all = lambda *items: items
 
 __all__ = compat_all(
+    "APITestCase",
     "BaseTestCase",
     "compat_all",
     "compat_bytes",
     "Libi8xTestCase",
 )
+
+class APITestCase(unittest.TestCase):
+    PY_TOPDIR = os.path.dirname(__file__)
+
+    _py8x_testfile_fmt = os.path.join(PY_TOPDIR, "tests", "lo", "test_%s.py")
+
+    def _has_testcase(self, function):
+        """Return True if the specified function has an API testcase."""
+        fmt = getattr(self, "_%s_testfile_fmt" % function.split("_", 1)[0])
+        filename = fmt % function
+        if os.path.exists(filename):
+            return True
+
+        # Allow get and set tests to be combined.
+        dirname, basename = os.path.split(filename)
+        for try_combine in ("_get_", "_set_"):
+            if basename.find(try_combine) == -1:
+                continue
+            combined = basename.replace(try_combine, "_get_set_")
+            return os.path.exists(os.path.join(dirname, combined))
+        return False
+
+    def assertAllTested(self, functions):
+        """Raise AssertionError unless all functions have testcases."""
+        all_checked = True
+        for func in sorted(functions):
+            if not self._has_testcase(func):
+                print("UNCHECKED:", func)
+                all_checked = False
+        self.assertTrue(all_checked)
 
 class BaseTestCase(unittest.TestCase):
     def __init__(self, *args, **kwargs):

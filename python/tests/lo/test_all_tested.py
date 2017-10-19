@@ -24,31 +24,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import _libi8x as py8x
+from . import common
 import os
-import unittest
 
-class TestAllTested(unittest.TestCase):
+class TestAllTested(common.APITestCase):
     def test_all_tested(self):
         """Check we test everything we export."""
-        format = os.path.join(os.path.dirname(__file__), "test_py8x_%s.py")
-        unchecked = []
-        for attr in dir(py8x):
-            if attr.startswith("__"):
-                continue
-            if type(getattr(py8x, attr)) in (type, type(0)):
-                continue
-            if os.path.exists(format % attr):
-                continue
-
-            # Allow get and set tests to be combined
-            tmp = None
-            if attr.find("_get_") >= 0:
-                tmp = attr.replace("_get_", "_get_set_")
-            elif attr.find("_set_") >= 0:
-                tmp = attr.replace("_set_", "_get_set_")
-            if tmp is not None and os.path.exists(format % tmp):
-                continue
-
-            unchecked.append(attr)
-        if unchecked:
-            self.fail("unchecked: " + " ".join(unchecked))
+        self.assertAllTested("py8x_" + attr
+                             for attr in dir(py8x)
+                             if not attr.startswith("__")
+                             and type(getattr(py8x, attr)) not in (type,
+                                                                   type(0)))
