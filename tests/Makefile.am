@@ -41,6 +41,18 @@ check_PROGRAMS = \
 	exec/test-smoke \
 	valid/test-corpus
 
+if HAVE_LIBELF
+check_PROGRAMS += examples/test-libthread_db
+
+examples_test_libthread_db_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I${top_srcdir}/examples
+
+examples_test_libthread_db_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	$(top_builddir)/examples/libi8x-tdbx.la
+endif
+
 check_SCRIPTS = \
 	python-tests
 
