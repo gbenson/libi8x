@@ -1112,28 +1112,32 @@ td_thr_tlsbase (const td_thrhandle_t *th, unsigned long int modid,
 
 /* Get address of thread local variable.  */
 
-extern td_err_e
+td_err_e
 td_thr_tls_get_addr (const td_thrhandle_t *th, psaddr_t map_address,
 		     size_t offset, psaddr_t *address)
 {
   td_thragent_t *ta = th->th_ta_p;
 
   union i8x_value arg, ret;
-  i8x_err_e err;
+  td_err_e err;
 
   arg.p = map_address;
 
-  err = i8x_xctx_call (ta->xctx, ta->link_map_get_tls_modid, ta->inf,
-		       &arg, &ret);
+  err = td_err_from_i8x_err (i8x_xctx_call (ta->xctx,
+					    ta->link_map_get_tls_modid,
+					    ta->inf, &arg, &ret));
 
-  if (err != I8X_OK)
+  if (err != TD_OK)
     return td_err_from_i8x_err (err);
 
-  err = td_thr_tlsbase (th, ret.u, address);
-  if (err == TD_OK)
-    *address += offset;
+  psaddr_t base_address = NULL;
+  err = td_thr_tlsbase (th, ret.u, &base_address);
+  if (err != TD_OK)
+    return err;
 
-  return err;
+  *address = (psaddr_t) ((intptr_t) base_address + offset);
+
+  return TD_OK;
 }
 
 /* Enable reporting for EVENT for thread TH.  */

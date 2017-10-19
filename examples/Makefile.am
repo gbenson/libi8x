@@ -32,7 +32,7 @@ if HAVE_LIBELF
 
 lib_LTLIBRARIES = libi8x-tdbx.la
 libi8x_tdbx_la_SOURCES = libthread_db.c
-libi8x_tdbx_la_CFLAGS = $(LIBELF_CFLAGS)
+libi8x_tdbx_la_CFLAGS = $(AM_CFLAGS) $(LIBELF_CFLAGS)
 libi8x_tdbx_la_LIBADD = $(top_builddir)/libi8x/libi8x.la $(LIBELF_LIBS)
 libi8x_tdbx_la_LDFLAGS = -avoid-version -module -shared -export-dynamic
 
