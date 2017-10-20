@@ -1,0 +1,11 @@
+git clone https://gitlab.com/gbenson/glibc.git
+git branch forth-bridge infinity-forth-bridge
+git checkout forth-bridge
+ ... build it
+python /path/to/libi8x/contrib/dump-notes.py \
+  nptl/libpthread.so \
+  elf/ld.so \
+  /path/to/libi8x/tests/corpus/glibc/0.00-4b/$(uname -m)
+
+"x86_64" notes built on blade.nx:
+  Red Hat Enterprise Linux Server release 7.4 (Maipo)
