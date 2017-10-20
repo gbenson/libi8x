@@ -32,6 +32,9 @@ extern "C" {
 #define CHECK(expr) \
   ((void) ((expr) ? 0 : (FAIL (#expr), 0)))
 
+#define SHOULD_NOT_CALL() \
+  FAIL ("should not call")
+
 #define FAIL(...) \
   __i8x_test_fail (__FILE__, __LINE__, NULL, I8X_OK, __VA_ARGS__)
 
