@@ -28,18 +28,19 @@ import subprocess
 import sys
 
 # Directories.
-TESTDIR = os.path.dirname(__file__)     # libi8x/tests
-TOPDIR = os.path.dirname(TESTDIR)       # libi8x
-PYDIR = os.path.join(TOPDIR, "python")  # libi8x/python
+TEST_BUILDDIR = os.path.dirname(__file__)           # libi8x/tests
+TOP_BUILDDIR, check = os.path.split(TEST_BUILDDIR)  # libi8x
+assert check == "tests"
+PY_BUILDDIR = os.path.join(TOP_BUILDDIR, "python")  # libi8x/python
 
 # Build _libi8x.so if we aren't running under python/setup.py.
 # This allows us to e.g. run individual tests using nosetests.
 if sys.argv[0] != "setup.py":
     subprocess.check_call(
         (sys.executable, "setup.py", "build_ext", "--inplace"),
-        cwd=PYDIR)
-    if PYDIR not in sys.path:
-        sys.path.insert(0, PYDIR)
+        cwd=PY_BUILDDIR)
+    if PY_BUILDDIR not in sys.path:
+        sys.path.insert(0, PY_BUILDDIR)
 
 from libi8xtest import *
 import libi8x
@@ -47,12 +48,13 @@ import libi8x
 __all__ = compat_all(
     "libi8x",
     "TestCase",
+    "TOP_BUILDDIR",
 )
 
 class TestCase(Libi8xTestCase):
     def _libi8xtest_tearDown(self):
         # Ensure we're testing the static local build we expect
-        self.assertTrue(libi8x.__file__.startswith(PYDIR + os.sep))
+        self.assertTrue(libi8x.__file__.startswith(PY_BUILDDIR + os.sep))
         self.assertTrue(libi8x.__version__.endswith("-static"))
         if len(self._i8xlog) > 0:
             self.assertEqual(self._i8xlog[0][-1],
