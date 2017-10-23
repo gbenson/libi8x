@@ -46,6 +46,7 @@ class _TestBadArgTypes(common.TestCase):
         self.tv_listitem = py8x.list_get_first(self.tv_list)
         self.tv_reloc = py8x.listitem_get_object(self.tv_listitem)
         self.tv_inf = py8x.inf_new(self.tv_ctx)
+        self.tv_type = py8x.funcref_get_type(self.tv_funcref)
 
         # Special i8x type used as a placeholder for any i8x object.
         # It could be anything but it shouldn't be the same as any
