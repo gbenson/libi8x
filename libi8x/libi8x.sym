@@ -33,7 +33,6 @@ global:
 
 	i8x_funcref_get_signature;
 	i8x_funcref_is_global;
-	i8x_funcref_is_private;
 	i8x_funcref_is_resolved;
 	i8x_funcref_get_type;
 	i8x_funcref_get_num_params;

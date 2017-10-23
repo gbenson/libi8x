@@ -32,9 +32,6 @@ i8x_funcref_init (struct i8x_funcref *ref, const char *signature,
   if (strncmp (signature, "::", 2) != 0)
     ref->is_global = true;
 
-  if (strstr (signature, "::__") != NULL)
-    ref->is_private = true;
-
   ref->type = i8x_type_ref (type);
 
   ref->num_args = i8x_list_size (i8x_type_get_ptypes (type));
@@ -106,12 +103,6 @@ I8X_EXPORT bool
 i8x_funcref_is_global (struct i8x_funcref *ref)
 {
   return ref->is_global;
-}
-
-I8X_EXPORT bool
-i8x_funcref_is_private (struct i8x_funcref *ref)
-{
-  return ref->is_private;
 }
 
 I8X_EXPORT size_t

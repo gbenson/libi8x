@@ -265,9 +265,6 @@ i8x_err_e i8x_func_unregister (struct i8x_func *func);
 #define i8x_func_get_signature(func) \
   i8x_funcref_get_signature (i8x_func_get_funcref (func))
 
-#define i8x_func_is_private(func) \
-  i8x_funcref_is_private (i8x_func_get_funcref (func))
-
 /*
  * i8x_funcref
  *
@@ -278,7 +275,6 @@ I8X_LISTABLE_OBJECT_FUNCTIONS (funcref);
 
 const char *i8x_funcref_get_signature (struct i8x_funcref *ref);
 bool i8x_funcref_is_global (struct i8x_funcref *ref);
-bool i8x_funcref_is_private (struct i8x_funcref *ref);
 bool i8x_funcref_is_resolved (struct i8x_funcref *ref);
 struct i8x_type *i8x_funcref_get_type (struct i8x_funcref *ref);
 size_t i8x_funcref_get_num_params (struct i8x_funcref *ref);
