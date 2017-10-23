@@ -50,13 +50,6 @@ struct i8x_ctx
 
   struct i8x_list *functions;	/* List of registered functions.  */
 
-  /* User-supplied function called when a function becomes available.  */
-  i8x_notify_fn_t *func_avail_observer_fn;
-
-  /* User-supplied function called when a function is about to become
-     unavailable.  */
-  i8x_notify_fn_t *func_unavail_observer_fn;
-
   /* The three core types.  */
   struct i8x_type *integer_type;
   struct i8x_type *pointer_type;
@@ -362,20 +355,6 @@ i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority)
   ctx->log_priority = priority;
 }
 
-I8X_EXPORT void
-i8x_ctx_set_func_available_cb (struct i8x_ctx *ctx,
-			       i8x_notify_fn_t *func_avail_cb_fn)
-{
-  ctx->func_avail_observer_fn = func_avail_cb_fn;
-}
-
-I8X_EXPORT void
-i8x_ctx_set_func_unavailable_cb (struct i8x_ctx *ctx,
-				 i8x_notify_fn_t *func_unavail_cb_fn)
-{
-  ctx->func_unavail_observer_fn = func_unavail_cb_fn;
-}
-
 void
 i8x_ctx_update_availability (struct i8x_func *func, bool is_available)
 {
@@ -383,16 +362,6 @@ i8x_ctx_update_availability (struct i8x_func *func, bool is_available)
 
   info (ctx, "%s became %s\n", i8x_func_get_signature (func),
 	is_available ? "available" : "unavailable");
-
-  if (!i8x_funcref_is_global (i8x_func_get_funcref (func)))
-    return;
-
-  i8x_notify_fn_t *callback = is_available
-    ? ctx->func_avail_observer_fn
-    : ctx->func_unavail_observer_fn;
-
-  if (callback != NULL)
-    callback (func);
 }
 
 I8X_EXPORT void

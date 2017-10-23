@@ -216,8 +216,6 @@ typedef i8x_err_e i8x_nat_fn_t (struct i8x_xctx *xctx,
 				union i8x_value *args,
 				union i8x_value *rets);
 
-typedef void i8x_notify_fn_t (struct i8x_func *func);
-
 I8X_CONTEXT_OBJECT_FUNCTIONS (ctx);
 
 i8x_err_e i8x_ctx_new (int flags, i8x_log_fn_t *log_fn,
@@ -230,10 +228,6 @@ const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 void i8x_ctx_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn);
 int i8x_ctx_get_log_priority (struct i8x_ctx *ctx);
 void i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority);
-void i8x_ctx_set_func_available_cb (struct i8x_ctx *ctx,
-				    i8x_notify_fn_t *func_avail_cb_fn);
-void i8x_ctx_set_func_unavailable_cb (struct i8x_ctx *ctx,
-				      i8x_notify_fn_t *func_unavail_cb_fn);
 i8x_err_e i8x_ctx_get_funcref (struct i8x_ctx *ctx,
 			       const char *signature,
 			       struct i8x_funcref **ref);
