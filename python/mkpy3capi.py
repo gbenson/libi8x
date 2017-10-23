@@ -151,7 +151,7 @@ py%s (PyObject *self, PyObject *args)
         print("  %s%s (%s);" % (
             tmp, name,
             ", ".join(pname for ptype, pname in params)), file=fp)
-        print("\n  %s;\n" % rtype.do_check_result(), file=fp);
+        print("\n  %s;\n" % rtype.do_check_result(params), file=fp);
         print("  %s;\n}\n" % rtype.do_return(), file=fp)
 
     def __parse_pragma(self, line, prefix="libi8x_api_"):
@@ -260,7 +260,7 @@ class PyType(object):
 
     opp_return = None
 
-    def do_check_result(self):
+    def do_check_result(self, params):
         return "PY8X_CHECK_UNCAUGHT ()"
 
 class CBool(PyType):
@@ -319,12 +319,16 @@ class CVoid(PyType):
 class I8xError(PyType):
     retname = "err"
 
-    def do_check_result(self):
+    def do_check_result(self, params):
+        ctx = params[0][1]
+        if ctx != "ctx":
+            ctx = "i8x_%s_get_ctx (%s)"% (ctx, ctx)
+
         if self.opp_return is None:
-            return "PY8X_CHECK_CALL (ctx, err)"
+            return "PY8X_CHECK_CALL (%s, err)" % ctx
         else:
-            return ("PY8X_CHECK_CALL_DEREF (ctx, err, %s)"
-                    % self.opp_return.retname)
+            return ("PY8X_CHECK_CALL_DEREF (%s, err, %s)"
+                    % (ctx, self.opp_return.retname))
 
     def do_return(self):
         if self.opp_return is None:
