@@ -46,6 +46,7 @@ from libi8xtest import *
 import libi8x
 
 __all__ = compat_all(
+    "APITestCase",
     "libi8x",
     "TestCase",
     "TOP_BUILDDIR",
