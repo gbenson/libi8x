@@ -127,7 +127,7 @@ i8x_funcref_get_num_returns (struct i8x_funcref *ref)
 }
 
 void
-i8x_func_register (struct i8x_func *func)
+i8x_funcref_register_func (struct i8x_func *func)
 {
   struct i8x_funcref *ref = i8x_func_get_funcref (func);
 
@@ -140,7 +140,7 @@ i8x_func_register (struct i8x_func *func)
 }
 
 void
-i8x_func_unregister (struct i8x_func *func)
+i8x_funcref_unregister_func (struct i8x_func *func)
 {
   struct i8x_funcref *ref = i8x_func_get_funcref (func);
 

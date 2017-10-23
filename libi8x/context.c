@@ -918,7 +918,7 @@ i8x_ctx_register_func (struct i8x_ctx *ctx, struct i8x_func *func)
   if (err != I8X_OK)
     return err;
 
-  i8x_func_register (func);
+  i8x_funcref_register_func (func);
   i8x_ctx_resolve_funcrefs (ctx);
 
   return I8X_OK;
@@ -938,7 +938,7 @@ i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
   func = i8x_func_ref (func);
   i8x_listitem_remove (li);
 
-  i8x_func_unregister (func);
+  i8x_funcref_unregister_func (func);
   i8x_ctx_resolve_funcrefs (ctx);
 
   func = i8x_func_unref (func);

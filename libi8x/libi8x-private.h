@@ -260,8 +260,6 @@ void i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
 I8X_LIST_FUNCTIONS (func);
 I8X_LISTABLE_OBJECT_FUNCTIONS (func);
 
-void i8x_func_register (struct i8x_func *func);
-void i8x_func_unregister (struct i8x_func *func);
 bool i8x_func_all_deps_resolved (struct i8x_func *func);
 void i8x_func_fire_availability_observers (struct i8x_func *func);
 struct i8x_code *i8x_func_get_interp_impl (struct i8x_func *func);
@@ -274,6 +272,8 @@ I8X_LIST_FUNCTIONS (funcref);
 i8x_err_e i8x_funcref_new (struct i8x_ctx *ctx, const char *signature,
 			   struct i8x_type *functype,
 			   struct i8x_funcref **ref);
+void i8x_funcref_register_func (struct i8x_func *func);
+void i8x_funcref_unregister_func (struct i8x_func *func);
 void i8x_funcref_reset_is_resolved (struct i8x_funcref *ref);
 void i8x_funcref_mark_unresolved (struct i8x_funcref *ref);
 
