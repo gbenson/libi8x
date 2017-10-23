@@ -245,8 +245,7 @@ i8x_err_e i8x_ctx_get_functype (struct i8x_ctx *ctx,
 				struct i8x_note *src_note,
 				struct i8x_type **type);
 void i8x_ctx_forget_functype (struct i8x_type *type);
-void i8x_ctx_fire_availability_observer (struct i8x_func *func,
-					 bool is_available);
+void i8x_ctx_update_availability (struct i8x_func *func, bool is_available);
 size_t i8x_ctx_get_dispatch_table_size (struct i8x_ctx *ctx);
 i8x_err_e i8x_ctx_init_dispatch_table (struct i8x_ctx *ctx,
 				       void **table, size_t table_size,

@@ -139,7 +139,7 @@ class TestPy8xLog(common.TestCase):
 
     def check_avail(self, sig, func, msg):
         """Check a log entry is a function becoming available."""
-        self.assertEqual(func, "i8x_ctx_fire_availability_observer")
+        self.assertEqual(func, "i8x_ctx_update_availability")
         self.assertEqual(msg, sig + " became available")
 
     # Tests for where messages flow to.
@@ -323,7 +323,7 @@ class TestPy8xLog(common.TestCase):
         return sig
 
     def __check_longline_result(self, sig, logger, limit=None):
-        c_func = "i8x_ctx_fire_availability_observer"
+        c_func = "i8x_ctx_update_availability"
         msg = sig + " became available"
         if limit is not None:
             # Rebuild the line py8x_log_stderr was given.

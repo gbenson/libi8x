@@ -377,8 +377,7 @@ i8x_ctx_set_func_unavailable_cb (struct i8x_ctx *ctx,
 }
 
 void
-i8x_ctx_fire_availability_observer (struct i8x_func *func,
-				    bool is_available)
+i8x_ctx_update_availability (struct i8x_func *func, bool is_available)
 {
   struct i8x_ctx *ctx = i8x_func_get_ctx (func);
 

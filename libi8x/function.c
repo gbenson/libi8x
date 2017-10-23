@@ -153,7 +153,7 @@ i8x_func_unlink (struct i8x_object *ob)
   struct i8x_func *func = (struct i8x_func *) ob;
 
   if (func->observed_available)
-    i8x_ctx_fire_availability_observer (func, false);
+    i8x_ctx_update_availability (func, false);
 
   func->code = i8x_code_unref (func->code);
   func->ref = i8x_funcref_unref (func->ref);
@@ -270,7 +270,7 @@ i8x_func_update_availability (struct i8x_func *func)
   if (is_available == func->observed_available)
     return;
 
-  i8x_ctx_fire_availability_observer (func, is_available);
+  i8x_ctx_update_availability (func, is_available);
 
   func->observed_available = is_available;
 }
