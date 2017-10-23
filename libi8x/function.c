@@ -263,7 +263,7 @@ i8x_func_all_deps_resolved (struct i8x_func *func)
 }
 
 void
-i8x_func_fire_availability_observers (struct i8x_func *func)
+i8x_func_update_availability (struct i8x_func *func)
 {
   bool is_available = i8x_funcref_is_resolved (func->ref);
 

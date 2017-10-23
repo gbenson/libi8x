@@ -261,7 +261,7 @@ I8X_LIST_FUNCTIONS (func);
 I8X_LISTABLE_OBJECT_FUNCTIONS (func);
 
 bool i8x_func_all_deps_resolved (struct i8x_func *func);
-void i8x_func_fire_availability_observers (struct i8x_func *func);
+void i8x_func_update_availability (struct i8x_func *func);
 struct i8x_code *i8x_func_get_interp_impl (struct i8x_func *func);
 i8x_nat_fn_t *i8x_func_get_native_impl (struct i8x_func *func);
 

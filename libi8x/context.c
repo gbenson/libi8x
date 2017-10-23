@@ -902,7 +902,7 @@ i8x_ctx_resolve_funcrefs (struct i8x_ctx *ctx)
     {
       struct i8x_func *func = i8x_listitem_get_func (li);
 
-      i8x_func_fire_availability_observers (func);
+      i8x_func_update_availability (func);
     }
 }
 
