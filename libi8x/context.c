@@ -489,6 +489,8 @@ i8x_ctx_get_last_error_src_offset (struct i8x_ctx *ctx)
   return offset;
 }
 
+/* convenience */
+
 I8X_EXPORT const char *
 i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 		    char *buf, size_t bufsiz)

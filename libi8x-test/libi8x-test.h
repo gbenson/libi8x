@@ -20,7 +20,7 @@
 #ifndef _LIBI8X_TEST_H_
 #define _LIBI8X_TEST_H_
 
-#include <libi8x.h>
+#include <libi8x-test-private.h>
 #include <archspec.h>
 #include <opcodes.h>
 #include <stdio.h>

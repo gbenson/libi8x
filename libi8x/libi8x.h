@@ -221,8 +221,6 @@ i8x_err_e i8x_ctx_new (int flags, i8x_log_fn_t *log_fn,
 void i8x_ctx_clear_last_error (struct i8x_ctx *ctx);
 const char *i8x_ctx_get_last_error_src_name (struct i8x_ctx *ctx);
 ssize_t i8x_ctx_get_last_error_src_offset (struct i8x_ctx *ctx);
-const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
-				char *buf, size_t bufsiz);
 void i8x_ctx_set_log_fn (struct i8x_ctx *ctx, i8x_log_fn_t *log_fn);
 int i8x_ctx_get_log_priority (struct i8x_ctx *ctx);
 void i8x_ctx_set_log_priority (struct i8x_ctx *ctx, int priority);
@@ -246,17 +244,9 @@ struct i8x_list *i8x_ctx_get_functions (struct i8x_ctx *ctx);
  */
 I8X_COMMON_OBJECT_FUNCTIONS (func);
 
-i8x_err_e i8x_func_new_bytecode (struct i8x_note *note,
-				 struct i8x_func **func);
-i8x_err_e i8x_func_new_native (struct i8x_ctx *ctx,
-			       struct i8x_funcref *ref,
-			       i8x_nat_fn_t *impl_fn,
-			       struct i8x_func **func);
 struct i8x_funcref *i8x_func_get_funcref (struct i8x_func *func);
 struct i8x_note *i8x_func_get_note (struct i8x_func *func);
-struct i8x_list *i8x_func_get_externals (struct i8x_func *func);
 struct i8x_list *i8x_func_get_relocs (struct i8x_func *func);
-i8x_err_e i8x_func_register (struct i8x_func *func);
 i8x_err_e i8x_func_unregister (struct i8x_func *func);
 
 #define i8x_func_get_signature(func) \
@@ -340,10 +330,6 @@ I8X_COMMON_OBJECT_FUNCTIONS (listitem);
  */
 I8X_COMMON_OBJECT_FUNCTIONS (note);
 
-i8x_err_e i8x_note_new (struct i8x_ctx *ctx,
-			const char *buf, size_t bufsiz,
-			const char *srcname, ssize_t srcoffset,
-			struct i8x_note **note);
 const char *i8x_note_get_src_name (struct i8x_note *note);
 i8x_err_e i8x_note_get_unique_chunk (struct i8x_note *note,
 				     uintptr_t type_id, bool must_exist,
@@ -369,7 +355,6 @@ uintptr_t i8x_reloc_get_unrelocated (struct i8x_reloc *reloc);
 I8X_COMMON_OBJECT_FUNCTIONS (type);
 I8X_LISTABLE_OBJECT_FUNCTIONS (type);
 
-const char *i8x_type_get_encoded (struct i8x_type *type);
 bool i8x_type_is_functype (struct i8x_type *type);
 struct i8x_list *i8x_type_get_ptypes (struct i8x_type *type);
 struct i8x_list *i8x_type_get_rtypes (struct i8x_type *type);

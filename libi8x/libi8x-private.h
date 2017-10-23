@@ -20,8 +20,8 @@
 #ifndef _LIBI8X_PRIVATE_H_
 #define _LIBI8X_PRIVATE_H_
 
+#include <libi8x-test-private.h>
 #include <syslog.h>
-#include <libi8x.h>
 
 /* Encoded types.  */
 

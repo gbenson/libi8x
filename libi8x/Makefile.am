@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Red Hat, Inc.
+# Copyright (C) 2016-17 Red Hat, Inc.
 # This file is part of the Infinity Note Execution Library.
 #
 # The Infinity Note Execution Library is free software; you can
@@ -54,6 +54,7 @@ lib_LTLIBRARIES = libi8x.la
 
 libi8x_la_SOURCES = \
 	libi8x-private.h \
+	libi8x-test-private.h \
 	interp-private.h \
 	funcref-private.h \
 	inferior-private.h \
