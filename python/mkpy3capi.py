@@ -79,28 +79,109 @@ class API(object):
             assert name.startswith("i8x_")
             print("  PY8X_FUNCTION (%s)," % name[4:], file=fp)
 
-    def __emit_function(self, fp, name, rtype, params):
-        try:
-            rtype = PyType.from_ctype(rtype)
-        except NotImplementedError:
-            return
-        try:
-            params = [(PyType.from_ctype(t), n) for t, n in params]
-        except NotImplementedError:
-            return
+    def __template_defines(self, name):
+        """Return True if this function is defined in the template.
+        """
+        assert name.startswith("py8x_")
+        for index, line in enumerate(self.__template):
+            bits = line.split("(", 1)
+            if len(bits) == 1:
+                continue
+            if bits[0].rstrip() != name:
+                continue
+            assert self.__template[index - 2] == "\n"
+            assert self.__template[index + 1] == "{\n"
 
+            if name == "py8x_ob_unref":
+                assert line == "%s (PyObject *obc)\n" % name
+                assert self.__template[index - 1] == "static void\n"
+                continue
+
+            assert line == "%s (PyObject *self, PyObject *args)\n" % name
+            assert self.__template[index - 1] == "static PyObject *\n"
+
+            return True
+        return False
+
+    def __has_testcase(self, name):
+        """Return True if this function has a testcase.
+        """
+        assert name.startswith("py8x_")
+        if os.path.exists(self.__testfmt % name):
+            return True
+
+        # Allow get and set tests to be combined.
+        for what in ("_get_", "_set_"):
+            if name.find(what) >= 0:
+                name = name.replace(what, "_get_set_")
+                if os.path.exists(self.__testfmt % name):
+                    return True
+                break
+
+        return False
+
+    def __should_export(self, name):
+        """Return True if libi8x.c should define this function.
+        """
         assert name.startswith("i8x_")
-        tmp = name[4:]
-        if not os.path.exists(self.__testfmt % tmp):
-            for what in ("_get_", "_set_"):
-                if tmp.find(what) >= 0:
-                    tmp = tmp.replace(what, "_get_set_")
-                    if os.path.exists(self.__testfmt % tmp):
-                        break
-            else:
-                return
 
-        self.__ftable.append(name)
+        # Don't export generic object functions.
+        if name == "i8x_ob_get_ctx":
+            return True
+        if name.startswith("i8x_ob"):
+            return False
+
+        # py8x uses i8x_ob_get_ctx for everything.
+        if name.endswith("_get_ctx"):
+            return False
+
+        # py8x uses i8x_listitem_get_object for everything.
+        if name == "i8x_listitem_get_object":
+            return True
+        if name.startswith("i8x_listitem_get_"):
+            return False
+
+        # py8x handles referencing, and uses userdata itself.
+        for suffix in ("ref", "unref", "userdata"):
+            if name.endswith("_" + suffix):
+                return False
+
+        # py8x handles errors as exceptions.
+        if name == "i8x_strerror_r":
+            return False
+        if name.startswith("i8x_ctx") and name.find("_last_error") != -1:
+            return False
+
+        # py8x handles inferior access itself.
+        if name in ("i8x_inf_set_read_mem_fn", "i8x_inf_set_relocate_fn"):
+            return False
+
+        return True
+
+    def __emit_function(self, fp, c_name, rtype, params):
+        assert c_name.startswith("i8x_")
+        py_name = "py" + c_name[1:]
+
+        in_template = self.__template_defines(py_name)
+        has_testcase = self.__has_testcase(py_name)
+
+        if not self.__should_export(c_name):
+            assert not in_template
+            assert not has_testcase
+            return
+
+        if not has_testcase:
+            print("error: untested function:", c_name)
+            self.__all_tested = False
+            return
+
+        if in_template:
+            return
+
+        self.__ftable.append(c_name)
+
+        rtype = PyType.from_ctype(rtype)
+        params = [(PyType.from_ctype(t), n) for t, n in params]
 
         if (isinstance(rtype, I8xError)
               and isinstance(params[-1][0], I8xObjPtrPtr)):
@@ -112,8 +193,8 @@ class API(object):
 /* Python binding for %s.  */
 
 static PyObject *
-py%s (PyObject *self, PyObject *args)
-{""" % (name, name[1:]), file=fp)
+%s (PyObject *self, PyObject *args)
+{""" % (c_name, py_name), file=fp)
 
         fmts, args = [], []
         for ptype, pname in params:
@@ -149,7 +230,7 @@ py%s (PyObject *self, PyObject *args)
             tmp += rtype.retname
             tmp += " = "
         print("  %s%s (%s);" % (
-            tmp, name,
+            tmp, c_name,
             ", ".join(pname for ptype, pname in params)), file=fp)
         print("\n  %s;\n" % rtype.do_check_result(params), file=fp);
         print("  %s;\n}\n" % rtype.do_return(), file=fp)
@@ -173,15 +254,18 @@ py%s (PyObject *self, PyObject *args)
 
     def emit(self, template, output, testfmt):
         self.__testfmt = testfmt
-        with open(template) as ifp:
-            with open(output, "w") as ofp:
-                self.__emit_boilerplate(template, output, ofp)
-                for line in ifp.readlines():
-                    what = self.__parse_pragma(line)
-                    if what is None:
-                        ofp.write(line)
-                    else:
-                        getattr(self, "emit_" + what)(ofp)
+        with open(template) as fp:
+            self.__template = list(fp.readlines())
+        self.__all_tested = True
+        with open(output, "w") as ofp:
+            self.__emit_boilerplate(template, output, ofp)
+            for line in self.__template:
+                what = self.__parse_pragma(line)
+                if what is None:
+                    ofp.write(line)
+                else:
+                    getattr(self, "emit_" + what)(ofp)
+        assert self.__all_tested
 
     def __gcc(self, args, input):
         gcc = subprocess.Popen(("gcc",) + args + ("-",),
@@ -385,23 +469,7 @@ class ASTVisitor(pycparser.c_ast.NodeVisitor):
             list(map(self.api.add_constant, names))
 
     def visit_Decl(self, node):
-        name = node.name
-        if (name is None
-            or (name.startswith("i8x_")
-                and not ((name != "i8x_ob_get_ctx"
-                          and name.startswith("i8x_ob_"))
-                         or name.endswith("_ref")
-                         or name.endswith("_unref")
-                         or name.endswith("_userdata")
-                         or name.endswith("_fn")
-                         or name.endswith("_cb")
-                         or name.startswith("i8x_ctx_import_")
-                         or name.startswith("i8x_rb_read_")
-                         or name.startswith("i8x_list_get_")
-                         or name in ("i8x_ctx_new",
-                                     "i8x_inf_new",
-                                     "i8x_note_get_unique_chunk",
-                                     "i8x_chunk_get_encoded")))):
+        if node.name is None or node.name.startswith("i8x_"):
             TopLevelDeclVisitor(self.api).visit(node.type)
 
 class TopLevelDeclVisitor(pycparser.c_ast.NodeVisitor):
@@ -515,7 +583,7 @@ argument to this script.""" % sys.argv[0], file=sys.stderr)
     output = os.path.join(curdir, "libi8x.c")
     template = output + ".in"
     testdir = os.path.join(topdir, "python", "tests", "lo")
-    testfmt = os.path.join(testdir, "test_py8x_%s.py")
+    testfmt = os.path.join(testdir, "test_%s.py")
 
     API(header, fake_include_path).emit(template, output, testfmt)
 
