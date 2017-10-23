@@ -50,6 +50,12 @@ class FunctionTestCase(object):
         relocs = self.func.relocations
         self.assertIsSequence(relocs)
 
+    def test_unregister(self):
+        """Test Function.unregister."""
+        self.assertEqual(len(self.ctx.functions), 1)
+        self.func.unregister()
+        self.assertEqual(len(self.ctx.functions), 0)
+
 class TestBytecodeFunction(TestCase, FunctionTestCase):
     def setUp(self):
         self.ctx = self.ctx_new()

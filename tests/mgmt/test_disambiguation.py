@@ -43,7 +43,7 @@ class TestDisambiguation(TestCase):
         self.assertFalse(self.ref.is_resolved)
         with self.assertRaises(libi8x.UnresolvedFunctionError):
             self.xctx.call(self.ref, self.inf, 7)
-        self.ctx.unregister(self.func2)
+        self.func2.unregister()
         self.assertTrue(self.ref.is_resolved)
         self.assertEqual(self.xctx.call(self.ref, self.inf, 7), (5040,))
 
@@ -52,7 +52,7 @@ class TestDisambiguation(TestCase):
         self.assertFalse(self.ref.is_resolved)
         with self.assertRaises(libi8x.UnresolvedFunctionError):
             self.xctx.call(self.ref, self.inf, 7)
-        self.ctx.unregister(self.func1)
+        self.func1.unregister()
         self.assertTrue(self.ref.is_resolved)
         self.assertEqual(self.xctx.call(self.ref, self.inf, 7),
                          (libi8x.to_unsigned(-7),))

@@ -59,25 +59,25 @@ class TestLocalFunctions(TestCase):
 
     def test_unregister_1(self):
         """Test unregistering local functions (1)"""
-        self.ctx.unregister(self.func1)
+        self.func1.unregister()
         self.assertFalse(self.ref1.is_resolved)
         self.assertTrue(self.ref2.is_resolved)
         self.assertEqual(self.xctx.call(self.ref2, self.inf, 17), (21,))
         with self.assertRaises(libi8x.UnresolvedFunctionError):
             self.xctx.call(self.ref1, self.inf, 8)
-        self.ctx.unregister(self.func2)
+        self.func2.unregister()
         self.assertFalse(self.ref1.is_resolved)
         self.assertFalse(self.ref2.is_resolved)
 
     def test_unregister_2(self):
         """Test unregistering local functions (2)"""
-        self.ctx.unregister(self.func2)
+        self.func2.unregister()
         self.assertFalse(self.ref2.is_resolved)
         self.assertTrue(self.ref1.is_resolved)
         self.assertEqual(self.xctx.call(self.ref1, self.inf, 23), (529,))
         with self.assertRaises(libi8x.UnresolvedFunctionError):
             self.xctx.call(self.ref2, self.inf, 8)
-        self.ctx.unregister(self.func1)
+        self.func1.unregister()
         self.assertFalse(self.ref1.is_resolved)
         self.assertFalse(self.ref2.is_resolved)
 
@@ -85,9 +85,9 @@ class TestLocalFunctions(TestCase):
         """Ensure local functions can't be called by signature"""
         with self.assertRaises(libi8x.UnresolvedFunctionError):
             self.xctx.call(self.SIGNATURE, self.inf, 8)
-        self.ctx.unregister(self.func1)
+        self.func1.unregister()
         with self.assertRaises(libi8x.UnresolvedFunctionError):
             self.xctx.call(self.SIGNATURE, self.inf, 8)
-        self.ctx.unregister(self.func2)
+        self.func2.unregister()
         with self.assertRaises(libi8x.UnresolvedFunctionError):
             self.xctx.call(self.SIGNATURE, self.inf, 8)

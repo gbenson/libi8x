@@ -145,13 +145,13 @@ resolve_and_execute (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
 
       i8x_func_set_userdata (ext_func, functions, NULL);
 
-      err = i8x_ctx_register_func (ctx, ext_func);
+      err = i8x_func_register (ext_func);
       CHECK_CALL (ctx, err);
 
       /* Try again.  */
       resolve_and_execute (ctx, xctx, inf, filename, ext_func);
 
-      i8x_ctx_unregister_func (ctx, ext_func);
+      i8x_func_unregister (ext_func);
       i8x_func_unref (ext_func);
 
       return;
@@ -226,7 +226,7 @@ load_and_execute_1 (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
       resolve_and_execute (ctx, xctx, inf, filename, func);
     }
 
-  i8x_ctx_unregister_func (ctx, func);
+  i8x_func_unregister (func);
   i8x_func_unref (func);
 }
 

@@ -26,16 +26,14 @@ from __future__ import unicode_literals
 import _libi8x as py8x
 from . import common
 
-class TestPy8xCtxUnregisterFunc(common.PopulatedTestCase):
+class TestPy8xFuncUnregister(common.PopulatedTestCase):
     def test_success(self):
-        """Test py8x_ctx_unregister_func succeeding"""
+        """Test py8x_func_unregister succeeding"""
         self.assertTrue(py8x.funcref_is_resolved(self.funcref))
-        self.assertIsNone(py8x.ctx_unregister_func(self.ctx, self.func))
+        self.assertIsNone(py8x.func_unregister(self.func))
         self.assertFalse(py8x.funcref_is_resolved(self.funcref))
 
     def test_failure(self):
-        """Test py8x_ctx_unregister_func failing"""
-        py8x.ctx_unregister_func(self.ctx, self.func)
-        self.assertRaises(ValueError,
-                          py8x.ctx_unregister_func,
-                          self.ctx, self.func)
+        """Test py8x_func_unregister failing"""
+        py8x.func_unregister(self.func)
+        self.assertRaises(ValueError, py8x.func_unregister, self.func)

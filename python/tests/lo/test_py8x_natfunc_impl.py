@@ -137,7 +137,7 @@ class TestPy8xNatfuncImpl(common.PopulatedTestCase):
             rets = py8x.xctx_call(self.xctx, ref, self.inf, (3, 4))
             self.assertEqual(rets, (7, self.funcref, py8x.to_unsigned(-1)))
         finally:
-            py8x.ctx_unregister_func(self.ctx, func)
+            py8x.func_unregister(func)
 
     def __do_integer_return_test(self, value_in, value_out):
         def impl(xctx, inf, func):

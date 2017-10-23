@@ -906,15 +906,12 @@ i8x_ctx_resolve_funcrefs (struct i8x_ctx *ctx)
     }
 }
 
-I8X_EXPORT i8x_err_e
+static i8x_err_e
 i8x_ctx_register_func (struct i8x_ctx *ctx, struct i8x_func *func)
 {
-  i8x_err_e err;
-
   dbg (ctx, "registering func %p\n", func);
-  i8x_assert (i8x_func_get_ctx (func) == ctx);
 
-  err = i8x_list_append_func (ctx->functions, func);
+  i8x_err_e err = i8x_list_append_func (ctx->functions, func);
   if (err != I8X_OK)
     return err;
 
@@ -925,10 +922,15 @@ i8x_ctx_register_func (struct i8x_ctx *ctx, struct i8x_func *func)
 }
 
 I8X_EXPORT i8x_err_e
+i8x_func_register (struct i8x_func *func)
+{
+  return i8x_ctx_register_func (i8x_func_get_ctx (func), func);
+}
+
+static i8x_err_e
 i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
 {
   dbg (ctx, "unregistering func %p\n", func);
-  i8x_assert (i8x_func_get_ctx (func) == ctx);
 
   struct i8x_listitem *li
     = i8x_list_get_item (ctx->functions, (struct i8x_object *) func);
@@ -944,6 +946,12 @@ i8x_ctx_unregister_func (struct i8x_ctx *ctx, struct i8x_func *func)
   func = i8x_func_unref (func);
 
   return I8X_OK;
+}
+
+I8X_EXPORT i8x_err_e
+i8x_func_unregister (struct i8x_func *func)
+{
+  return i8x_ctx_unregister_func (i8x_func_get_ctx (func), func);
 }
 
 /* convenience */

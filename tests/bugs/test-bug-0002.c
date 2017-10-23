@@ -73,7 +73,7 @@ i8x_execution_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
   union i8x_value ret;
   err = i8x_xctx_call (xctx, i8x_func_get_funcref (func), inf, NULL, &ret);
 
-  i8x_ctx_unregister_func (ctx, func);
+  i8x_func_unregister (func);
   i8x_func_unref (func);
 
   CHECK_CALL (ctx, err);

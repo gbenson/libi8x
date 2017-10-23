@@ -237,10 +237,6 @@ void i8x_ctx_set_func_unavailable_cb (struct i8x_ctx *ctx,
 i8x_err_e i8x_ctx_get_funcref (struct i8x_ctx *ctx,
 			       const char *signature,
 			       struct i8x_funcref **ref);
-i8x_err_e i8x_ctx_register_func (struct i8x_ctx *ctx,
-				 struct i8x_func *func);
-i8x_err_e i8x_ctx_unregister_func (struct i8x_ctx *ctx,
-				   struct i8x_func *func);
 i8x_err_e i8x_ctx_import_bytecode (struct i8x_ctx *ctx,
 				   const char *buf, size_t bufsiz,
 				   const char *srcname, ssize_t srcoffset,
@@ -269,6 +265,8 @@ struct i8x_funcref *i8x_func_get_funcref (struct i8x_func *func);
 struct i8x_note *i8x_func_get_note (struct i8x_func *func);
 struct i8x_list *i8x_func_get_externals (struct i8x_func *func);
 struct i8x_list *i8x_func_get_relocs (struct i8x_func *func);
+i8x_err_e i8x_func_register (struct i8x_func *func);
+i8x_err_e i8x_func_unregister (struct i8x_func *func);
 
 #define i8x_func_get_signature(func) \
   i8x_funcref_get_signature (i8x_func_get_funcref (func))

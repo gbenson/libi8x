@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Red Hat, Inc.
+/* Copyright (C) 2016-17 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -171,7 +171,7 @@ do_test (struct i8x_ctx *ctx, struct i8x_xctx *xctx,
   err = i8x_xctx_call (xctx, i8x_func_get_funcref (func), inf,
 		       &input, &actual);
 
-  i8x_ctx_unregister_func (ctx, func);
+  i8x_func_unregister (func);
   i8x_func_unref (func);
 
   CHECK_CALL (ctx, err);
