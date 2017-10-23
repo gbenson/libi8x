@@ -254,7 +254,6 @@ i8x_err_e i8x_func_new_native (struct i8x_ctx *ctx,
 			       struct i8x_funcref *ref,
 			       i8x_nat_fn_t *impl_fn,
 			       struct i8x_func **func);
-bool i8x_func_is_native (struct i8x_func *func);
 struct i8x_funcref *i8x_func_get_funcref (struct i8x_func *func);
 struct i8x_note *i8x_func_get_note (struct i8x_func *func);
 struct i8x_list *i8x_func_get_externals (struct i8x_func *func);

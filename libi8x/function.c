@@ -34,12 +34,6 @@ struct i8x_func
   bool observed_available;	/* The last observer we called.  */
 };
 
-I8X_EXPORT bool
-i8x_func_is_native (struct i8x_func *func)
-{
-  return func->note == NULL;
-}
-
 struct i8x_code *
 i8x_func_get_interp_impl (struct i8x_func *func)
 {
