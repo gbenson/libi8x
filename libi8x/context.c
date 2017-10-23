@@ -983,7 +983,7 @@ i8x_ctx_import_native (struct i8x_ctx *ctx, const char *signature,
   return err;
 }
 
-I8X_EXPORT void
+void
 i8x_inf_invalidate_relocs (struct i8x_inf *inf)
 {
   struct i8x_ctx *ctx = i8x_inf_get_ctx (inf);

@@ -59,14 +59,14 @@ i8x_rb_new (struct i8x_note *note,
   return I8X_OK;
 }
 
-I8X_EXPORT i8x_err_e
+i8x_err_e
 i8x_rb_new_from_note (struct i8x_note *note, struct i8x_readbuf **rb)
 {
   return i8x_rb_new (note, i8x_note_get_encoded (note),
 		     i8x_note_get_encoded_size (note), rb);
 }
 
-I8X_EXPORT i8x_err_e
+i8x_err_e
 i8x_rb_new_from_chunk (struct i8x_chunk *chunk, struct i8x_readbuf **rb)
 {
   return i8x_rb_new (i8x_chunk_get_note (chunk),
@@ -74,14 +74,14 @@ i8x_rb_new_from_chunk (struct i8x_chunk *chunk, struct i8x_readbuf **rb)
 		     i8x_chunk_get_encoded_size (chunk), rb);
 }
 
-I8X_EXPORT struct i8x_note *
+struct i8x_note *
 i8x_rb_get_note (struct i8x_readbuf *rb)
 {
   return (struct i8x_note *)
     i8x_ob_get_parent ((struct i8x_object *) rb);
 }
 
-I8X_EXPORT void
+void
 i8x_rb_set_byte_order (struct i8x_readbuf *rb,
 		       i8x_byte_order_e byte_order)
 {
@@ -94,7 +94,7 @@ i8x_rb_get_ptr (struct i8x_readbuf *rb)
   return rb->ptr;
 }
 
-I8X_EXPORT size_t
+size_t
 i8x_rb_bytes_left (struct i8x_readbuf *rb)
 {
   return rb->limit - rb->ptr;
@@ -106,7 +106,7 @@ i8x_rb_bytes_left (struct i8x_readbuf *rb)
       return i8x_rb_error (rb, I8X_NOTE_CORRUPT, (rb)->ptr);	\
   } while (0)
 
-I8X_EXPORT i8x_err_e
+i8x_err_e
 i8x_rb_read_int8_t (struct i8x_readbuf *rb, int8_t *result)
 {
   CHECK_HAS_BYTES (rb, sizeof (int8_t));
@@ -117,7 +117,7 @@ i8x_rb_read_int8_t (struct i8x_readbuf *rb, int8_t *result)
   return I8X_OK;
 }
 
-I8X_EXPORT i8x_err_e
+i8x_err_e
 i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result)
 {
   CHECK_HAS_BYTES (rb, sizeof (uint8_t));
@@ -129,7 +129,7 @@ i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result)
 }
 
 #define I8X_RB_READ_FIXED_MULTI_1(TYPE, BSWAP)				\
-  I8X_EXPORT i8x_err_e							\
+  i8x_err_e								\
   i8x_rb_read_ ## TYPE (struct i8x_readbuf *rb, TYPE *result)		\
   {									\
     TYPE tmp;								\
@@ -157,7 +157,7 @@ I8X_RB_READ_FIXED_MULTI (16)
 I8X_RB_READ_FIXED_MULTI (32)
 I8X_RB_READ_FIXED_MULTI (64)
 
-I8X_EXPORT i8x_err_e
+i8x_err_e
 i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intptr_t *rp)
 {
   const char *ptr = rb->ptr;
@@ -206,7 +206,7 @@ i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intptr_t *rp)
   return I8X_OK;
 }
 
-I8X_EXPORT i8x_err_e
+i8x_err_e
 i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintptr_t *rp)
 {
   const char *ptr = rb->ptr;
@@ -243,7 +243,7 @@ i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintptr_t *rp)
   return I8X_OK;
 }
 
-I8X_EXPORT i8x_err_e
+i8x_err_e
 i8x_rb_read_bytes (struct i8x_readbuf *rb, size_t nbytes,
 		   const char **result)
 {

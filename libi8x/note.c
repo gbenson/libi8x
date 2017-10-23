@@ -169,25 +169,25 @@ i8x_note_get_src_name (struct i8x_note *note)
   return note->srcname;
 }
 
-I8X_EXPORT ssize_t
+ssize_t
 i8x_note_get_src_offset (struct i8x_note *note)
 {
   return note->srcoffset;
 }
 
-I8X_EXPORT size_t
+size_t
 i8x_note_get_encoded_size (struct i8x_note *note)
 {
   return note->encoded_size;
 }
 
-I8X_EXPORT const char *
+const char *
 i8x_note_get_encoded (struct i8x_note *note)
 {
   return note->encoded;
 }
 
-I8X_EXPORT struct i8x_list *
+struct i8x_list *
 i8x_note_get_chunks (struct i8x_note *note)
 {
   return note->chunks;
@@ -247,7 +247,7 @@ i8x_note_locate_strings (struct i8x_note *note)
   return I8X_OK;
 }
 
-I8X_EXPORT i8x_err_e
+i8x_err_e
 i8x_rb_read_offset_string (struct i8x_readbuf *rb, const char **result)
 {
   struct i8x_note *note = i8x_rb_get_note (rb);

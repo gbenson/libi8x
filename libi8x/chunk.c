@@ -91,14 +91,14 @@ i8x_chunk_new (struct i8x_readbuf *rb, struct i8x_chunk **chunk)
   return I8X_OK;
 }
 
-I8X_EXPORT struct i8x_note *
+struct i8x_note *
 i8x_chunk_get_note (struct i8x_chunk *chunk)
 {
   return (struct i8x_note *)
     i8x_ob_get_parent ((struct i8x_object *) chunk);
 }
 
-I8X_EXPORT uintptr_t
+uintptr_t
 i8x_chunk_get_type_id (struct i8x_chunk *chunk)
 {
   return chunk->type_id;

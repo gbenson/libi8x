@@ -192,8 +192,6 @@ struct i8x_object *i8x_listitem_get_object (struct i8x_listitem *item);
 I8X_COMMON_OBJECT_FUNCTIONS (chunk);
 I8X_LISTABLE_OBJECT_FUNCTIONS (chunk);
 
-struct i8x_note *i8x_chunk_get_note (struct i8x_chunk *chunk);
-uintptr_t i8x_chunk_get_type_id (struct i8x_chunk *chunk);
 uintptr_t i8x_chunk_get_version (struct i8x_chunk *chunk);
 size_t i8x_chunk_get_encoded_size (struct i8x_chunk *chunk);
 const char *i8x_chunk_get_encoded (struct i8x_chunk *chunk);
@@ -305,7 +303,6 @@ void i8x_inf_set_read_mem_fn (struct i8x_inf *inf,
 			      i8x_read_mem_fn_t *read_mem_fn);
 void i8x_inf_set_relocate_fn (struct i8x_inf *inf,
 			      i8x_relocate_fn_t *relocate_fn);
-void i8x_inf_invalidate_relocs (struct i8x_inf *inf);
 
 /*
  * i8x_list
@@ -318,8 +315,6 @@ size_t i8x_list_size (struct i8x_list *list);
 struct i8x_listitem *i8x_list_get_first (struct i8x_list *list);
 struct i8x_listitem *i8x_list_get_next (struct i8x_list *list,
 					struct i8x_listitem *curr);
-struct i8x_listitem *i8x_list_get_item_by_index (struct i8x_list *list,
-						 size_t index);
 
 #define i8x_list_foreach(list, item)		\
   for (item = i8x_list_get_first (list);	\
@@ -350,44 +345,9 @@ i8x_err_e i8x_note_new (struct i8x_ctx *ctx,
 			const char *srcname, ssize_t srcoffset,
 			struct i8x_note **note);
 const char *i8x_note_get_src_name (struct i8x_note *note);
-ssize_t i8x_note_get_src_offset (struct i8x_note *note);
-size_t i8x_note_get_encoded_size (struct i8x_note *note);
-const char *i8x_note_get_encoded (struct i8x_note *note);
-struct i8x_list *i8x_note_get_chunks (struct i8x_note *note);
 i8x_err_e i8x_note_get_unique_chunk (struct i8x_note *note,
 				     uintptr_t type_id, bool must_exist,
 				     struct i8x_chunk **chunk);
-
-/*
- * i8x_readbuf
- *
- * access to readbufs of i8x
- */
-
-I8X_COMMON_OBJECT_FUNCTIONS_PREFIX (readbuf, rb);
-
-i8x_err_e i8x_rb_new_from_note (struct i8x_note *note,
-				struct i8x_readbuf **rb);
-i8x_err_e i8x_rb_new_from_chunk (struct i8x_chunk *chunk,
-				 struct i8x_readbuf **rb);
-struct i8x_note *i8x_rb_get_note (struct i8x_readbuf *rb);
-void i8x_rb_set_byte_order (struct i8x_readbuf *rb,
-			    i8x_byte_order_e byte_order);
-size_t i8x_rb_bytes_left (struct i8x_readbuf *rb);
-i8x_err_e i8x_rb_read_int8_t (struct i8x_readbuf *rb, int8_t *result);
-i8x_err_e i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result);
-i8x_err_e i8x_rb_read_int16_t (struct i8x_readbuf *rb, int16_t *result);
-i8x_err_e i8x_rb_read_uint16_t (struct i8x_readbuf *rb, uint16_t *result);
-i8x_err_e i8x_rb_read_int32_t (struct i8x_readbuf *rb, int32_t *result);
-i8x_err_e i8x_rb_read_uint32_t (struct i8x_readbuf *rb, uint32_t *result);
-i8x_err_e i8x_rb_read_int64_t (struct i8x_readbuf *rb, int64_t *result);
-i8x_err_e i8x_rb_read_uint64_t (struct i8x_readbuf *rb, uint64_t *result);
-i8x_err_e i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intptr_t *result);
-i8x_err_e i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintptr_t *result);
-i8x_err_e i8x_rb_read_bytes (struct i8x_readbuf *rb, size_t nbytes,
-			     const char **result);
-i8x_err_e i8x_rb_read_offset_string (struct i8x_readbuf *rb,
-				     const char **result);
 
 /*
  * i8x_reloc

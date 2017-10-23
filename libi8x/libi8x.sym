@@ -2,8 +2,6 @@ LIBI8X_1.0.0 {
 global:
 	i8x_strerror_r;
 
-	i8x_chunk_get_note;
-	i8x_chunk_get_type_id;
 	i8x_chunk_get_version;
 	i8x_chunk_get_encoded_size;
 	i8x_chunk_get_encoded;
@@ -40,21 +38,15 @@ global:
 	i8x_inf_new;
 	i8x_inf_set_read_mem_fn;
 	i8x_inf_set_relocate_fn;
-	i8x_inf_invalidate_relocs;
 
 	i8x_list_size;
 	i8x_list_get_first;
 	i8x_list_get_next;
-	i8x_list_get_item_by_index;
 
 	i8x_listitem_get_object;
 
 	i8x_note_new;
 	i8x_note_get_src_name;
-	i8x_note_get_src_offset;
-	i8x_note_get_encoded_size;
-	i8x_note_get_encoded;
-	i8x_note_get_chunks;
 	i8x_note_get_unique_chunk;
 
 	i8x_ob_ref;
@@ -64,24 +56,6 @@ global:
 	i8x_ob_get_ctx;
 	i8x_ob_get_userdata;
 	i8x_ob_set_userdata;
-
-	i8x_rb_new_from_note;
-	i8x_rb_new_from_chunk;
-	i8x_rb_get_note;
-	i8x_rb_set_byte_order;
-	i8x_rb_bytes_left;
-	i8x_rb_read_int8_t;
-	i8x_rb_read_uint8_t;
-	i8x_rb_read_int16_t;
-	i8x_rb_read_uint16_t;
-	i8x_rb_read_int32_t;
-	i8x_rb_read_uint32_t;
-	i8x_rb_read_int64_t;
-	i8x_rb_read_uint64_t;
-	i8x_rb_read_sleb128;
-	i8x_rb_read_uleb128;
-	i8x_rb_read_bytes;
-	i8x_rb_read_offset_string;
 
 	i8x_reloc_get_func;
 	i8x_reloc_get_src_offset;

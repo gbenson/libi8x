@@ -237,7 +237,7 @@ i8x_list_get_prev (struct i8x_list *list, struct i8x_listitem *li)
   return li;
 }
 
-I8X_EXPORT struct i8x_listitem *
+struct i8x_listitem *
 i8x_list_get_item_by_index (struct i8x_list *list, size_t index)
 {
   struct i8x_listitem *li;
