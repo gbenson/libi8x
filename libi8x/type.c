@@ -39,16 +39,12 @@ i8x_type_is_functype (struct i8x_type *type)
 I8X_EXPORT struct i8x_list *
 i8x_type_get_ptypes (struct i8x_type *type)
 {
-  i8x_assert (i8x_type_is_functype (type));
-
   return type->ptypes;
 }
 
 I8X_EXPORT struct i8x_list *
 i8x_type_get_rtypes (struct i8x_type *type)
 {
-  i8x_assert (i8x_type_is_functype (type));
-
   return type->rtypes;
 }
 
