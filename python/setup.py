@@ -24,6 +24,7 @@ from __future__ import print_function
 # Python2 distutils can't cope with __future__.unicode_literals
 
 from setuptools import setup, Extension
+from codecs import open
 import os
 import subprocess
 import sys
@@ -35,7 +36,16 @@ here = os.path.realpath(os.path.dirname(__file__))
 # Link libi8x statically if we're in a libi8x tree (tarball or git),
 # and run C libi8x's Python tests too as well as our own.
 py8x_version = VERSION
-if os.path.basename(here) == "python":
+statictest_readme = os.path.join(here, "README.statictest")
+if os.path.exists(statictest_readme):
+    # Don't install static bindings system-wide.
+    for index, arg in enumerate(sys.argv):
+        if index > 0 and arg.startswith("install"):
+            if "--user" not in sys.argv[index + 1:]:
+                with open(statictest_readme, encoding="utf-8") as fp:
+                    sys.stderr.write(fp.read())
+                sys.exit(1)
+
     # Ensure everything is up-to-date.
     if "MAKELEVEL" not in os.environ:
         subprocess.check_call(("make", "-C", os.path.dirname(here)))

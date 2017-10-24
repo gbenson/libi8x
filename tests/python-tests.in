@@ -26,10 +26,12 @@ test -z "$top_srcdir" && exit 99
 top_builddir=$(cd @top_builddir@ && pwd)
 test -z "$top_builddir" && exit 99
 
+# Python always builds in-tree.  We have to copy what we need
+# into the build directory to support out-of-tree builds.
 if [ $top_builddir != $top_srcdir ]; then
     cd $top_srcdir
     find python tests -name '*.py' | \
-	xargs tar -cf- python/libi8x.c |\
+	xargs tar -cf- python/README.statictest python/libi8x.c |\
 	tar -xf- -C $top_builddir
   export LIBI8X_TEST_SRCDIR=$top_srcdir
 fi
@@ -37,8 +39,9 @@ fi
 cd $top_builddir/python
 @PYTHON@ setup.py test || exit $?
 
+# Delete everything we copied across earlier if out-of-tree.
 if [ $top_builddir != $top_srcdir ]; then
     cd $top_builddir
-    rm -f python/libi8x.c
+    rm -f python/README.statictest python/libi8x.c
     find python tests -name '*.py' | xargs rm -f
 fi
