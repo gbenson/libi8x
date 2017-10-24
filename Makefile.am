@@ -20,3 +20,9 @@
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
 SUBDIRS = contrib libi8x libi8x-test examples tests python
+EXTRA_DIST = libi8x.spec.in libi8x.spec
+
+.PHONEY: srpm
+
+srpm: dist
+	rpmbuild -ts $(distdir).tar.xz

@@ -1,0 +1,55 @@
+Name:           @PACKAGE_NAME@
+Version:        @PACKAGE_VERSION@
+Release:        1%{?dist}
+Summary:        A library for accessing Infinity functions
+License:        LGPLv2+
+URL:            https://infinitynotes.org/
+Source:         https://infinitynotes.org/src/%{name}/%{name}-%{version}.tar.xz
+BuildRequires:  py3c-devel
+BuildRequires:  python-devel
+BuildRequires:  python-nose
+BuildRequires:  python-setuptools
+
+%description
+Infinity is a platform-independent system for executables and shared
+libraries to expose functionality to debug, monitoring, and analysis
+tooling.  In Infinity, executable and shared library files contain
+platform-independent functions.  %{name} allows programs to access and
+execute these functions.
+
+%package devel
+Summary:        Development files for %{name}
+Requires:       %{name} = %{version}-%{release}
+
+%description devel
+The %{name}-devel package contains libraries and header files for
+developing applications that use %{name}.
+
+%prep
+%setup -q
+
+%build
+%configure --disable-static
+%make_build
+
+%check
+make check
+
+%install
+make install DESTDIR=%{buildroot}
+
+%post -p /sbin/ldconfig
+
+%postun -p /sbin/ldconfig
+
+%files
+%defattr(-,root,root,-)
+%doc README COPYING NEWS
+%{_libdir}/*.so.*
+
+%files devel
+%defattr(-,root,root,-)
+%{_includedir}/%{name}.h
+%{_libdir}/*.so
+%{_libdir}/*.la
+%{_libdir}/pkgconfig/%{name}.pc

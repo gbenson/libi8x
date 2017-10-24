@@ -29,3 +29,4 @@ Makefile.in
 core.*
 
 /libi8x-[0-9]*
+/libi8x.spec
