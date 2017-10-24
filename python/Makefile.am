@@ -18,6 +18,7 @@
 # see <http://www.gnu.org/licenses/>.
 
 EXTRA_DIST = \
+	README.statictest \
 	setup.py \
 	libi8x.c \
 	statictest.py \

@@ -1,0 +1,9 @@
+These Python bindings are shipped with libi8x to run the Python tests
+in libi8x's testsuite.  They're configured for static linking and, as
+such:
+
+  * They should not be installed system-wide.
+  * They should not be used to build packages.
+
+Versioned releases suitable for these purposes are available at
+<https://pypi.python.org/pypi/libi8x/>.
