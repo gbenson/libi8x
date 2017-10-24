@@ -19,11 +19,9 @@
 
 EXTRA_DIST = \
 	README.statictest \
-	setup.py \
+	libi8x.c.in \
 	libi8x.c \
-	statictest.py \
-	libi8xtest.py \
-	$(shell find libi8x tests -name '*.py')
+	$(shell find . -name '*.py')
 
 mostlyclean-local:
 	rm -rf .eggs build *.egg* *.so
