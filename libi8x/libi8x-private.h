@@ -23,6 +23,10 @@
 #include <libi8x-test-private.h>
 #include <syslog.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Encoded types.  */
 
 #define I8_TYPE_INTEGER	 'i'
@@ -63,10 +67,6 @@ struct i8x_readbuf;
 
 #define i8x_unresolved_function(ctx) \
   i8x_ctx_set_error (ctx, I8X_UNRESOLVED_FUNCTION, NULL, NULL)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 i8x_err_e i8x_funcref_error (struct i8x_ctx *ctx, i8x_err_e code,
 			     struct i8x_note *cause_note,

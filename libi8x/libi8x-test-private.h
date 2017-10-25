@@ -22,6 +22,10 @@
 
 #include <libi8x.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Functions used by testcases, but not part of the public API.
    These functions will likely be exported when direct Infinity
    support is added to GDB, but are not useful while support is
@@ -37,10 +41,6 @@
 #define i8x_type_get_encoded	__i8xtest_type_get_encoded
 #define i8x_xctx_set_use_debug_interpreter \
 				__i8xtest_xctx_set_use_debug_interpreter
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 				char *buf, size_t bufsiz);

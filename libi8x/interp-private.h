@@ -23,6 +23,10 @@
 #include "libi8x-private.h"
 #include "opcodes.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Opcodes.  */
 
 typedef uint_fast16_t i8x_opcode_t;
@@ -114,10 +118,6 @@ struct i8x_code
 };
 
 /* Interpreter private functions.  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 i8x_err_e i8x_code_error (struct i8x_code *code, i8x_err_e err,
 			  struct i8x_instr *ip);
