@@ -38,9 +38,20 @@
 #define I8X_POISON_BAD_CACHED_RELOC	0xCAFEBABE
 #define I8X_POISON_BAD_RELOCATE_FN	0xBAADF00D
 
+/* Byte orderings.  */
+
+typedef enum
+{
+  I8X_BYTE_ORDER_UNKNOWN,
+  I8X_BYTE_ORDER_NATIVE,
+  I8X_BYTE_ORDER_REVERSED
+}
+i8x_byte_order_e;
+
 /* Forward declarations.  */
 
 struct i8x_code;
+struct i8x_readbuf;
 
 /* Errors.  */
 

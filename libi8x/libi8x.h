@@ -71,16 +71,6 @@ const char *i8x_strerror_r (i8x_err_e code, char *buf, size_t bufsiz);
 #define I8_CHUNK_STRINGS	4
 #define I8_CHUNK_CODEINFO	5
 
-/* Byte orderings.  */
-
-typedef enum
-{
-  I8X_BYTE_ORDER_UNKNOWN,
-  I8X_BYTE_ORDER_NATIVE,
-  I8X_BYTE_ORDER_REVERSED
-}
-i8x_byte_order_e;
-
 /* Forward declarations.  */
 
 struct i8x_chunk;
@@ -92,7 +82,6 @@ struct i8x_list;
 struct i8x_listitem;
 struct i8x_note;
 struct i8x_object;
-struct i8x_readbuf;
 struct i8x_reloc;
 struct i8x_type;
 struct i8x_xctx;

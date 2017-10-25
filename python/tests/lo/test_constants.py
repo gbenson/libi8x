@@ -39,9 +39,3 @@ class TestConstants(unittest.TestCase):
         self.assertEqual(py8x.I8_CHUNK_EXTERNALS, 3)
         self.assertEqual(py8x.I8_CHUNK_STRINGS, 4)
         self.assertEqual(py8x.I8_CHUNK_CODEINFO, 5)
-
-    def test_byte_orderings(self):
-        """Test byte order constants."""
-        self.assertEqual(py8x.BYTE_ORDER_UNKNOWN, 0)
-        self.assertEqual(py8x.BYTE_ORDER_NATIVE, 1)
-        self.assertEqual(py8x.BYTE_ORDER_REVERSED, 2)
