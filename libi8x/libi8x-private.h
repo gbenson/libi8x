@@ -209,52 +209,7 @@ void i8x_list_remove (struct i8x_list *list, struct i8x_object *ob);
 #define I8X_LIST_FUNCTIONS(TYPE) \
   I8X_LIST_FUNCTIONS_PREFIX (TYPE, TYPE)
 
-/*
- * i8x_code
- *
- * access to codes of i8x
- */
-I8X_COMMON_OBJECT_FUNCTIONS (code);
-
-i8x_err_e i8x_code_new (struct i8x_func *func, struct i8x_code **code);
-struct i8x_func *i8x_code_get_func (struct i8x_code *code);
-struct i8x_list *i8x_code_get_relocs (struct i8x_code *code);
-
-/*
- * i8x_readbuf
- *
- * access to readbufs of i8x
- */
-
-I8X_COMMON_OBJECT_FUNCTIONS_PREFIX (readbuf, rb);
-
-i8x_err_e i8x_rb_new_from_note (struct i8x_note *note,
-				struct i8x_readbuf **rb);
-i8x_err_e i8x_rb_new_from_chunk (struct i8x_chunk *chunk,
-				 struct i8x_readbuf **rb);
-struct i8x_note *i8x_rb_get_note (struct i8x_readbuf *rb);
-void i8x_rb_set_byte_order (struct i8x_readbuf *rb,
-			    i8x_byte_order_e byte_order);
-const char *i8x_rb_get_ptr (struct i8x_readbuf *rb);
-size_t i8x_rb_bytes_left (struct i8x_readbuf *rb);
-i8x_err_e i8x_rb_read_int8_t (struct i8x_readbuf *rb, int8_t *result);
-i8x_err_e i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result);
-i8x_err_e i8x_rb_read_int16_t (struct i8x_readbuf *rb, int16_t *result);
-i8x_err_e i8x_rb_read_uint16_t (struct i8x_readbuf *rb, uint16_t *result);
-i8x_err_e i8x_rb_read_int32_t (struct i8x_readbuf *rb, int32_t *result);
-i8x_err_e i8x_rb_read_uint32_t (struct i8x_readbuf *rb, uint32_t *result);
-i8x_err_e i8x_rb_read_int64_t (struct i8x_readbuf *rb, int64_t *result);
-i8x_err_e i8x_rb_read_uint64_t (struct i8x_readbuf *rb, uint64_t *result);
-i8x_err_e i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intptr_t *result);
-i8x_err_e i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintptr_t *result);
-i8x_err_e i8x_rb_read_bytes (struct i8x_readbuf *rb, size_t nbytes,
-			     const char **result);
-i8x_err_e i8x_rb_read_offset_string (struct i8x_readbuf *rb,
-				     const char **result);
-i8x_err_e i8x_rb_read_funcref (struct i8x_readbuf *rb,
-			       struct i8x_funcref **ref);
-
-/* i8x_chunk private functions.  */
+/* i8x_chunk */
 
 I8X_LIST_FUNCTIONS (chunk);
 
@@ -265,7 +220,15 @@ i8x_err_e i8x_chunk_version_error (struct i8x_chunk *chunk);
 struct i8x_note *i8x_chunk_get_note (struct i8x_chunk *chunk);
 uintptr_t i8x_chunk_get_type_id (struct i8x_chunk *chunk);
 
-/* i8x_ctx private functions.  */
+/* i8x_code */
+
+I8X_COMMON_OBJECT_FUNCTIONS (code);
+
+i8x_err_e i8x_code_new (struct i8x_func *func, struct i8x_code **code);
+struct i8x_func *i8x_code_get_func (struct i8x_code *code);
+struct i8x_list *i8x_code_get_relocs (struct i8x_code *code);
+
+/* i8x_ctx */
 
 struct i8x_type *i8x_ctx_get_integer_type (struct i8x_ctx *ctx);
 struct i8x_type *i8x_ctx_get_pointer_type (struct i8x_ctx *ctx);
@@ -301,7 +264,7 @@ void i8x_ctx_get_dispatch_tables (struct i8x_ctx *ctx,
 				  void ***dispatch_std,
 				  void ***dispatch_dbg);
 
-/* i8x_func private functions.  */
+/* i8x_func */
 
 I8X_LIST_FUNCTIONS (func);
 I8X_LISTABLE_OBJECT_FUNCTIONS (func);
@@ -311,7 +274,7 @@ void i8x_func_update_availability (struct i8x_func *func);
 struct i8x_code *i8x_func_get_interp_impl (struct i8x_func *func);
 i8x_nat_fn_t *i8x_func_get_native_impl (struct i8x_func *func);
 
-/* i8x_funcref private functions.  */
+/* i8x_funcref */
 
 I8X_LIST_FUNCTIONS (funcref);
 
@@ -323,11 +286,11 @@ void i8x_funcref_unregister_func (struct i8x_func *func);
 void i8x_funcref_reset_is_resolved (struct i8x_funcref *ref);
 void i8x_funcref_mark_unresolved (struct i8x_funcref *ref);
 
-/* i8x_inf private functions.  */
+/* i8x_inf */
 
 void i8x_inf_invalidate_relocs (struct i8x_inf *inf);
 
-/* i8x_list private functions.  */
+/* i8x_list */
 
 i8x_err_e i8x_list_new (struct i8x_ctx *ctx,
 			bool manage_references,
@@ -345,23 +308,54 @@ struct i8x_listitem *i8x_list_get_item_by_index (struct i8x_list *list,
        item != NULL;				\
        item = i8x_list_get_prev (list, item))
 
-/* i8x_listitem private functions.  */
+/* i8x_listitem */
 
 void i8x_listitem_remove (struct i8x_listitem *item);
 
-/* i8x_note private functions.  */
+/* i8x_note */
 
 ssize_t i8x_note_get_src_offset (struct i8x_note *note);
 size_t i8x_note_get_encoded_size (struct i8x_note *note);
 const char *i8x_note_get_encoded (struct i8x_note *note);
 struct i8x_list *i8x_note_get_chunks (struct i8x_note *note);
 
-/* i8x_object private functions.  */
+/* i8x_object */
 
 i8x_err_e i8x_ob_new (void *parent, const struct i8x_object_ops *ops,
 		      void *ob);
 
-/* i8x_reloc private functions.  */
+/* i8x_readbuf */
+
+I8X_COMMON_OBJECT_FUNCTIONS_PREFIX (readbuf, rb);
+
+i8x_err_e i8x_rb_new_from_note (struct i8x_note *note,
+				struct i8x_readbuf **rb);
+i8x_err_e i8x_rb_new_from_chunk (struct i8x_chunk *chunk,
+				 struct i8x_readbuf **rb);
+struct i8x_note *i8x_rb_get_note (struct i8x_readbuf *rb);
+void i8x_rb_set_byte_order (struct i8x_readbuf *rb,
+			    i8x_byte_order_e byte_order);
+const char *i8x_rb_get_ptr (struct i8x_readbuf *rb);
+size_t i8x_rb_bytes_left (struct i8x_readbuf *rb);
+i8x_err_e i8x_rb_read_int8_t (struct i8x_readbuf *rb, int8_t *result);
+i8x_err_e i8x_rb_read_uint8_t (struct i8x_readbuf *rb, uint8_t *result);
+i8x_err_e i8x_rb_read_int16_t (struct i8x_readbuf *rb, int16_t *result);
+i8x_err_e i8x_rb_read_uint16_t (struct i8x_readbuf *rb, uint16_t *result);
+i8x_err_e i8x_rb_read_int32_t (struct i8x_readbuf *rb, int32_t *result);
+i8x_err_e i8x_rb_read_uint32_t (struct i8x_readbuf *rb, uint32_t *result);
+i8x_err_e i8x_rb_read_int64_t (struct i8x_readbuf *rb, int64_t *result);
+i8x_err_e i8x_rb_read_uint64_t (struct i8x_readbuf *rb, uint64_t *result);
+i8x_err_e i8x_rb_read_sleb128 (struct i8x_readbuf *rb, intptr_t *result);
+i8x_err_e i8x_rb_read_uleb128 (struct i8x_readbuf *rb, uintptr_t *result);
+i8x_err_e i8x_rb_read_bytes (struct i8x_readbuf *rb, size_t nbytes,
+			     const char **result);
+i8x_err_e i8x_rb_read_offset_string (struct i8x_readbuf *rb,
+				     const char **result);
+i8x_err_e i8x_rb_read_funcref (struct i8x_readbuf *rb,
+			       struct i8x_funcref **ref);
+
+/* i8x_reloc */
+
 I8X_LIST_FUNCTIONS (reloc);
 
 i8x_err_e i8x_reloc_new (struct i8x_code *code, ssize_t srcoffset,
@@ -369,7 +363,8 @@ i8x_err_e i8x_reloc_new (struct i8x_code *code, ssize_t srcoffset,
 void i8x_reloc_invalidate_for_inferior (struct i8x_reloc *reloc,
 					struct i8x_inf *inf);
 
-/* i8x_type private functions.  */
+/* i8x_type */
+
 I8X_LIST_FUNCTIONS (type);
 
 i8x_err_e i8x_type_new_coretype (struct i8x_ctx *ctx,

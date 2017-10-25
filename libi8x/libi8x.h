@@ -85,7 +85,7 @@ struct i8x_xctx;
 
 union i8x_value
 {
-  void *p;			/* Pointer and opaque values.  */
+  void *p;			/* Pointer values.  */
   intptr_t i;			/* Signed integer values.  */
   uintptr_t u;			/* Unsigned integer values.  */
   struct i8x_funcref *f;	/* Function values.  */
@@ -106,12 +106,9 @@ typedef i8x_err_e i8x_nat_fn_t (struct i8x_xctx *xctx,
 				struct i8x_func *func,
 				union i8x_value *args,
 				union i8x_value *rets);
-/*
- * i8x_object
- *
- * Don't call these functions directly, use the casted inline
- * functions provided by I8X_COMMON_OBJECT_FUNCTIONS et al.
- */
+
+/* i8x_object functions.  Don't call these directly, use the typed
+   versions provided by I8X_COMMON_OBJECT_FUNCTIONS et al.  */
 
 struct i8x_object *i8x_ob_ref (struct i8x_object *ob);
 struct i8x_object *i8x_ob_unref (struct i8x_object *ob);
@@ -178,12 +175,8 @@ struct i8x_object *i8x_listitem_get_object (struct i8x_listitem *item);
 #define I8X_LISTABLE_OBJECT_FUNCTIONS(TYPE) \
   I8X_LISTABLE_OBJECT_FUNCTIONS_PREFIX (TYPE, TYPE)
 
-/*
- * i8x_ctx
- *
- * library user context - reads the config and system
- * environment, user variables, allows custom logging
- */
+/* i8x_ctx */
+
 I8X_CONTEXT_OBJECT_FUNCTIONS (ctx);
 
 i8x_err_e i8x_ctx_new (int flags, i8x_log_fn_t *log_fn,
@@ -207,11 +200,8 @@ i8x_err_e i8x_ctx_import_native (struct i8x_ctx *ctx,
 				 struct i8x_func **func);
 struct i8x_list *i8x_ctx_get_functions (struct i8x_ctx *ctx);
 
-/*
- * i8x_func
- *
- * access to funcs of i8x
- */
+/* i8x_func */
+
 I8X_COMMON_OBJECT_FUNCTIONS (func);
 
 struct i8x_funcref *i8x_func_get_funcref (struct i8x_func *func);
@@ -222,11 +212,8 @@ i8x_err_e i8x_func_unregister (struct i8x_func *func);
 #define i8x_func_get_signature(func) \
   i8x_funcref_get_signature (i8x_func_get_funcref (func))
 
-/*
- * i8x_funcref
- *
- * access to funcrefs of i8x
- */
+/* i8x_funcref */
+
 I8X_COMMON_OBJECT_FUNCTIONS (funcref);
 I8X_LISTABLE_OBJECT_FUNCTIONS (funcref);
 
@@ -243,11 +230,8 @@ size_t i8x_funcref_get_num_returns (struct i8x_funcref *ref);
 #define i8x_funcref_get_rtypes(ref) \
   i8x_type_get_rtypes (i8x_funcref_get_type (ref))
 
-/*
- * i8x_inf
- *
- * access to inferiors of i8x
- */
+/* i8x_inf */
+
 I8X_COMMON_OBJECT_FUNCTIONS (inf);
 
 typedef i8x_err_e i8x_read_mem_fn_t (struct i8x_inf *inf,
@@ -264,11 +248,8 @@ void i8x_inf_set_read_mem_fn (struct i8x_inf *inf,
 void i8x_inf_set_relocate_fn (struct i8x_inf *inf,
 			      i8x_relocate_fn_t *relocate_fn);
 
-/*
- * i8x_list
- *
- * access to lists of i8x
- */
+/* i8x_list */
+
 I8X_COMMON_OBJECT_FUNCTIONS (list);
 
 size_t i8x_list_size (struct i8x_list *list);
@@ -286,27 +267,18 @@ struct i8x_listitem *i8x_list_get_next (struct i8x_list *list,
        item != NULL;					\
        item = i8x_list_get_next (list, item), index++)
 
-/*
- * i8x_listitem
- *
- * access to listitems of i8x
- */
+/* i8x_listitem */
+
 I8X_COMMON_OBJECT_FUNCTIONS (listitem);
 
-/*
- * i8x_note
- *
- * access to notes of i8x
- */
+/* i8x_note */
+
 I8X_COMMON_OBJECT_FUNCTIONS (note);
 
 const char *i8x_note_get_src_name (struct i8x_note *note);
 
-/*
- * i8x_reloc
- *
- * access to relocs of i8x
- */
+/* i8x_reloc */
+
 I8X_COMMON_OBJECT_FUNCTIONS (reloc);
 I8X_LISTABLE_OBJECT_FUNCTIONS (reloc);
 
@@ -314,11 +286,8 @@ struct i8x_func *i8x_reloc_get_func (struct i8x_reloc *reloc);
 ssize_t i8x_reloc_get_src_offset (struct i8x_reloc *reloc);
 uintptr_t i8x_reloc_get_unrelocated (struct i8x_reloc *reloc);
 
-/*
- * i8x_type
- *
- * access to types of i8x
- */
+/* i8x_type */
+
 I8X_COMMON_OBJECT_FUNCTIONS (type);
 I8X_LISTABLE_OBJECT_FUNCTIONS (type);
 
@@ -326,11 +295,8 @@ bool i8x_type_is_functype (struct i8x_type *type);
 struct i8x_list *i8x_type_get_ptypes (struct i8x_type *type);
 struct i8x_list *i8x_type_get_rtypes (struct i8x_type *type);
 
-/*
- * i8x_xctx
- *
- * access to xctxs of i8x
- */
+/* i8x_xctx */
+
 I8X_COMMON_OBJECT_FUNCTIONS (xctx);
 
 i8x_err_e i8x_xctx_new (struct i8x_ctx *ctx, size_t stack_slots,

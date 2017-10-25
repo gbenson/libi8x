@@ -60,7 +60,7 @@ extern "C" {
 
 struct i8x_chunk;
 
-/* i8x_chunk testcase-internal functions.  */
+/* i8x_chunk */
 
 I8X_COMMON_OBJECT_FUNCTIONS (chunk);
 I8X_LISTABLE_OBJECT_FUNCTIONS (chunk);
@@ -69,11 +69,11 @@ uintptr_t i8x_chunk_get_version (struct i8x_chunk *chunk);
 size_t i8x_chunk_get_encoded_size (struct i8x_chunk *chunk);
 const char *i8x_chunk_get_encoded (struct i8x_chunk *chunk);
 
-/* i8x_ctx testcase-internal functions.  */
+/* i8x_ctx */
 
 const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
 				char *buf, size_t buflen);
-/* i8x_func testcase-internal functions.  */
+/* i8x_func */
 
 i8x_err_e i8x_func_new_bytecode (struct i8x_note *note,
 				 struct i8x_func **func);
@@ -84,7 +84,7 @@ i8x_err_e i8x_func_new_native (struct i8x_ctx *ctx,
 i8x_err_e i8x_func_register (struct i8x_func *func);
 struct i8x_list *i8x_func_get_externals (struct i8x_func *func);
 
-/* i8x_note testcase-internal functions.  */
+/* i8x_note */
 
 i8x_err_e i8x_note_new (struct i8x_ctx *ctx,
 			const char *buf, size_t buflen,
@@ -94,11 +94,11 @@ i8x_err_e i8x_note_get_unique_chunk (struct i8x_note *note,
 				     uintptr_t type_id, bool must_exist,
 				     struct i8x_chunk **chunk);
 
-/* i8x_type testcase-internal functions.  */
+/* i8x_type */
 
 const char *i8x_type_get_encoded (struct i8x_type *type);
 
-/* i8x_xctx testcase-internal functions.  */
+/* i8x_xctx */
 
 void i8x_xctx_set_use_debug_interpreter (struct i8x_xctx *xctx,
 					 bool use_debug_interpreter);
