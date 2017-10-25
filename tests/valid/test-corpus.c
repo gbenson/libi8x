@@ -47,6 +47,7 @@ do_test (struct i8x_ctx *ctx, const char *filename)
 
       if (chunk != NULL)
 	{
+	  CHECK (i8x_chunk_get_version (chunk) == 1);
 	  CHECK (i8x_chunk_get_encoded_size (chunk) >= 1);
 
 	  char first_byte = *i8x_chunk_get_encoded (chunk);
