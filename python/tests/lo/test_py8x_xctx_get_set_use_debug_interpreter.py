@@ -33,8 +33,5 @@ class TestPy8xXctxGetSetUseDebugInterpreter(common.TestCase):
         """Test py8x_xctx_[gs]et_use_debug_interpreter."""
         ctx = self.ctx_new()
         xctx = py8x.xctx_new(ctx, 0)
-        self.assertEqual(py8x.xctx_get_use_debug_interpreter(xctx), False)
         for udi in (True, True, False, 5, 0):
             py8x.xctx_set_use_debug_interpreter(xctx, udi)
-            self.assertIs(py8x.xctx_get_use_debug_interpreter(xctx),
-                          not (not udi))

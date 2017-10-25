@@ -79,7 +79,6 @@ global:
 	i8x_type_get_rtypes;
 
 	i8x_xctx_new;
-	i8x_xctx_get_use_debug_interpreter;
 	i8x_xctx_set_use_debug_interpreter;
 	i8x_xctx_call;
 local:

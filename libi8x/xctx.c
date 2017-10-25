@@ -93,12 +93,6 @@ i8x_xctx_new (struct i8x_ctx *ctx, size_t stack_slots,
   return I8X_OK;
 }
 
-I8X_EXPORT bool
-i8x_xctx_get_use_debug_interpreter (struct i8x_xctx *xctx)
-{
-  return xctx->use_debug_interpreter;
-}
-
 I8X_EXPORT void
 i8x_xctx_set_use_debug_interpreter (struct i8x_xctx *xctx,
 				    bool use_debug_interpreter)
