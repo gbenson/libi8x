@@ -91,13 +91,27 @@ union i8x_value
   struct i8x_funcref *f;	/* Function values.  */
 };
 
+/* Function types.  */
+
+typedef void i8x_cleanup_fn_t (void *userdata);
+
+typedef void i8x_log_fn_t (struct i8x_ctx *ctx,
+			   int priority,
+			   const char *file, int line,
+			   const char *fn,
+			   const char *format, va_list args);
+
+typedef i8x_err_e i8x_nat_fn_t (struct i8x_xctx *xctx,
+				struct i8x_inf *inf,
+				struct i8x_func *func,
+				union i8x_value *args,
+				union i8x_value *rets);
 /*
  * i8x_object
  *
  * Don't call these functions directly, use the casted inline
  * functions provided by I8X_COMMON_OBJECT_FUNCTIONS et al.
  */
-typedef void i8x_cleanup_fn_t (void *userdata);
 
 struct i8x_object *i8x_ob_ref (struct i8x_object *ob);
 struct i8x_object *i8x_ob_unref (struct i8x_object *ob);
@@ -170,18 +184,6 @@ struct i8x_object *i8x_listitem_get_object (struct i8x_listitem *item);
  * library user context - reads the config and system
  * environment, user variables, allows custom logging
  */
-typedef void i8x_log_fn_t (struct i8x_ctx *ctx,
-			   int priority,
-			   const char *file, int line,
-			   const char *fn,
-			   const char *format, va_list args);
-
-typedef i8x_err_e i8x_nat_fn_t (struct i8x_xctx *xctx,
-				struct i8x_inf *inf,
-				struct i8x_func *func,
-				union i8x_value *args,
-				union i8x_value *rets);
-
 I8X_CONTEXT_OBJECT_FUNCTIONS (ctx);
 
 i8x_err_e i8x_ctx_new (int flags, i8x_log_fn_t *log_fn,
