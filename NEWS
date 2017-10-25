@@ -1,1 +1,56 @@
+What has changed in libi8x?
+===========================
 
+Changes in libi8x 0.0.4
+-----------------------
+
+* The libthread_db example now uses ps_foreach_infinity_note, if
+  present, rather than walking r_debug.
+
+* The libthread_db example now uses ps_get_register, if present,
+  rather than using ps_lgetregs.
+
+* The libthread_db example's td_thr_get_info now fills in all fields
+  that glibc's libthread_db fills in.
+
+* The libthread_db example's td_thr_tls_get_addr has been rewritten
+  without using thread::get_tls_addr(ppi)ip.
+
+
+Changes in libi8x 0.0.3
+-----------------------
+
+* The libthread_db example now has a self-test.
+
+* procservice::get_register(ii)i should now work for debugger wordsize
+  != inferior wordsize cases.
+
+* The libthread_db example's r_debug walk should now work for debugger
+  wordsize != inferior wordsize cases.
+
+* Everything should now build on 32-bit.
+
+* 64-bit dereferences in 32-bit notes are now rejected.
+
+* All supported operations are now implemented in libi8x.
+
+* i8x_code_unpack_info no longer leaks readbuf references on error.
+
+* i8x_type is now public.
+
+* More of i8x_funcref is now public.
+
+* i8x_func is passed to native calls, for userdata access and
+  polymorphism.
+
+* The libthread_db example now implements td_thr_tlsbase and
+  td_thr_get_addr.
+
+* libi8x has more tests, including validation and execution smoke
+  tests for all notes currently in existence.
+
+
+..
+  Local Variables:
+  mode: rst
+  End:
