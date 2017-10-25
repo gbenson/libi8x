@@ -26,3 +26,6 @@ EXTRA_DIST = \
 mostlyclean-local:
 	rm -rf .eggs build *.egg* *.so
 	find . -name '*.pyc' | xargs rm -f
+
+libi8x.c: mkpy3capi.py libi8x.c.in
+	$(PYTHON) mkpy3capi.py pycparser/utils/fake_libc_include
