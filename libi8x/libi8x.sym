@@ -79,7 +79,6 @@ global:
 	i8x_type_get_rtypes;
 
 	i8x_xctx_new;
-	i8x_xctx_set_use_debug_interpreter;
 	i8x_xctx_call;
 local:
 	*;
@@ -97,4 +96,5 @@ LIBI8X_PRIVATE {
 	__i8xtest_func_register;
 	__i8xtest_note_new;
 	__i8xtest_type_get_encoded;
+	__i8xtest_xctx_set_use_debug_interpreter;
 };

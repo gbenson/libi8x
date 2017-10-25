@@ -35,6 +35,8 @@
 #define i8x_func_register	__i8xtest_func_register
 #define i8x_note_new		__i8xtest_note_new
 #define i8x_type_get_encoded	__i8xtest_type_get_encoded
+#define i8x_xctx_set_use_debug_interpreter \
+				__i8xtest_xctx_set_use_debug_interpreter
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,6 +57,8 @@ i8x_err_e i8x_note_new (struct i8x_ctx *ctx,
 			const char *srcname, ssize_t srcoffset,
 			struct i8x_note **note);
 const char *i8x_type_get_encoded (struct i8x_type *type);
+void i8x_xctx_set_use_debug_interpreter (struct i8x_xctx *xctx,
+					 bool use_debug_interpreter);
 
 #ifdef __cplusplus
 } /* extern "C" */

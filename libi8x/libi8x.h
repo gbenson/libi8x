@@ -357,8 +357,6 @@ I8X_COMMON_OBJECT_FUNCTIONS (xctx);
 
 i8x_err_e i8x_xctx_new (struct i8x_ctx *ctx, size_t stack_slots,
 			struct i8x_xctx **xctx);
-void i8x_xctx_set_use_debug_interpreter (struct i8x_xctx *xctx,
-					 bool use_debug_interpreter);
 i8x_err_e i8x_xctx_call (struct i8x_xctx *xctx,
 			 struct i8x_funcref *ref,
 			 struct i8x_inf *inf,
