@@ -22,6 +22,14 @@ Low-level tests (tests/lo)
    - cp build/temp.linux-x86_64-2.7/*.gc{da,no} .
    - gcov libi8x.gcno
 
+* How to check for functions not used by high-level layer?
+   - CFLAGS="-coverage" python setup.py build_ext --inplace
+   - nosetests tests/hi
+   - cp build/temp.linux-x86_64-2.7/*.gc{da,no} .
+   - gcov libi8x.gcno
+   - grep '#####.*:py8x_.*self.*args' libi8x.c.gcov \
+       | sed 's/.*:\([^[:space:]]*\).*/\1/'
+
 
 High-level tests (tests/hi)
 ===========================
