@@ -72,7 +72,7 @@ const char *i8x_chunk_get_encoded (struct i8x_chunk *chunk);
 /* i8x_ctx testcase-internal functions.  */
 
 const char *i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
-				char *buf, size_t bufsiz);
+				char *buf, size_t buflen);
 /* i8x_func testcase-internal functions.  */
 
 i8x_err_e i8x_func_new_bytecode (struct i8x_note *note,
@@ -87,7 +87,7 @@ struct i8x_list *i8x_func_get_externals (struct i8x_func *func);
 /* i8x_note testcase-internal functions.  */
 
 i8x_err_e i8x_note_new (struct i8x_ctx *ctx,
-			const char *buf, size_t bufsiz,
+			const char *buf, size_t buflen,
 			const char *srcname, ssize_t srcoffset,
 			struct i8x_note **note);
 i8x_err_e i8x_note_get_unique_chunk (struct i8x_note *note,

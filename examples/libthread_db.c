@@ -232,7 +232,7 @@ td_basic_relocate (void *base_addr_p, psaddr_t unrelocated_p,
 /* Import a single note, creating the context if necessary.  */
 
 static ps_err_e
-td_import_note (void *ta_p, const char *buf, size_t bufsiz,
+td_import_note (void *ta_p, const char *buf, size_t buflen,
 		const char *srcname, ssize_t srcoffset,
 		ps_infinity_reloc_f *rf, void *rf_arg)
 {
@@ -252,7 +252,7 @@ td_import_note (void *ta_p, const char *buf, size_t bufsiz,
     return PS_ERR;
 
   struct i8x_func *func;
-  err = i8x_ctx_import_bytecode (ta->ctx, buf, bufsiz, srcname,
+  err = i8x_ctx_import_bytecode (ta->ctx, buf, buflen, srcname,
 				 srcoffset, &func);
   if (err != I8X_OK)
     {

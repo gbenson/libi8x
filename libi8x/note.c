@@ -78,7 +78,7 @@ i8x_note_locate_chunks (struct i8x_note *note)
 }
 
 static i8x_err_e
-i8x_note_init (struct i8x_note *note, const char *buf, size_t bufsiz,
+i8x_note_init (struct i8x_note *note, const char *buf, size_t buflen,
 	       const char *srcname, ssize_t srcoffset)
 {
   i8x_err_e err;
@@ -96,12 +96,12 @@ i8x_note_init (struct i8x_note *note, const char *buf, size_t bufsiz,
 
   note->srcoffset = srcoffset;
 
-  note->encoded_size = bufsiz;
-  note->encoded = malloc (bufsiz);
+  note->encoded_size = buflen;
+  note->encoded = malloc (buflen);
   if (note->encoded == NULL)
     return i8x_out_of_memory (i8x_note_get_ctx (note));
 
-  memcpy (note->encoded, buf, bufsiz);
+  memcpy (note->encoded, buf, buflen);
 
   err = i8x_note_locate_chunks (note);
   if (err != I8X_OK)
@@ -140,7 +140,7 @@ static const struct i8x_object_ops i8x_note_ops =
 
 I8X_EXPORT i8x_err_e
 i8x_note_new (struct i8x_ctx *ctx, const char *buf,
-	      size_t bufsiz, const char *srcname,
+	      size_t buflen, const char *srcname,
 	      ssize_t srcoffset, struct i8x_note **note)
 {
   struct i8x_note *n;
@@ -150,7 +150,7 @@ i8x_note_new (struct i8x_ctx *ctx, const char *buf,
   if (err != I8X_OK)
     return err;
 
-  err = i8x_note_init (n, buf, bufsiz, srcname, srcoffset);
+  err = i8x_note_init (n, buf, buflen, srcname, srcoffset);
   if (err != I8X_OK)
     {
       n = i8x_note_unref (n);

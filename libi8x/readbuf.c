@@ -41,7 +41,7 @@ static const struct i8x_object_ops i8x_readbuf_ops =
 
 static i8x_err_e
 i8x_rb_new (struct i8x_note *note,
-	    const char *buf, size_t bufsiz,
+	    const char *buf, size_t buflen,
 	    struct i8x_readbuf **rb)
 {
   struct i8x_readbuf *b;
@@ -52,7 +52,7 @@ i8x_rb_new (struct i8x_note *note,
     return err;
 
   b->start = b->ptr = buf;
-  b->limit = buf + bufsiz;
+  b->limit = buf + buflen;
 
   *rb = b;
 

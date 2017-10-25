@@ -879,17 +879,17 @@ ip_to_so (struct i8x_code *code, struct i8x_instr *ip)
    parses this output so be careful what you alter.  */
 
 static void
-i8x_code_fmt_arg (char *buf, size_t bufsiz, i8x_operand_type_e type,
+i8x_code_fmt_arg (char *buf, size_t buflen, i8x_operand_type_e type,
 		  union i8x_value value)
 {
-  i8x_assert (bufsiz > 0);
+  i8x_assert (buflen > 0);
   if (type == I8X_OPR_NONE)
     {
       *buf = '\0';
       return;
     }
   *(buf++) = ' ';
-  bufsiz--;
+  buflen--;
 
   switch (type)
     {
@@ -898,7 +898,7 @@ i8x_code_fmt_arg (char *buf, size_t bufsiz, i8x_operand_type_e type,
     case I8X_OPR_INT32:
     case I8X_OPR_INT64:
     case I8X_OPR_SLEB128:
-      snprintf (buf, bufsiz, LDEC, value.i);
+      snprintf (buf, buflen, LDEC, value.i);
       break;
 
     case I8X_OPR_UINT8:
@@ -906,11 +906,11 @@ i8x_code_fmt_arg (char *buf, size_t bufsiz, i8x_operand_type_e type,
     case I8X_OPR_UINT32:
     case I8X_OPR_UINT64:
     case I8X_OPR_ULEB128:
-      snprintf (buf, bufsiz, ULDEC, value.u);
+      snprintf (buf, buflen, ULDEC, value.u);
       break;
 
     default:
-      snprintf (buf, bufsiz, LHEX, value.u);
+      snprintf (buf, buflen, LHEX, value.u);
     }
 }
 

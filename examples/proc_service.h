@@ -98,7 +98,7 @@ typedef ps_err_e ps_infinity_reloc_f (void *rf_arg,
 /* Callback for iteration over Infinity notes.  Should return PS_OK to
    indicate success, or any other value to indicate failure.  CB_ARG
    is whatever was passed as CB_ARG to ps_foreach_infinity_note.  BUF
-   is is a pointer to a buffer of BUFSIZ bytes containing the encoded
+   is is a pointer to a buffer of BUFLEN bytes containing the encoded
    note.  SRCNAME is an identifier used to construct error messages,
    typically a filename, and may be NULL if unset.  SRCOFFSET is the
    offset into SRCNAME of the start of BUF, and may be -1 if unset.
@@ -106,7 +106,7 @@ typedef ps_err_e ps_infinity_reloc_f (void *rf_arg,
    notes, and RF_ARG is an argument that should be passed as to RF.  */
 typedef ps_err_e ps_visit_infinity_note_f (void *cb_arg,
 					   const char *buf,
-					   size_t bufsiz,
+					   size_t buflen,
 					   const char *srcname,
 					   ssize_t srcoffset,
 					   ps_infinity_reloc_f *rf,

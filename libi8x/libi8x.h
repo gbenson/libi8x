@@ -56,7 +56,7 @@ typedef enum
 }
 i8x_err_e;
 
-const char *i8x_strerror_r (i8x_err_e code, char *buf, size_t bufsiz);
+const char *i8x_strerror_r (i8x_err_e code, char *buf, size_t buflen);
 
 /* Values for i8x_ctx_new's "flags" argument.  In addition to these,
    the bottom 3 bits can be used to pass a logging message priority.
@@ -198,7 +198,7 @@ i8x_err_e i8x_ctx_get_funcref (struct i8x_ctx *ctx,
 			       const char *signature,
 			       struct i8x_funcref **ref);
 i8x_err_e i8x_ctx_import_bytecode (struct i8x_ctx *ctx,
-				   const char *buf, size_t bufsiz,
+				   const char *buf, size_t buflen,
 				   const char *srcname, ssize_t srcoffset,
 				   struct i8x_func **func);
 i8x_err_e i8x_ctx_import_native (struct i8x_ctx *ctx,

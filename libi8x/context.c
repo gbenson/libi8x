@@ -440,22 +440,22 @@ static void __attribute__ ((format (printf, 3, 4)))
 xsnprintf (char **bufp, char *limit, const char *format, ...)
 {
   char *buf = *bufp;
-  size_t bufsiz = limit - buf;
+  size_t buflen = limit - buf;
   va_list args;
 
   va_start (args, format);
-  vsnprintf (buf, bufsiz, format, args);
+  vsnprintf (buf, buflen, format, args);
   va_end (args);
 
-  buf[bufsiz - 1] = '\0';
+  buf[buflen - 1] = '\0';
   *bufp = buf + strlen (buf);
 }
 
 I8X_EXPORT const char *
-i8x_strerror_r (i8x_err_e code, char *buf, size_t bufsiz)
+i8x_strerror_r (i8x_err_e code, char *buf, size_t buflen)
 {
   char *ptr = buf;
-  char *limit = ptr + bufsiz;
+  char *limit = ptr + buflen;
   const char *msg = error_message_for (code);
 
   if (msg == NULL)
@@ -493,10 +493,10 @@ i8x_ctx_get_last_error_src_offset (struct i8x_ctx *ctx)
 
 I8X_EXPORT const char *
 i8x_ctx_strerror_r (struct i8x_ctx *ctx, i8x_err_e code,
-		    char *buf, size_t bufsiz)
+		    char *buf, size_t buflen)
 {
   char *ptr = buf;
-  char *limit = ptr + bufsiz;
+  char *limit = ptr + buflen;
   const char *prefix = i8x_ctx_get_last_error_src_name (ctx);
   ssize_t offset = i8x_ctx_get_last_error_src_offset (ctx);
 
@@ -928,7 +928,7 @@ i8x_func_unregister (struct i8x_func *func)
 
 I8X_EXPORT i8x_err_e
 i8x_ctx_import_bytecode (struct i8x_ctx *ctx,
-			 const char *buf, size_t bufsiz,
+			 const char *buf, size_t buflen,
 			 const char *srcname, ssize_t srcoffset,
 			 struct i8x_func **func)
 {
@@ -936,7 +936,7 @@ i8x_ctx_import_bytecode (struct i8x_ctx *ctx,
   struct i8x_func *f;
   i8x_err_e err;
 
-  err = i8x_note_new (ctx, buf, bufsiz, srcname, srcoffset, &note);
+  err = i8x_note_new (ctx, buf, buflen, srcname, srcoffset, &note);
   if (err != I8X_OK)
     return err;
 
