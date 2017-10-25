@@ -39,9 +39,6 @@ class _TestBadArgTypes(common.TestCase):
                                                 "testnote", 0)
         self.tv_funcref = py8x.func_get_funcref(self.tv_func)
         self.tv_note = py8x.func_get_note(self.tv_func)
-        self.tv_chunk = py8x.note_get_unique_chunk(self.tv_note,
-                                                   py8x.I8_CHUNK_BYTECODE,
-                                                   True)
         self.tv_list = py8x.func_get_relocs(self.tv_func)
         self.tv_listitem = py8x.list_get_first(self.tv_list)
         self.tv_reloc = py8x.listitem_get_object(self.tv_listitem)
@@ -51,9 +48,8 @@ class _TestBadArgTypes(common.TestCase):
         # Special i8x type used as a placeholder for any i8x object.
         # It could be anything but it shouldn't be the same as any
         # of the above.
-        self.tv_object = py8x.note_get_unique_chunk(self.tv_note,
-                                                    py8x.I8_CHUNK_SIGNATURE,
-                                                    True)
+        self.tv_object = py8x.inf_new(self.tv_ctx)
+
         # Non-i8x types.
         self.tv_integer = 5
         self.tv_string = ""

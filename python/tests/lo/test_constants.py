@@ -31,11 +31,3 @@ class TestConstants(unittest.TestCase):
         """Test i8x_ctx_new flags."""
         self.assertEqual(py8x.LOG_TRACE, 0x08)
         self.assertEqual(py8x.DBG_MEM, 0x10)
-
-    def test_chunk_types(self):
-        """Test chunk types constants."""
-        self.assertEqual(py8x.I8_CHUNK_SIGNATURE, 1)
-        self.assertEqual(py8x.I8_CHUNK_BYTECODE, 2)
-        self.assertEqual(py8x.I8_CHUNK_EXTERNALS, 3)
-        self.assertEqual(py8x.I8_CHUNK_STRINGS, 4)
-        self.assertEqual(py8x.I8_CHUNK_CODEINFO, 5)

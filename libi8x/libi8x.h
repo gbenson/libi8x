@@ -67,17 +67,8 @@ const char *i8x_strerror_r (i8x_err_e code, char *buf, size_t bufsiz);
 #define I8X_LOG_TRACE	0x08	/* Log bytecodes as they execute.  */
 #define I8X_DBG_MEM	0x10	/* Debug memory allocation.  */
 
-/* Chunk types.  */
-
-#define I8_CHUNK_SIGNATURE	1
-#define I8_CHUNK_BYTECODE	2
-#define I8_CHUNK_EXTERNALS	3
-#define I8_CHUNK_STRINGS	4
-#define I8_CHUNK_CODEINFO	5
-
 /* Forward declarations.  */
 
-struct i8x_chunk;
 struct i8x_ctx;
 struct i8x_func;
 struct i8x_funcref;
@@ -172,18 +163,6 @@ struct i8x_object *i8x_listitem_get_object (struct i8x_listitem *item);
 
 #define I8X_LISTABLE_OBJECT_FUNCTIONS(TYPE) \
   I8X_LISTABLE_OBJECT_FUNCTIONS_PREFIX (TYPE, TYPE)
-
-/*
- * i8x_chunk
- *
- * access to chunks of i8x
- */
-I8X_COMMON_OBJECT_FUNCTIONS (chunk);
-I8X_LISTABLE_OBJECT_FUNCTIONS (chunk);
-
-uintptr_t i8x_chunk_get_version (struct i8x_chunk *chunk);
-size_t i8x_chunk_get_encoded_size (struct i8x_chunk *chunk);
-const char *i8x_chunk_get_encoded (struct i8x_chunk *chunk);
 
 /*
  * i8x_ctx
@@ -320,9 +299,6 @@ I8X_COMMON_OBJECT_FUNCTIONS (listitem);
 I8X_COMMON_OBJECT_FUNCTIONS (note);
 
 const char *i8x_note_get_src_name (struct i8x_note *note);
-i8x_err_e i8x_note_get_unique_chunk (struct i8x_note *note,
-				     uintptr_t type_id, bool must_exist,
-				     struct i8x_chunk **chunk);
 
 /*
  * i8x_reloc

@@ -1505,44 +1505,6 @@ py8x_list_get_next (PyObject *self, PyObject *args)
   PY8X_RETURN_LISTITEM (i8x_list_get_next (list, curr));
 }
 
-/* Python binding for i8x_note_get_unique_chunk.  */
-
-static PyObject *
-py8x_note_get_unique_chunk (PyObject *self, PyObject *args)
-{
-  PyObject *notec;
-  uintptr_t type_id;
-  int must_exist;
-
-  if (!PyArg_ParseTuple (args, "Oki", &notec, &type_id, &must_exist))
-    return NULL;
-
-  struct i8x_note *note = PY8X_FROM_CAPSULE (note);
-  struct i8x_chunk *chunk;
-  i8x_err_e err = i8x_note_get_unique_chunk (note, type_id, must_exist,
-					     &chunk);
-
-  PY8X_CHECK_CALL (i8x_note_get_ctx (note), err);
-
-  return py8x_encapsulate (i8x_chunk_ref (chunk));
-}
-
-/* Python binding for i8x_chunk_get_encoded.  */
-
-static PyObject *
-py8x_chunk_get_encoded (PyObject *self, PyObject *args)
-{
-  PyObject *chunkc;
-
-  if (!PyArg_ParseTuple (args, "O", &chunkc))
-    return NULL;
-
-  struct i8x_chunk *chunk = PY8X_FROM_CAPSULE (chunk);
-
-  return PyBytes_FromStringAndSize (i8x_chunk_get_encoded (chunk),
-				    i8x_chunk_get_encoded_size (chunk));
-}
-
 /* PyArg_ParseTuple converter for uintptr_t with overflow checking.  */
 
 static int
@@ -1600,8 +1562,6 @@ static PyMethodDef libi8x_methods[] = {
   PY8X_FUNCTION (inf_new),
   PY8X_FUNCTION (list_get_first),
   PY8X_FUNCTION (list_get_next),
-  PY8X_FUNCTION (note_get_unique_chunk),
-  PY8X_FUNCTION (chunk_get_encoded),
   PY8X_FUNCTION (to_signed),
   PY8X_FUNCTION (to_unsigned),
 #pragma libi8x_api_function_table
