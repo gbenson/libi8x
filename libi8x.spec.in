@@ -45,11 +45,12 @@ make install DESTDIR=%{buildroot}
 %files
 %defattr(-,root,root,-)
 %doc README COPYING NEWS
-%{_libdir}/*.so.*
+%{_libdir}/%{name}-%{version}.so
+%{_libdir}/%{name}.so.*
 
 %files devel
 %defattr(-,root,root,-)
 %{_includedir}/%{name}.h
-%{_libdir}/*.so
-%{_libdir}/*.la
+%{_libdir}/%{name}.so
+%{_libdir}/%{name}.la
 %{_libdir}/pkgconfig/%{name}.pc

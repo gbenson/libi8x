@@ -154,6 +154,7 @@ class TestAllTested(APITestCase):
     def test_libtool_output(self):
         """Check the filesystem libtool created."""
 
+        # Soft checks: did libtool create a consistent filesystem?
         unversioned_link = self.LIBI8X_SO
         print("unversioned_link =", unversioned_link)
         self.assertTrue(os.path.exists(unversioned_link))
@@ -172,3 +173,8 @@ class TestAllTested(APITestCase):
         self.assertNotEqual(versioned_link, filename)
         self.assertTrue(os.path.exists(versioned_link))
         self.assertEqual(os.path.realpath(versioned_link), filename)
+
+        # Hard checks: are the versioned names what we expect?
+        self.assertEqual(os.path.basename(versioned_link), "libi8x.so.1")
+        self.assertIsNotNone(re.match(r"^libi8x-\d+\.\d+\.\d+\.so$",
+                                      os.path.basename(filename)))

@@ -11,6 +11,8 @@ Changes in libi8x 0.0.5
 
 * The shared library libi8x.so is now versioned, and a number of
   symbols have been made internal in preparation for a 1.0 release.
+  The soname has been changed from libi8x.so.0 to libi8x.so.1 to
+  reflect this.
 
 * The debug interpreter defaults to on if log level >= LOG_DEBUG when
   the execution context is created, so it's no longer necessary to set

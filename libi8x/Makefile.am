@@ -45,9 +45,10 @@ SED_PROCESS = \
 %.pc: %.pc.in Makefile
 	$(SED_PROCESS)
 
-LIBI8X_CURRENT=0
-LIBI8X_REVISION=0
-LIBI8X_AGE=0
+# ABI version of libi8x.so, for the SONAME.  Ideally we'll resolve
+# all potential incompatibilities using versioned symbols and this
+# will never be bumped.
+LIBI8X_SONAME_VERSION = 1
 
 include_HEADERS = libi8x.h
 lib_LTLIBRARIES = libi8x.la
@@ -82,8 +83,13 @@ libi8x_la_SOURCES = \
 
 EXTRA_DIST += libi8x.sym optable.c
 
+# Note that we use a patched libtool that builds this setup:
+#   $(libdir)/libi8x-$(VERSION).so
+#   $(libdir)/libi8x.so.$(LIBI8X_SONAME_VERSION)
+#   $(libdir)/libi8x.so
 libi8x_la_LDFLAGS = $(AM_LDFLAGS) \
-	-version-info $(LIBI8X_CURRENT):$(LIBI8X_REVISION):$(LIBI8X_AGE) \
+	-release $(VERSION) \
+	-version-info $(LIBI8X_SONAME_VERSION):0:0 \
 	-Wl,--version-script=$(top_srcdir)/libi8x/libi8x.sym
 libi8x_la_DEPENDENCIES = ${top_srcdir}/libi8x/libi8x.sym
 
