@@ -17,7 +17,7 @@
 # License along with the Infinity Note Execution Library; if not,
 # see <http://www.gnu.org/licenses/>.
 
-LIBI8X_1.0.0 {
+LIBI8X_0.0.5 {
 global:
 	i8x_strerror_r;
 
