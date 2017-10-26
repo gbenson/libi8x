@@ -1,6 +1,50 @@
 What has changed in libi8x?
 ===========================
 
+Changes in libi8x 0.0.5
+-----------------------
+
+* libi8x now has Python bindings, and tests may now be written using
+  Python or C.  Note that the Python bindings will have a separate
+  release schedule from libi8x; they're shipped in the libi8x tarball
+  purely to run the testsuite.
+
+* The shared library libi8x.so is now versioned, and a number of
+  symbols have been made internal in preparation for a 1.0 release.
+
+* The debug interpreter defaults to on if log level >= LOG_DEBUG when
+  the execution context is created, so it's no longer necessary to set
+  I8X_DEBUG to see trace messages.
+
+* The I8X_DEBUG environment variable has been renamed as I8X_DBG_MEM
+  to reflect the fact that it now has a single purpose (enabling the
+  debug allocator).
+
+* libi8x now supports local functions.  These are native functions
+  registered with a zero-length provider; they may be accessed by
+  reference but not by name.  Essentially they are anonymous functions
+  with optional names.
+
+* i8x_ctx_unregister_func has been replaced with i8x_func_unregister.
+
+* i8x_ctx_strerror_r has been replaced with i8x_strerror_r,
+  i8x_ctx_get_last_error_src_name and i8x_ctx_get_last_error_src_offset.
+
+* The relocation interface has changed.
+
+* Userdata is now immutable once set.
+
+* i8x_xctx_call type-checks arguments and return values from native
+  functions
+
+* A number of bugs in the LEB128 decoders and function unregistration
+  are now fixed.
+
+* libi8x now has many more tests.
+
+* A new error code I8X_NATCALL_FAILED has been introduced.
+
+
 Changes in libi8x 0.0.4
 -----------------------
 

@@ -17,7 +17,7 @@ script:
   - test -x examples/libthread_db.so.1
   - make check
   - test -f tests/test-suite.log && rm -f tests/test-suite.log
-  - grep VERSION config.h > NEWS && make distcheck
+  - make distcheck
 
 after_failure:
   - test -f tests/test-suite.log && cat tests/test-suite.log
