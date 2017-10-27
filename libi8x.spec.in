@@ -33,7 +33,7 @@ developing applications that use %{name}.
 %make_build
 
 %check
-make check
+make check VERBOSE=1
 
 %install
 make install DESTDIR=%{buildroot}

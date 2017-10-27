@@ -15,9 +15,5 @@ before_script:
 script:
   - CFLAGS="-g -O3" ./configure && make V=1
   - test -x examples/libthread_db.so.1
-  - make check
-  - test -f tests/test-suite.log && rm -f tests/test-suite.log
-  - make distcheck
-
-after_failure:
-  - test -f tests/test-suite.log && cat tests/test-suite.log
+  - make check VERBOSE=1
+  - make distcheck VERBOSE=1
