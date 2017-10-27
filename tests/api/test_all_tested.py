@@ -62,15 +62,26 @@ class TestAllTested(APITestCase):
             return True  # Exposed and tested via py8x
         return self.__LIBI8X_C.find(function + " (") != -1
 
-    @property
-    def libi8x_so_symbols(self):
-        filename = os.path.join(TOP_BUILDDIR, "libi8x", ".libs", "libi8x.so")
-        self.assertTrue(os.path.exists(filename))
+    LIBI8X_SO = os.path.join(TOP_BUILDDIR, "libi8x", ".libs", "libi8x.so")
+
+    def objdump(self, *args):
+        cmd = ("objdump",) + args
         try:
-            output = subprocess.check_output(("objdump", "-T", filename))
+            return subprocess.check_output(cmd).decode("utf-8").split("\n")
         except:
             self.skipTest("objdump failed")
-        for line in output.decode("utf-8").split("\n"):
+
+    def soname(self, filename):
+        for line in self.objdump("-p", filename):
+            line = line.strip().split(None, 1)
+            if line and line[0] == "SONAME":
+                return line[1]
+        self.fail("No SONAME")
+
+    @property
+    def libi8x_so_symbols(self):
+        self.assertTrue(os.path.exists(self.LIBI8X_SO))
+        for line in self.objdump("-T", self.LIBI8X_SO):
             line = line.strip().split()
             print(line)
             for sect in (".text", ".opd"):
@@ -139,3 +150,25 @@ class TestAllTested(APITestCase):
 
         # The test itself.
         self.assertAllTested(exports)
+
+    def test_libtool_output(self):
+        """Check the filesystem libtool created."""
+
+        unversioned_link = self.LIBI8X_SO
+        print("unversioned_link =", unversioned_link)
+        self.assertTrue(os.path.exists(unversioned_link))
+        libdir, check = os.path.split(unversioned_link)
+        self.assertEqual(check, "libi8x.so")
+
+        filename = os.path.realpath(unversioned_link)
+        print("filename         =", filename)
+        self.assertNotEqual(filename, unversioned_link)
+        self.assertTrue(os.path.exists(filename))
+        self.assertEqual(os.path.dirname(filename), libdir)
+
+        versioned_link = os.path.join(libdir, self.soname(filename))
+        print("versioned_link   =", versioned_link)
+        self.assertNotEqual(versioned_link, unversioned_link)
+        self.assertNotEqual(versioned_link, filename)
+        self.assertTrue(os.path.exists(versioned_link))
+        self.assertEqual(os.path.realpath(versioned_link), filename)
