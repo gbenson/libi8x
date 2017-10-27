@@ -1,3 +1,11 @@
+%if 0%{?fedora}
+  %global _i8x_python_dep python3
+  %global _i8x_python_exe %{__python3}
+%else
+  %global _i8x_python_dep python
+  %global _i8x_python_exe %{__python2}
+%endif
+
 Name:           @PACKAGE_NAME@
 Version:        @PACKAGE_VERSION@
 Release:        1%{?dist}
@@ -6,9 +14,10 @@ License:        LGPLv2+
 URL:            https://infinitynotes.org/
 Source:         https://infinitynotes.org/src/%{name}/%{name}-%{version}.tar.xz
 BuildRequires:  py3c-devel
-BuildRequires:  python-devel
-BuildRequires:  python-nose
-BuildRequires:  python-setuptools
+BuildRequires:  %{_i8x_python_dep}
+BuildRequires:  %{_i8x_python_dep}-devel
+BuildRequires:  %{_i8x_python_dep}-nose
+BuildRequires:  %{_i8x_python_dep}-setuptools
 
 %description
 Infinity is a platform-independent system for executables and shared
@@ -29,7 +38,7 @@ developing applications that use %{name}.
 %setup -q
 
 %build
-%configure --disable-static
+%configure PYTHON=%{_i8x_python_exe} --disable-static
 %make_build
 
 %check
@@ -44,7 +53,8 @@ make install DESTDIR=%{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc README COPYING NEWS
+%license COPYING
+%doc README NEWS
 %{_libdir}/%{name}-%{version}.so
 %{_libdir}/%{name}.so.*
 
