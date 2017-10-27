@@ -72,8 +72,14 @@ class TestAllTested(APITestCase):
             self.skipTest("objdump failed")
         for line in output.decode("utf-8").split("\n"):
             line = line.strip().split()
-            if ".text" not in line:
+            print(line)
+            for sect in (".text", ".opd"):
+                if sect in line and line[-1] != sect:
+                    break
+            else:
                 continue
+            if line[-2].startswith("0x"):
+                line.pop(-2)
             yield Symbol(self, *line[-2:])
 
     def test_all_tested(self):
