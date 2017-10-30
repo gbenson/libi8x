@@ -1,1 +1,51 @@
-Infinity Note Execution Library
+Infinity Runtime Library
+========================
+
+Infinity is a platform-independent system for executables and shared
+libraries to expose functionality to debug, monitoring, and analysis
+tooling.  In Infinity, executable and shared library files contain
+platform-independent Infinity functions in addition to their regular
+contents.  libi8x allows programs to execute these functions.
+
+
+Requirements
+------------
+
+libi8x is written in C and has no additional runtime dependencies
+beyond the standard C library.  Some of its tests are written using
+Python with the py3c compatibility layer and it’s recommended these
+are installed at build time.  The libthread_db example uses libelf.
+
+
+Installation
+------------
+
+libi8x is a regular autotools package and follows the usual process::
+
+  ./configure
+  make
+  make check    # optional
+  make install
+
+To compile your own package against libi8x the use of pkg-config is
+recommended.
+
+
+Documentation
+-------------
+
+Right now there’s no documentation for libi8x aside from this
+file.  This is being worked on!
+
+
+Contributing
+------------
+
+The Infinity project homepage is https://infinitynotes.org/.  Future
+work is planned and coordinated on https://infinitynotes.org/roadmap.
+For help or to report bugs please email infinity@sourceware.org.
+
+..
+  Local Variables:
+  mode: rst
+  End:
