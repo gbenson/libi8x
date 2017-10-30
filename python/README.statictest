@@ -6,4 +6,4 @@ such:
   * They should not be used to build packages.
 
 Versioned releases suitable for these purposes are available at
-<https://pypi.python.org/pypi/libi8x/>.
+<https://pypi.python.org/pypi/libi8x-python/>.

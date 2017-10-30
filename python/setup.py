@@ -82,7 +82,7 @@ else:
     subprocess.check_call((sys.executable, "mkpy3capi.py", hdrdir))
 
 setup(
-    name="libi8x",
+    name="libi8x-python",
     version=VERSION,
     description="Python bindings for libi8x",
     license="LGPLv2.1+",
