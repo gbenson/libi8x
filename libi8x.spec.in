@@ -23,8 +23,8 @@ BuildRequires:  %{_i8x_python_dep}-setuptools
 Infinity is a platform-independent system for executables and shared
 libraries to expose functionality to debug, monitoring, and analysis
 tooling.  In Infinity, executable and shared library files contain
-platform-independent functions.  %{name} allows programs to access and
-execute these functions.
+platform-independent Infinity functions in addition to their regular
+contents.  %{name} allows programs to execute these functions.
 
 %package devel
 Summary:        Development files for %{name}
