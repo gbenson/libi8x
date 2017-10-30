@@ -53,7 +53,7 @@ AC_CHECK_FUNCS([ \
 	secure_getenv\
 ])
 
-AC_CHECK_PROGS(PYTHON, [python3 python python2], "")
+AC_CHECK_PROGS(PYTHON, [python python3 python2], "")
 
 dnl Check for libelf, lifted and extended from glib.  Note that only
 dnl the tlsdump example requires this, the main library does not use
