@@ -19,14 +19,13 @@ dnl see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.60)
 AC_INIT([libi8x],
-        [0.0.5],
+        [0.0.6],
         [infinity@sourceware.org],
         [libi8x],
         [https://sourceware.org/gdb/wiki/Infinity])
 AC_CONFIG_SRCDIR([libi8x/libi8x.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([
-	check-news
 	foreign
 	1.11
 	-Wall
