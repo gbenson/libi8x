@@ -55,7 +55,8 @@ if os.path.exists(statictest_readme):
 
     # Ensure everything is up-to-date.
     if "MAKELEVEL" not in os.environ:
-        subprocess.check_call(("make", "-C", os.path.dirname(here)))
+        if os.path.exists(os.path.join(here, "Makefile")):
+            subprocess.check_call(("make", "-C", os.path.dirname(here)))
 
     # Set up what to build.
     import glob
