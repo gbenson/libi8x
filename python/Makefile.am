@@ -21,6 +21,7 @@ EXTRA_DIST = \
 	README.statictest \
 	libi8x.c.in \
 	libi8x.c \
+	tests/README \
 	$(shell find . -name '*.py')
 
 mostlyclean-local:
