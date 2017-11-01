@@ -154,10 +154,15 @@ class TestAllTested(APITestCase):
     def test_libtool_output(self):
         """Check the filesystem libtool created."""
 
+        # N.B. Our libtool is patched (see build-aux/ltmain.sh.patch,
+        # autogen.sh).  This test checks the patch is doing what it
+        # should.
+
         # Soft checks: did libtool create a consistent filesystem?
         unversioned_link = self.LIBI8X_SO
         print("unversioned_link =", unversioned_link)
         self.assertTrue(os.path.exists(unversioned_link))
+        self.assertTrue(os.path.islink(unversioned_link))
         libdir, check = os.path.split(unversioned_link)
         self.assertEqual(check, "libi8x.so")
 
@@ -165,16 +170,51 @@ class TestAllTested(APITestCase):
         print("filename         =", filename)
         self.assertNotEqual(filename, unversioned_link)
         self.assertTrue(os.path.exists(filename))
-        self.assertEqual(os.path.dirname(filename), libdir)
+        self.assertFalse(os.path.islink(filename))
+        check, basename = os.path.split(filename)
+        self.assertEqual(check, libdir)
 
-        versioned_link = os.path.join(libdir, self.soname(filename))
+        soname = self.soname(filename)
+        versioned_link = os.path.join(libdir, soname)
         print("versioned_link   =", versioned_link)
         self.assertNotEqual(versioned_link, unversioned_link)
         self.assertNotEqual(versioned_link, filename)
         self.assertTrue(os.path.exists(versioned_link))
+        self.assertTrue(os.path.islink(versioned_link))
         self.assertEqual(os.path.realpath(versioned_link), filename)
 
+        # From ldconfig.c:
+        #
+        #   If the path the link points to isn't its soname or it is
+        #   not the .so symlink for ld(1), we treat it as a normal
+        #   file.
+        #
+        #   You should always do this:
+        #
+        #      libfoo.so -> SONAME -> Arbitrary package-chosen name.
+        #
+        #   e.g. libfoo.so -> libfoo.so.1 -> libfooimp.so.9.99.
+        #   Given a SONAME of libfoo.so.1.
+        #
+        #   You should *never* do this:
+        #
+        #      libfoo.so -> libfooimp.so.9.99
+        #
+        #   If you do, and your SONAME is libfoo.so.1, then libfoo.so
+        #   fails to point at the SONAME. In that case ldconfig may
+        #   consider libfoo.so as another implementation of SONAME and
+        #   will create symlinks against it causing problems when you
+        #   try to upgrade or downgrade. The problems will arise
+        #   because ldconfig will, depending on directory ordering,
+        #   creat symlinks against libfoo.so e.g. libfoo.so.1.2 ->
+        #   libfoo.so, but when libfoo.so is removed (typically by the
+        #   removal of a development pacakge not required for the
+        #   runtime) it will break the libfoo.so.1.2 symlink and the
+        #   application will fail to start.
+        self.assertEqual(os.readlink(unversioned_link), soname)
+        self.assertEqual(os.readlink(versioned_link), basename)
+
         # Hard checks: are the versioned names what we expect?
-        self.assertEqual(os.path.basename(versioned_link), "libi8x.so.1")
+        self.assertEqual(soname, "libi8x.so.1")
         self.assertIsNotNone(re.match(r"^libi8x-\d+\.\d+\.\d+\.so$",
-                                      os.path.basename(filename)))
+                                      basename))

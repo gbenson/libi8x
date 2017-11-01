@@ -61,3 +61,24 @@
  ## ----------- ##
  ##    Main.    ##
  ## ----------- ##
+@@ -8566,10 +8620,18 @@
+ 	fi
+ 
+ 	# Create links to the real library.
++	# libi8x hack: Unpatched libtool makes these links:
++	#   libi8x.so   -> libi8x-0.0.6.so
++	#   libi8x.so.1 -> libi8x-0.0.6.so
++	# We want these links:
++	#   libi8x.so   -> libi8x.so.1
++	#   libi8x.so.1 -> libi8x-0.0.6.so
++	i8x_target="$realname"
+ 	for linkname in $linknames; do
+-	  if test "$realname" != "$linkname"; then
+-	    func_show_eval '(cd "$output_objdir" && $RM "$linkname" && $LN_S "$realname" "$linkname")' 'exit $?'
++	  if test "$i8x_target" != "$linkname"; then
++	    func_show_eval '(cd "$output_objdir" && $RM "$linkname" && $LN_S "$i8x_target" "$linkname")' 'exit $?'
+ 	  fi
++	  i8x_target="$linkname"
+ 	done
+ 
+ 	# If -module or -export-dynamic was specified, set the dlname.
