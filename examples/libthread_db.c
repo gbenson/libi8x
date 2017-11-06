@@ -112,11 +112,19 @@ td_ta_selftest_cb (const td_thrhandle_t *th, void *arg)
 
   fputs ("   *", stderr);
 
+  /* Check arguments.  */
   FAIL_IF (th == NULL);
   FAIL_IF (arg != th->th_ta_p);
 
   fprintf (stderr, " %p", th->th_unique);
 
+  /* Check td_ta_map_id2thr.  */
+  memset (&th2, 0, sizeof (td_thrhandle_t));
+  err = td_ta_map_id2thr (th->th_ta_p, (pthread_t) th->th_unique, &th2);
+  FAIL_IF (err != TD_OK);
+  FAIL_IF (memcmp (th, &th2, sizeof (td_thrhandle_t)) != 0);
+
+  /* Check td_thr_get_info.  */
   err = td_thr_get_info (th, &ti);
   FAIL_IF (err != TD_OK);
 
@@ -125,6 +133,7 @@ td_ta_selftest_cb (const td_thrhandle_t *th, void *arg)
 
   fprintf (stderr, " => %d", ti.ti_lid);
 
+  /* Check td_ta_map_lwp2thr.  */
   memset (&th2, 0, sizeof (td_thrhandle_t));
   err = td_ta_map_lwp2thr (th->th_ta_p, ti.ti_lid, &th2);
   FAIL_IF (err != TD_OK);
@@ -923,7 +932,10 @@ td_err_e
 td_ta_map_id2thr (const td_thragent_t *ta, pthread_t pt,
 		  td_thrhandle_t *th)
 {
-  return TD_NOCAPAB;
+  th->th_ta_p = (td_thragent_t *) ta;
+  th->th_unique = (psaddr_t) pt;
+
+  return TD_OK;
 }
 
 /* Map process ID LWPID to thread debug library handle for process
