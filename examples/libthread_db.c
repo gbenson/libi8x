@@ -90,6 +90,17 @@ struct td_thragent
   td_thr_iter_f *thr_iter_cb_impl;
 };
 
+/* Macro for td_ta_self_test.  */
+
+#define FAIL_IF(expr)							\
+  do {									\
+    if (expr)								\
+      {									\
+	fputs ("\nFAIL: " #expr "\n", stderr);				\
+	return -1;							\
+      }									\
+  } while (0)
+
 /* Callback for td_ta_self_test.  */
 
 static int
@@ -98,53 +109,40 @@ td_ta_selftest_cb (const td_thrhandle_t *th, void *arg)
   union i8x_value args[1], rets[2];
   i8x_err_e err;
 
-  fputs ("   ", stderr);
+  fputs ("   *", stderr);
 
-  if (th == NULL)
-    goto fail;
-  fputc ('*', stderr);
-
-  if (th->th_ta_p != arg)
-    goto fail;
+  FAIL_IF (th == NULL);
+  FAIL_IF (arg != th->th_ta_p);
   fprintf (stderr, " %p", th->th_unique);
 
   args[0].p = th->th_unique;
   err = i8x_xctx_call (th->th_ta_p->xctx,
 		       th->th_ta_p->thread_get_lwpid,
 		       th->th_ta_p->inf, args, rets);
-  if (err != I8X_OK)
-    goto fail;
-  fputs (" =>", stderr);
 
-  if (rets[1].i != TD_OK)
-    goto fail;
+  FAIL_IF (err != I8X_OK);
+  FAIL_IF (rets[1].i != TD_OK);
+
   lwpid_t lwpid = rets[0].i;
-  fprintf (stderr, " %d", lwpid);
+  fprintf (stderr, " => %d", lwpid);
 
   args[0].i = lwpid;
   err = i8x_xctx_call (th->th_ta_p->xctx,
 		       th->th_ta_p->thread_from_lwpid,
 		       th->th_ta_p->inf, args, rets);
 
-  if (err != I8X_OK)
-    goto fail;
-  fputs (" =>", stderr);
+  FAIL_IF (err != I8X_OK);
+  FAIL_IF (rets[1].i != TD_OK);
 
-  if (rets[1].i != TD_OK)
-    goto fail;
   psaddr_t th_unique = rets[0].p;
-  fprintf (stderr, " %p", th_unique);
+  fprintf (stderr, " => %p", th_unique);
 
-  if (th_unique != th->th_unique)
-    goto fail;
+  FAIL_IF (th_unique != th->th_unique);
 
   fputc ('\n', stderr);
   return 0;
-
- fail:
-  fputs (" FAIL!\n", stderr);
-  return -1;
 }
+#undef FAIL_IF
 
 /* Check that thread::get_lwpid and thread::from_lwpid are the inverse
    of each other for each thread.  This gives some assurance that the
