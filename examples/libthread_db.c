@@ -106,38 +106,31 @@ struct td_thragent
 static int
 td_ta_selftest_cb (const td_thrhandle_t *th, void *arg)
 {
-  union i8x_value args[1], rets[2];
-  i8x_err_e err;
+  td_thrhandle_t th2;
+  td_thrinfo_t ti;
+  td_err_e err;
 
   fputs ("   *", stderr);
 
   FAIL_IF (th == NULL);
   FAIL_IF (arg != th->th_ta_p);
+
   fprintf (stderr, " %p", th->th_unique);
 
-  args[0].p = th->th_unique;
-  err = i8x_xctx_call (th->th_ta_p->xctx,
-		       th->th_ta_p->thread_get_lwpid,
-		       th->th_ta_p->inf, args, rets);
+  err = td_thr_get_info (th, &ti);
+  FAIL_IF (err != TD_OK);
 
-  FAIL_IF (err != I8X_OK);
-  FAIL_IF (rets[1].i != TD_OK);
+  FAIL_IF (ti.ti_ta_p != th->th_ta_p);
+  FAIL_IF (ti.ti_tid != (thread_t) th->th_unique);
 
-  lwpid_t lwpid = rets[0].i;
-  fprintf (stderr, " => %d", lwpid);
+  fprintf (stderr, " => %d", ti.ti_lid);
 
-  args[0].i = lwpid;
-  err = i8x_xctx_call (th->th_ta_p->xctx,
-		       th->th_ta_p->thread_from_lwpid,
-		       th->th_ta_p->inf, args, rets);
+  memset (&th2, 0, sizeof (td_thrhandle_t));
+  err = td_ta_map_lwp2thr (th->th_ta_p, ti.ti_lid, &th2);
+  FAIL_IF (err != TD_OK);
 
-  FAIL_IF (err != I8X_OK);
-  FAIL_IF (rets[1].i != TD_OK);
-
-  psaddr_t th_unique = rets[0].p;
-  fprintf (stderr, " => %p", th_unique);
-
-  FAIL_IF (th_unique != th->th_unique);
+  fprintf (stderr, " => %p", th2.th_unique);
+  FAIL_IF (memcmp (th, &th2, sizeof (td_thrhandle_t)) != 0);
 
   fputc ('\n', stderr);
   return 0;
