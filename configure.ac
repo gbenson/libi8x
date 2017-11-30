@@ -25,6 +25,7 @@ AC_INIT([libi8x],
         [https://sourceware.org/gdb/wiki/Infinity])
 AC_CONFIG_SRCDIR([libi8x/libi8x.h])
 AC_CONFIG_AUX_DIR([build-aux])
+AM_MAINTAINER_MODE([enable])
 AM_INIT_AUTOMAKE([
 	foreign
 	1.11
