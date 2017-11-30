@@ -83,12 +83,7 @@ libi8x_la_SOURCES = \
 
 EXTRA_DIST += libi8x.sym optable.c
 
-# Note that we use a patched libtool that builds this setup:
-#   $(libdir)/libi8x-$(VERSION).so
-#   $(libdir)/libi8x.so.$(LIBI8X_SONAME_VERSION)
-#   $(libdir)/libi8x.so
 libi8x_la_LDFLAGS = $(AM_LDFLAGS) \
-	-release $(VERSION) \
 	-version-info $(LIBI8X_SONAME_VERSION):0:0 \
 	-Wl,--version-script=$(top_srcdir)/libi8x/libi8x.sym
 libi8x_la_DEPENDENCIES = ${top_srcdir}/libi8x/libi8x.sym
@@ -97,3 +92,46 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libi8x.pc
 EXTRA_DIST += libi8x.pc.in
 CLEANFILES += libi8x.pc
+
+# From ldconfig.c:
+#
+#   If the path the link points to isn't its soname or it is not
+#   the .so symlink for ld(1), we treat it as a normal file.
+#
+#   You should always do this:
+#
+#      libfoo.so -> SONAME -> Arbitrary package-chosen name.
+#
+#   e.g. libfoo.so -> libfoo.so.1 -> libfooimp.so.9.99.
+#   Given a SONAME of libfoo.so.1.
+#
+#   You should *never* do this:
+#
+#      libfoo.so -> libfooimp.so.9.99
+#
+#   If you do, and your SONAME is libfoo.so.1, then libfoo.so fails
+#   to point at the SONAME.  In that case ldconfig may consider
+#   libfoo.so as another implementation of SONAME and will create
+#   symlinks against it causing problems when you try to upgrade or
+#   downgrade.  The problems will arise because ldconfig will,
+#   depending on directory ordering, creat symlinks against libfoo.so
+#   e.g. libfoo.so.1.2 -> libfoo.so, but when libfoo.so is removed
+#   (typically by the removal of a development pacakge not required
+#   for the runtime) it will break the libfoo.so.1.2 symlink and the
+#   application will fail to start.
+install-exec-hook:
+	rm -f $(DESTDIR)$(libdir)/libi8x.so
+	rm -f $(DESTDIR)$(libdir)/libi8x.so.$(LIBI8X_SONAME_VERSION)
+	mv $(DESTDIR)$(libdir)/libi8x.so.$(LIBI8X_SONAME_VERSION).0.0 \
+	    $(DESTDIR)$(libdir)/libi8x-$(VERSION).so
+	$(LN_S) libi8x-$(VERSION).so \
+	    $(DESTDIR)$(libdir)/libi8x.so.$(LIBI8X_SONAME_VERSION)
+	$(LN_S) libi8x.so.$(LIBI8X_SONAME_VERSION) \
+	    $(DESTDIR)$(libdir)/libi8x.so
+
+	mv $(DESTDIR)$(libdir)/libi8x.la $(DESTDIR)$(libdir)/libi8x.la.orig
+	$(SED) \
+	    -e "s,\\.so\\.$(LIBI8X_SONAME_VERSION)\\.0\\.0,-$(VERSION).so,g" \
+	    < $(DESTDIR)$(libdir)/libi8x.la.orig \
+	    > $(DESTDIR)$(libdir)/libi8x.la
+	rm -f $(DESTDIR)$(libdir)/libi8x.la.orig

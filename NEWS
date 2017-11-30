@@ -1,6 +1,13 @@
 What has changed in libi8x?
 ===========================
 
+Changes in libi8x 0.0.6
+-----------------------
+
+* libi8x no longer uses a patched version of libtool.  The required
+  library directory layout is now created at "make install" time.
+
+
 Changes in libi8x 0.0.5
 -----------------------
 

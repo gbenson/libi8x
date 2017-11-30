@@ -10,11 +10,6 @@ fi
 
 autoreconf --install --symlink
 
-ltmain=build-aux/ltmain.sh
-[ -f $ltmain.unpatched ] || mv $ltmain $ltmain.unpatched
-cat $ltmain.unpatched > $ltmain
-patch -p0 --no-backup-if-mismatch -s < $ltmain.patch
-
 libdir() {
         echo $(cd $1/$(gcc -print-multi-os-directory); pwd)
 }
