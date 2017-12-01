@@ -46,6 +46,7 @@ make check VERBOSE=1
 
 %install
 make install DESTDIR=%{buildroot}
+rm -f %{buildroot}%{_libdir}/%{name}.la
 
 %post -p /sbin/ldconfig
 
@@ -62,5 +63,4 @@ make install DESTDIR=%{buildroot}
 %defattr(-,root,root,-)
 %{_includedir}/%{name}.h
 %{_libdir}/%{name}.so
-%{_libdir}/%{name}.la
 %{_libdir}/pkgconfig/%{name}.pc
