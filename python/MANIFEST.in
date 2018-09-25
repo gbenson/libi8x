@@ -1,4 +1,4 @@
-include COPYING
+include COPYING NEWS.rst
 include mkpy3capi.py libi8x.c.in libi8x.c
 recursive-include libi8x *.py
 include libi8xtest.py

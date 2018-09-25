@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Red Hat, Inc.
+/* Copyright (C) 2017-18 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -1330,7 +1330,8 @@ py8x_xctx_call (PyObject *self, PyObject *args)
 
   size_t argc = i8x_funcref_get_num_params (ref);
   size_t retc = i8x_funcref_get_num_returns (ref);
-  union i8x_value *argv = alloca (PY8X_MAX (argc, retc));
+  union i8x_value *argv = alloca (PY8X_MAX (argc, retc)
+				  * sizeof (union i8x_value));
   union i8x_value *retv = argv;
 
   if (!py8x_unpack_args (argv, args, ref))
