@@ -7,6 +7,9 @@ Changes in libi8x 0.0.6
 * libi8x no longer uses a patched version of libtool.  The required
   library directory layout is now created at "make install" time.
 
+* AM_MAINTAINER_MODE([enable]) was added to configure.ac to allow
+  disabling the rebuild rules via --disable-maintainer-mode.
+
 
 Changes in libi8x 0.0.5
 -----------------------
