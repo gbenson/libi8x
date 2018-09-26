@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-17 Red Hat, Inc.
+/* Copyright (C) 2016-18 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -36,16 +36,16 @@ extern "C" {
   FAIL ("should not call")
 
 #define FAIL(...) \
-  __i8x_test_fail (__FILE__, __LINE__, NULL, I8X_OK, __VA_ARGS__)
+  i8x_test_fail (__FILE__, __LINE__, NULL, I8X_OK, __VA_ARGS__)
 
 #define CHECK_CALL(ctx, err)						\
   ((void) ((err) == I8X_OK ? 0 :					\
-	   (__i8x_test_fail (__FILE__, __LINE__,			\
-			     (ctx), (err), "err != I8X_OK"), 0)))
+	   (i8x_test_fail (__FILE__, __LINE__,				\
+			   (ctx), (err), "err != I8X_OK"), 0)))
 
-void __i8x_test_fail (const char *file, int line,
-		      struct i8x_ctx *ctx, i8x_err_e err,
-		      const char *format, ...)
+void i8x_test_fail (const char *file, int line,
+		    struct i8x_ctx *ctx, i8x_err_e err,
+		    const char *format, ...)
   __attribute__ ((__noreturn__, format (printf, 5, 6)));
 
 #ifdef LIBI8X_TEST_SRCDIR

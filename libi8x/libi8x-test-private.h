@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Red Hat, Inc.
+/* Copyright (C) 2017-18 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -32,21 +32,21 @@ extern "C" {
    via glibc's libthread_db.  They should all be LIBI8X_PRIVATE
    in libi8x.sym.  */
 
-#define i8x_chunk_get_version	__i8xtest_chunk_get_version
-#define i8x_chunk_get_encoded	__i8xtest_chunk_get_encoded
+#define i8x_chunk_get_version	i8xtest_chunk_get_version
+#define i8x_chunk_get_encoded	i8xtest_chunk_get_encoded
 #define i8x_chunk_get_encoded_size \
-				__i8xtest_chunk_get_encoded_size
-#define i8x_ctx_strerror_r	__i8xtest_ctx_strerror_r
-#define i8x_func_get_externals	__i8xtest_func_get_externals
-#define i8x_func_new_bytecode	__i8xtest_func_new_bytecode
-#define i8x_func_new_native	__i8xtest_func_new_native
-#define i8x_func_register	__i8xtest_func_register
-#define i8x_note_new		__i8xtest_note_new
+				i8xtest_chunk_get_encoded_size
+#define i8x_ctx_strerror_r	i8xtest_ctx_strerror_r
+#define i8x_func_get_externals	i8xtest_func_get_externals
+#define i8x_func_new_bytecode	i8xtest_func_new_bytecode
+#define i8x_func_new_native	i8xtest_func_new_native
+#define i8x_func_register	i8xtest_func_register
+#define i8x_note_new		i8xtest_note_new
 #define i8x_note_get_unique_chunk \
-				__i8xtest_note_get_unique_chunk
-#define i8x_type_get_encoded	__i8xtest_type_get_encoded
+				i8xtest_note_get_unique_chunk
+#define i8x_type_get_encoded	i8xtest_type_get_encoded
 #define i8x_xctx_set_use_debug_interpreter \
-				__i8xtest_xctx_set_use_debug_interpreter
+				i8xtest_xctx_set_use_debug_interpreter
 
 /* Chunk types.  */
 

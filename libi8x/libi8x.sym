@@ -1,4 +1,4 @@
-# Copyright (C) 2016-17 Red Hat, Inc.
+# Copyright (C) 2016-18 Red Hat, Inc.
 # This file is part of the Infinity Note Execution Library.
 #
 # The Infinity Note Execution Library is free software; you can
@@ -84,16 +84,16 @@ local:
 # support is added to GDB, but are not required while support
 # is via glibc's libthread_db.
 LIBI8X_PRIVATE {
-	__i8xtest_chunk_get_version;
-	__i8xtest_chunk_get_encoded_size;
-	__i8xtest_chunk_get_encoded;
-	__i8xtest_ctx_strerror_r;
-	__i8xtest_func_get_externals;
-	__i8xtest_func_new_bytecode;
-	__i8xtest_func_new_native;
-	__i8xtest_func_register;
-	__i8xtest_note_new;
-	__i8xtest_note_get_unique_chunk;
-	__i8xtest_type_get_encoded;
-	__i8xtest_xctx_set_use_debug_interpreter;
+	i8xtest_chunk_get_version;
+	i8xtest_chunk_get_encoded_size;
+	i8xtest_chunk_get_encoded;
+	i8xtest_ctx_strerror_r;
+	i8xtest_func_get_externals;
+	i8xtest_func_new_bytecode;
+	i8xtest_func_new_native;
+	i8xtest_func_register;
+	i8xtest_note_new;
+	i8xtest_note_get_unique_chunk;
+	i8xtest_type_get_encoded;
+	i8xtest_xctx_set_use_debug_interpreter;
 };

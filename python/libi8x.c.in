@@ -48,10 +48,10 @@
 
 #define py8x_logf_cond(ctx, priority, arg...)				\
   do {									\
-    struct i8x_ctx *__ctx = (ctx);					\
+    struct i8x_ctx *lc_ctx = (ctx);					\
 									\
-    if (i8x_ctx_get_log_priority (__ctx) >= priority)			\
-      py8x_logf (__ctx, priority, __FILE__, __LINE__,			\
+    if (i8x_ctx_get_log_priority (lc_ctx) >= priority)			\
+      py8x_logf (lc_ctx, priority, __FILE__, __LINE__,			\
 		 __FUNCTION__, ## arg);					\
   } while (0)
 

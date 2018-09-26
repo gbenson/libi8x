@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-17 Red Hat, Inc.
+/* Copyright (C) 2016-18 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -70,17 +70,17 @@ type_check_helper (const struct i8x_object_ops *funcref_ops,
 {
   struct i8x_type *type = i8x_listitem_get_type (li);
 
-  if (__i8x_likely (!i8x_type_is_functype (type)))
+  if (i8x_likely (!i8x_type_is_functype (type)))
     return true;
 
   struct i8x_funcref *ref = value->f;
-  if (__i8x_unlikely (ref == NULL))
+  if (i8x_unlikely (ref == NULL))
     return false;
 
-  if (__i8x_unlikely (ref->_ob.ops != funcref_ops))
+  if (i8x_unlikely (ref->_ob.ops != funcref_ops))
     return false;
 
-  if (__i8x_unlikely (ref->type != type))
+  if (i8x_unlikely (ref->type != type))
     return false;
 
   return true;
@@ -94,7 +94,7 @@ type_check_args (struct i8x_funcref *ref, union i8x_value *args)
 
   i8x_list_foreach (i8x_type_get_ptypes (ref->type), li)
     {
-      if (__i8x_unlikely (!type_check_helper (funcref_ops, li, args++)))
+      if (i8x_unlikely (!type_check_helper (funcref_ops, li, args++)))
 	return i8x_invalid_argument (i8x_funcref_get_ctx (ref));
     }
 
@@ -109,7 +109,7 @@ type_check_rets (struct i8x_funcref *ref, union i8x_value *rets)
 
   i8x_list_foreach_reversed (i8x_type_get_rtypes (ref->type), li)
     {
-      if (__i8x_unlikely (!type_check_helper (funcref_ops, li, rets++)))
+      if (i8x_unlikely (!type_check_helper (funcref_ops, li, rets++)))
 	return i8x_ctx_set_error (i8x_funcref_get_ctx (ref),
 				  I8X_NATCALL_BAD_FUNCREF_RET,
 				  NULL, NULL);
@@ -165,7 +165,7 @@ enum
     csp -= CS_FRAME_SIZE;						\
 									\
     /* Check we have enough stack.  */					\
-    if (__i8x_unlikely (callee_vspfloor + code->max_stack > csp))	\
+    if (i8x_unlikely (callee_vspfloor + code->max_stack > csp))	\
       {									\
 	err = i8x_code_error (code, I8X_STACK_OVERFLOW,			\
 			      code->entry_point);			\
@@ -275,7 +275,7 @@ call_native (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   trace (i8x_xctx_get_ctx (xctx), "%s: native return\n", ref->signature);
 
   /* Type check the returns.  */
-  if (__i8x_likely (err == I8X_OK))
+  if (i8x_likely (err == I8X_OK))
     err = type_check_rets (ref, rets);
 
   return err;
@@ -420,7 +420,7 @@ i8x_ctx_init_dispatch_table (struct i8x_ctx *ctx, void **table,
 
 #define CALLBACK_ERROR_CHECK()			\
   do {						\
-    if (__i8x_unlikely (err != I8X_OK))		\
+    if (i8x_unlikely (err != I8X_OK))		\
       {						\
 	err = i8x_code_error (code, err, op);	\
 	goto unwind_and_return;			\
@@ -441,12 +441,12 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 {
   /* Switch to the debug interpreter if requested.  */
 #ifndef DEBUG_INTERPRETER
-  if (__i8x_unlikely (xctx->use_debug_interpreter))
+  if (i8x_unlikely (xctx->use_debug_interpreter))
     return i8x_xctx_call_dbg (xctx, ref, inf, args, rets);
 #endif
 
   /* Emit our dispatch table if requested.  */
-  if (__i8x_unlikely (xctx->dispatch_table_to_init != NULL))
+  if (i8x_unlikely (xctx->dispatch_table_to_init != NULL))
     {
       void **dtable = xctx->dispatch_table_to_init;
       size_t dtable_size = xctx->dispatch_table_size;
@@ -461,7 +461,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 
   /* Type check the arguments.  */
   i8x_err_e err = type_check_args (ref, args);
-  if (__i8x_unlikely (err != I8X_OK))
+  if (i8x_unlikely (err != I8X_OK))
     return err;
 
   /* If this is a native function then execute it.  */
@@ -472,7 +472,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
   struct i8x_code *code;
 
   SETUP_BYTECODE_UNCHECKED (ref);
-  if (__i8x_unlikely (code == NULL))
+  if (i8x_unlikely (code == NULL))
     return i8x_unresolved_function (i8x_xctx_get_ctx (xctx));
 
   /* Pull the stack pointers into local variables.  */
@@ -508,7 +508,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 
       /* See comments in reloc-private.h about the limitations
 	 of this cache.  */
-      if (__i8x_unlikely (reloc->cached_from != inf))
+      if (i8x_unlikely (reloc->cached_from != inf))
 	{
 	  uintptr_t value DEBUG_ONLY(= I8X_POISON_BAD_RELOCATE_FN);
 
@@ -592,7 +592,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
 #define OPERATION_DW_divmod(name, operator, type)		\
   OPERATION (DW_OP_ ## name):					\
     ENSURE_DEPTH (2);						\
-    if (__i8x_unlikely (STACK(0).type == 0))			\
+    if (i8x_unlikely (STACK(0).type == 0))			\
       {								\
 	err = i8x_code_error (code, I8X_DIVIDE_BY_ZERO, op);	\
 	goto unwind_and_return;					\
@@ -724,7 +724,7 @@ INTERPRETER (struct i8x_xctx *xctx, struct i8x_funcref *ref,
       LEAVE_NATIVE ();
       CALLBACK_ERROR_CHECK ();
 
-      if (__i8x_likely (num_args != 0))
+      if (i8x_likely (num_args != 0))
 	{
 	  memmove (arg0, ret0, num_rets * sizeof (union i8x_value));
 	  ADJUST_STACK (-num_args);

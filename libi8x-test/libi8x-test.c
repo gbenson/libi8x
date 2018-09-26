@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-17 Red Hat, Inc.
+/* Copyright (C) 2016-18 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -30,9 +30,9 @@
 #include <libi8x-test.h>
 
 void
-__i8x_test_fail (const char *file, int line,
-		 struct i8x_ctx *ctx, i8x_err_e err,
-		 const char *format, ...)
+i8x_test_fail (const char *file, int line,
+	       struct i8x_ctx *ctx, i8x_err_e err,
+	       const char *format, ...)
 {
   char buf[BUFSIZ];
   va_list args;

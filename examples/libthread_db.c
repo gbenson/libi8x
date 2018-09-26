@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-17 Red Hat, Inc.
+/* Copyright (C) 2016-18 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -752,7 +752,7 @@ td_init (void)
 /* Generate new thread debug library handle for process PS.  */
 
 td_err_e
-td_ta_new (struct ps_prochandle *ps, td_thragent_t **__ta)
+td_ta_new (struct ps_prochandle *ps, td_thragent_t **ta_p)
 {
   td_thragent_t *ta;
   td_err_e err;
@@ -765,7 +765,7 @@ td_ta_new (struct ps_prochandle *ps, td_thragent_t **__ta)
 
   err = td_ta_init (ta);
   if (err == TD_OK)
-    *__ta = ta;
+    *ta_p = ta;
   else
     td_ta_delete (ta);
 

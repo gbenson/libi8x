@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2017 Red Hat, Inc.
+# Copyright (C) 2017-18 Red Hat, Inc.
 # This file is part of the Infinity Note Execution Library.
 #
 # The Infinity Note Execution Library is free software; you can
@@ -34,7 +34,7 @@ TOP_SRCDIR = os.environ.get("LIBI8X_TEST_SRCDIR", TOP_BUILDDIR)
 
 class Symbol(object):
     PUBLIC_PREFIX = "i8x_"
-    PRIVATE_PREFIX = "__i8xtest_"
+    PRIVATE_PREFIX = "i8xtest_"
 
     def __init__(self, env, version, name):
         env.assertTrue(version.startswith("LIBI8X_"))

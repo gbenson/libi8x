@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-17 Red Hat, Inc.
+/* Copyright (C) 2016-18 Red Hat, Inc.
    This file is part of the Infinity Note Execution Library.
 
    The Infinity Note Execution Library is free software; you can
@@ -155,11 +155,11 @@ void i8x_ctx_log (struct i8x_ctx *ctx,
 /* Branch prediction.  */
 
 #if __GNUC__ >= 3
-# define __i8x_unlikely(cond)	__builtin_expect ((cond), 0)
-# define __i8x_likely(cond)	__builtin_expect ((cond), 1)
+# define i8x_unlikely(cond)	__builtin_expect ((cond), 0)
+# define i8x_likely(cond)	__builtin_expect ((cond), 1)
 #else
-# define __i8x_unlikely(cond)	(cond)
-# define __i8x_likely(cond)	(cond)
+# define i8x_unlikely(cond)	(cond)
+# define i8x_likely(cond)	(cond)
 #endif
 
 /* Object system.  */
